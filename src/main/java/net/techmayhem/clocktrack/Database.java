@@ -7,17 +7,12 @@ import java.util.HashSet;
 import java.util.List;
 
 public class Database implements AutoCloseable {
-    private Connection connection;
+    private final Connection connection;
 
     private static Database instance;
 
     private Database() throws SQLException {
-        try {
-            connection = DriverManager.getConnection("jdbc:sqlite:ClockTrack.db");
-        } catch (SQLException e) {
-            Logger.error("Fatal: could not connect to database: {}", e.getMessage());
-            System.exit(1);
-        }
+        connection = DriverManager.getConnection("jdbc:sqlite:ClockTrack.db");
     }
 
     public static Database getInstance() {
@@ -25,7 +20,7 @@ public class Database implements AutoCloseable {
             try {
                 instance = new Database();
             } catch (SQLException e) {
-                System.err.println("Could not connect to database: " + e.getMessage());
+                Logger.error("Could not connect to database: " + e.getMessage());
                 System.exit(1);
             }
         }
@@ -76,9 +71,11 @@ public class Database implements AutoCloseable {
                     good BOOLEAN NOT NULL,
                     note TEXT,
                     FOREIGN KEY(session_id) REFERENCES session(id),
-                    FOREIGN KEY(person_id) REFERENCES person(id)
+                    FOREIGN KEY(person_id) REFERENCES person(id),
+                    UNIQUE(session_id, person_id)
                 );
                 """);
+        statement.close();
     }
 
     /// Checks if the schema needs to be set up. Returns true if no tables have been created yet.
@@ -91,6 +88,8 @@ public class Database implements AutoCloseable {
         while (rs.next()) {
             foundTables.add(rs.getString("name"));
         }
+        rs.close();
+        statement.close();
         HashSet<String> expectedTables = new HashSet<>(List.of("person", "script", "session", "person_session"));
         if (foundTables.isEmpty()) {
             return false;
@@ -102,6 +101,8 @@ public class Database implements AutoCloseable {
         return true;
     }
 
+    /// Used to print a ResultSet. For debugging purposes.
+    @SuppressWarnings("unused")
     private void printResultSet(ResultSet rs) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
