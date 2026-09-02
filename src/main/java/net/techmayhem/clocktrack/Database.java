@@ -1,6 +1,10 @@
 package net.techmayhem.clocktrack;
 
+import org.tinylog.Logger;
+
 import java.sql.*;
+import java.util.HashSet;
+import java.util.List;
 
 public class Database implements AutoCloseable {
     private Connection connection;
@@ -11,7 +15,7 @@ public class Database implements AutoCloseable {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:ClockTrack.db");
         } catch (SQLException e) {
-            System.err.println("Fatal: could not connect to database: " + e.getMessage());
+            Logger.error("Fatal: could not connect to database: {}", e.getMessage());
             System.exit(1);
         }
     }
@@ -28,7 +32,13 @@ public class Database implements AutoCloseable {
         return instance;
     }
 
+    /// Checks the database and sets up the schema if necessary. If the schema is invalid, exits the application.
     public void initSchema() throws SQLException {
+        if (isDbSetup()) {
+            return;
+        }
+
+        Logger.info("Creating database schema");
         Statement statement = connection.createStatement();
         statement.execute("""
                 CREATE TABLE person(
@@ -69,6 +79,48 @@ public class Database implements AutoCloseable {
                     FOREIGN KEY(person_id) REFERENCES person(id)
                 );
                 """);
+    }
+
+    /// Checks if the schema needs to be set up. Returns true if no tables have been created yet.
+    ///
+    /// If tables have already been created but do not match the expected schema, an error is printed instead and the application exits.
+    private boolean isDbSetup() throws SQLException {
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'");
+        HashSet<String> foundTables = new HashSet<>();
+        while (rs.next()) {
+            foundTables.add(rs.getString("name"));
+        }
+        HashSet<String> expectedTables = new HashSet<>(List.of("person", "script", "session", "person_session"));
+        if (foundTables.isEmpty()) {
+            return false;
+        }
+        if (!(foundTables.containsAll(expectedTables) && foundTables.size() == expectedTables.size())) {
+            Logger.error("Invalid schema\nExpected table: {}\nActual tables: {}", expectedTables, foundTables);
+            System.exit(1);
+        }
+        return true;
+    }
+
+    private void printResultSet(ResultSet rs) throws SQLException {
+        ResultSetMetaData meta = rs.getMetaData();
+        int columnCount = meta.getColumnCount();
+
+        // print header
+        for (int i = 1; i <= columnCount; i++) {
+            System.out.print(meta.getColumnName(i));
+            if (i < columnCount) System.out.print(" | ");
+        }
+        System.out.println();
+
+        // print rows
+        while (rs.next()) {
+            for (int i = 1; i <= columnCount; i++) {
+                System.out.print(rs.getString(i));
+                if (i < columnCount) System.out.print(" | ");
+            }
+            System.out.println();
+        }
     }
 
     @Override

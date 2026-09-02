@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack;
 
+import org.tinylog.Logger;
+
 import java.sql.SQLException;
 
 public class Main {
@@ -11,5 +13,7 @@ public class Main {
         } catch (SQLException e) {
             System.err.println("Error: " + e.getMessage());
         }
+
+        Logger.info("App ran successfully!");
     }
 }
