@@ -13,10 +13,10 @@ public class Database implements AutoCloseable {
 
     private Database() throws SQLException {
         connection = DriverManager.getConnection("jdbc:sqlite:ClockTrack.db");
-        connection.setAutoCommit(false);
         try (Statement statement = connection.createStatement()) {
             statement.execute("PRAGMA foreign_keys = ON");
         }
+        connection.setAutoCommit(false);
     }
 
     public static Database getInstance() {
