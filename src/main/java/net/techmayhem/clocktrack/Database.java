@@ -1,8 +1,11 @@
 package net.techmayhem.clocktrack;
 
+import net.techmayhem.clocktrack.models.FromDb;
+import net.techmayhem.clocktrack.models.Person;
 import org.tinylog.Logger;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -32,56 +35,60 @@ public class Database implements AutoCloseable {
     }
 
     /// Checks the database and sets up the schema if necessary. If the schema is invalid, exits the application.
-    public void initSchema() throws SQLException {
+    public void initSchema() {
         if (isDbSetup()) {
             return;
         }
 
         Logger.info("Creating database schema");
-        Result result = runTransaction(statement -> {
-            statement.execute("""
-                    CREATE TABLE person(
-                        id INTEGER PRIMARY KEY,
-                        name TEXT NOT NULL
-                    );
-                    """);
-            statement.execute("""
-                    CREATE TABLE script(
-                        id INTEGER PRIMARY KEY,
-                        name TEXT NOT NULL,
-                        json TEXT
-                    );
-                    """);
-            statement.execute("""
-                    CREATE TABLE session(
-                        id INTEGER PRIMARY KEY,
-                        date DATE NOT NULL,
-                        storyteller INTEGER NOT NULL,
-                        good_won BOOLEAN NOT NULL,
-                        script INTEGER NOT NULL,
-                        note TEXT,
-                        FOREIGN KEY(storyteller) REFERENCES person(id),
-                        FOREIGN KEY(script) REFERENCES script(id)
-                    );
-                    """);
-            statement.execute("""
-                    CREATE TABLE person_session(
-                        id INTEGER PRIMARY KEY,
-                        session_id INTEGER NOT NULL,
-                        person_id INTEGER NOT NULL,
-                        role TEXT NOT NULL,
-                        death_on_day INTEGER,
-                        cause_of_death TEXT,
-                        good BOOLEAN NOT NULL,
-                        note TEXT,
-                        FOREIGN KEY(session_id) REFERENCES session(id),
-                        FOREIGN KEY(person_id) REFERENCES person(id),
-                        UNIQUE(session_id, person_id)
-                    );
-                    """);
+        Result<Void> result = runTransaction(conn -> {
+            try (Statement statement = conn.createStatement()) {
+                statement.execute("""
+                        CREATE TABLE person(
+                            id INTEGER PRIMARY KEY,
+                            name TEXT NOT NULL
+                        );
+                        """);
+                statement.execute("""
+                        CREATE TABLE script(
+                            id INTEGER PRIMARY KEY,
+                            name TEXT NOT NULL,
+                            json TEXT
+                        );
+                        """);
+                statement.execute("""
+                        CREATE TABLE session(
+                            id INTEGER PRIMARY KEY,
+                            date DATE NOT NULL,
+                            storyteller INTEGER NOT NULL,
+                            good_won BOOLEAN NOT NULL,
+                            script INTEGER NOT NULL,
+                            note TEXT,
+                            FOREIGN KEY(storyteller) REFERENCES person(id),
+                            FOREIGN KEY(script) REFERENCES script(id)
+                        );
+                        """);
+                statement.execute("""
+                        CREATE TABLE person_session(
+                            id INTEGER PRIMARY KEY,
+                            session_id INTEGER NOT NULL,
+                            person_id INTEGER NOT NULL,
+                            role TEXT NOT NULL,
+                            death_on_day INTEGER,
+                            cause_of_death TEXT,
+                            good BOOLEAN NOT NULL,
+                            note TEXT,
+                            FOREIGN KEY(session_id) REFERENCES session(id),
+                            FOREIGN KEY(person_id) REFERENCES person(id),
+                            UNIQUE(session_id, person_id)
+                        );
+                        """);
+            }
+            return null;
         });
-        if (result instanceof Result.Err(String message)) {
+        if (result instanceof Result.Err<Void>(String message)) {
             Logger.error("Failed to create database: {}", message);
+            System.exit(1);
         }
     }
 
@@ -89,17 +96,26 @@ public class Database implements AutoCloseable {
     ///
     /// If tables have already been created but do not match the expected schema, an error is printed instead and the application exits.
     private boolean isDbSetup() {
-        HashSet<String> foundTables = new HashSet<>();
-        Result result = runTransaction(statement -> {
-            ResultSet rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'");
-            while (rs.next()) {
-                foundTables.add(rs.getString("name"));
+        Result<HashSet<String>> result = runTransaction(conn -> {
+            HashSet<String> tables = new HashSet<>();
+            try (Statement statement = conn.createStatement();
+                 ResultSet rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
+                while (rs.next()) {
+                    tables.add(rs.getString("name"));
+                }
             }
+            return new Result.Ok<>(tables);
         });
-        if (result instanceof Result.Err(String message)) {
-            Logger.error("Failed to read database schema: {}", message);
-            System.exit(1);
-        }
+
+        HashSet<String> foundTables = switch (result) {
+            case Result.Ok<HashSet<String>>(HashSet<String> tables) -> tables;
+            case Result.Err<HashSet<String>>(String message) -> {
+                Logger.error("Failed to read database schema: {}", message);
+                System.exit(1);
+                yield new HashSet<>(); // unreachable
+            }
+        };
+
         HashSet<String> expectedTables = new HashSet<>(List.of("person", "script", "session", "person_session"));
         if (foundTables.isEmpty()) {
             return false;
@@ -111,32 +127,101 @@ public class Database implements AutoCloseable {
         return true;
     }
 
+    public Result<FromDb<Person>> insertPerson(Person person) {
+        return runTransaction(conn -> {
+            String sql = "INSERT INTO person(name) VALUES (?)";
+            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, person.name);
+                statement.executeUpdate();
+                try (ResultSet keys = statement.getGeneratedKeys()) {
+                    keys.next();
+                    return new Result.Ok<>(new FromDb<>(keys.getInt(1), person));
+                }
+            }
+        });
+    }
+
+    public Result<FromDb<Person>> getPerson(int id) {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM person WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, id);
+                try (ResultSet rs = statement.executeQuery()) {
+                    if (rs.next()) {
+                        return new Result.Ok<>(FromDb.map(rs, Person::map));
+                    } else {
+                        return new Result.Err<>("No person with id " + id);
+                    }
+                }
+            }
+        });
+    }
+
+    public Result<List<FromDb<Person>>> getAllPersons() {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM person";
+            ArrayList<FromDb<Person>> result = new ArrayList<>();
+            try (Statement statement = conn.createStatement()) {
+                statement.execute(sql);
+                try (ResultSet rs = statement.getResultSet()) {
+                    while (rs.next()) {
+                        result.add(FromDb.map(rs, Person::map));
+                    }
+                }
+            }
+            return new Result.Ok<>(result);
+        });
+    }
+
+    public Result<Void> updatePerson(FromDb<Person> person) {
+        return runTransaction(conn -> {
+            String sql = "UPDATE person SET name = ? WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setString(1, person.model().name);
+                statement.setInt(2, person.id());
+                statement.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    public Result<Void> deletePerson(int id) {
+        return runTransaction(conn -> {
+            String sql = "DELETE FROM person WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, id);
+                statement.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    @FunctionalInterface
+    interface SqlFunction<T> {
+        Result<T> apply(Connection conn) throws SQLException;
+    }
+
     /// Wrapper function for common database exception handling logic.
-    private Result runTransaction(SqlConsumer statements) {
-        try (Statement statement = connection.createStatement()) {
-            statements.accept(statement);
+    private <T> Result<T> runTransaction(SqlFunction<T> body) {
+        try {
+            Result<T> value = body.apply(connection);
             connection.commit();
-            return new Result.Ok();
+            return value;
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException sqlException) {
                 Logger.error("Could not rollback transaction: {}", sqlException.getMessage());
             }
-            return new Result.Err(e.getMessage());
+            return new Result.Err<>(e.getMessage());
         }
     }
 
-    @FunctionalInterface
-    interface SqlConsumer {
-        void accept(Statement statement) throws SQLException;
-    }
-
-    sealed interface Result {
-        record Ok() implements Result {
+    public sealed interface Result<T> {
+        record Ok<T>(T value) implements Result<T> {
         }
 
-        record Err(String message) implements Result {
+        record Err<T>(String message) implements Result<T> {
         }
     }
 
