@@ -84,7 +84,7 @@ public class Database implements AutoCloseable {
                         );
                         """);
             }
-            return null;
+            return Result.ok();
         });
         if (result instanceof Result.Err<Void>(String message)) {
             Logger.error("Failed to create database: {}", message);
@@ -181,7 +181,7 @@ public class Database implements AutoCloseable {
                 statement.setInt(2, person.id());
                 statement.executeUpdate();
             }
-            return null;
+            return Result.ok();
         });
     }
 
@@ -192,7 +192,7 @@ public class Database implements AutoCloseable {
                 statement.setInt(1, id);
                 statement.executeUpdate();
             }
-            return null;
+            return Result.ok();
         });
     }
 
@@ -222,6 +222,10 @@ public class Database implements AutoCloseable {
         }
 
         record Err<T>(String message) implements Result<T> {
+        }
+
+        static Result<Void> ok() {
+            return new Ok<>(null);
         }
     }
 
