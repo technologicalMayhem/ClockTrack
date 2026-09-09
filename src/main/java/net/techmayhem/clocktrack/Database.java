@@ -2,6 +2,7 @@ package net.techmayhem.clocktrack;
 
 import net.techmayhem.clocktrack.models.FromDb;
 import net.techmayhem.clocktrack.models.Person;
+import net.techmayhem.clocktrack.models.Session;
 import org.tinylog.Logger;
 
 import java.sql.*;
@@ -188,6 +189,84 @@ public class Database implements AutoCloseable {
     public Result<Void> deletePerson(int id) {
         return runTransaction(conn -> {
             String sql = "DELETE FROM person WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, id);
+                statement.executeUpdate();
+            }
+            return Result.ok();
+        });
+    }
+
+    public Result<FromDb<Session>> insertSession(Session session) {
+        return runTransaction(conn -> {
+            String sql = "INSERT INTO session(date, storyteller, good_won, script, note) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, session.date.toString());
+                statement.setInt(2, session.storyteller);
+                statement.setBoolean(3, session.goodWon);
+                statement.setInt(4, session.script);
+                statement.setString(5, session.note);
+                statement.executeUpdate();
+                try (ResultSet keys = statement.getGeneratedKeys()) {
+                    keys.next();
+                    return new Result.Ok<>(new FromDb<>(keys.getInt(1), session));
+                }
+            }
+        });
+    }
+
+    public Result<FromDb<Session>> getSession(int id) {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM session WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, id);
+                try (ResultSet rs = statement.executeQuery()) {
+                    if (rs.next()) {
+                        return new Result.Ok<>(FromDb.map(rs, Session::map));
+                    } else {
+                        return new Result.Err<>("No Session with id " + id);
+                    }
+                }
+            }
+        });
+    }
+
+    public Result<List<FromDb<Session>>> getAllSessions() {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM Session";
+            ArrayList<FromDb<Session>> result = new ArrayList<>();
+            try (Statement statement = conn.createStatement()) {
+                statement.execute(sql);
+                try (ResultSet rs = statement.getResultSet()) {
+                    while (rs.next()) {
+                        result.add(FromDb.map(rs, Session::map));
+                    }
+                }
+            }
+            return new Result.Ok<>(result);
+        });
+    }
+
+    public Result<Void> updateSession(FromDb<Session> session) {
+        return runTransaction(conn -> {
+            String sql = "UPDATE session SET date = ?, storyteller = ?, good_won = ?, script = ?, note = ? WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                Session model = session.model();
+                statement.setString(1, model.date.toString());
+                statement.setInt(2, model.storyteller);
+                statement.setBoolean(3, model.goodWon);
+                statement.setInt(4, model.script);
+                statement.setString(5, model.note);
+                statement.setInt(6, session.id());
+                statement.executeUpdate();
+            }
+            return Result.ok();
+        });
+    }
+
+    public Result<Void> deleteSession(int id) {
+        return runTransaction(conn -> {
+            String sql = "DELETE FROM session WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 statement.executeUpdate();

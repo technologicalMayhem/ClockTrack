@@ -1,12 +1,15 @@
 package net.techmayhem.clocktrack.models;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Person {
+    @NotNull
     public String name;
 
-    public Person(String name) {
+    public Person(@NotNull String name) {
         this.name = name;
     }
 
