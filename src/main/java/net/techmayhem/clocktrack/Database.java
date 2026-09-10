@@ -1,8 +1,6 @@
 package net.techmayhem.clocktrack;
 
-import net.techmayhem.clocktrack.models.FromDb;
-import net.techmayhem.clocktrack.models.Person;
-import net.techmayhem.clocktrack.models.Session;
+import net.techmayhem.clocktrack.models.*;
 import org.tinylog.Logger;
 
 import java.sql.*;
@@ -267,6 +265,179 @@ public class Database implements AutoCloseable {
     public Result<Void> deleteSession(int id) {
         return runTransaction(conn -> {
             String sql = "DELETE FROM session WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, id);
+                statement.executeUpdate();
+            }
+            return Result.ok();
+        });
+    }
+
+    public Result<FromDb<PersonSession>> insertPersonSession(PersonSession personSession) {
+        return runTransaction(conn -> {
+            String sql = "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setInt(1, personSession.sessionId);
+                statement.setInt(2, personSession.personId);
+                statement.setString(3, personSession.role);
+                if (personSession.deathOnDay == null) {
+                    statement.setNull(4, Types.INTEGER);
+                } else {
+                    statement.setInt(4, personSession.deathOnDay);
+                }
+                statement.setString(5, personSession.causeOfDeath);
+                statement.setBoolean(6, personSession.good);
+                statement.setString(7, personSession.note);
+                statement.executeUpdate();
+                try (ResultSet keys = statement.getGeneratedKeys()) {
+                    keys.next();
+                    return new Result.Ok<>(new FromDb<>(keys.getInt(1), personSession));
+                }
+            }
+        });
+    }
+
+    public Result<FromDb<PersonSession>> getPersonSession(int id) {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM person_session WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, id);
+                try (ResultSet rs = statement.executeQuery()) {
+                    if (rs.next()) {
+                        return new Result.Ok<>(FromDb.map(rs, PersonSession::map));
+                    } else {
+                        return new Result.Err<>("No PersonSession with id " + id);
+                    }
+                }
+            }
+        });
+    }
+
+    public Result<List<FromDb<PersonSession>>> getAllPersonSessionsForSession(int session_id) {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM person_session WHERE session_id = ?";
+            ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, session_id);
+                try (ResultSet rs = statement.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(FromDb.map(rs, PersonSession::map));
+                    }
+                }
+            }
+            return new Result.Ok<>(result);
+        });
+    }
+
+    public Result<List<FromDb<PersonSession>>> getAllPersonSessionsForPerson(int person_id) {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM person_session WHERE person_id = ?";
+            ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, person_id);
+                try (ResultSet rs = statement.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(FromDb.map(rs, PersonSession::map));
+                    }
+                }
+            }
+            return new Result.Ok<>(result);
+        });
+    }
+
+    public Result<Void> updatePersonSession(FromDb<PersonSession> personSession) {
+        return runTransaction(conn -> {
+            String sql = "UPDATE person_session SET role = ?, death_on_day = ?, cause_of_death = ?, good = ?, note = ? WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                PersonSession model = personSession.model();
+                statement.setString(1, model.role);
+                if (model.deathOnDay == null) {
+                    statement.setNull(2, Types.INTEGER);
+                } else {
+                    statement.setInt(2, model.deathOnDay);
+                }
+                statement.setBoolean(3, model.good);
+                statement.setString(4, model.note);
+                statement.executeUpdate();
+            }
+            return Result.ok();
+        });
+    }
+
+    public Result<Void> deletePersonSession(int id) {
+        return runTransaction(conn -> {
+            String sql = "DELETE FROM person_session WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, id);
+                statement.executeUpdate();
+            }
+            return Result.ok();
+        });
+    }
+
+    public Result<FromDb<Script>> insertScript(Script script) {
+        return runTransaction(conn -> {
+            String sql = "INSERT INTO script(name, json) VALUES (?, ?)";
+            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, script.name);
+                statement.setString(2, script.json);
+                statement.executeUpdate();
+                try (ResultSet keys = statement.getGeneratedKeys()) {
+                    keys.next();
+                    return new Result.Ok<>(new FromDb<>(keys.getInt(1), script));
+                }
+            }
+        });
+    }
+
+    public Result<FromDb<Script>> getScript(int id) {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM script WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, id);
+                try (ResultSet rs = statement.executeQuery()) {
+                    if (rs.next()) {
+                        return new Result.Ok<>(FromDb.map(rs, Script::map));
+                    } else {
+                        return new Result.Err<>("No Script with id " + id);
+                    }
+                }
+            }
+        });
+    }
+
+    public Result<List<FromDb<Script>>> getAllScripts() {
+        return runTransaction(conn -> {
+            String sql = "SELECT * FROM script";
+            ArrayList<FromDb<Script>> result = new ArrayList<>();
+            try (Statement statement = conn.createStatement()) {
+                statement.execute(sql);
+                try (ResultSet rs = statement.getResultSet()) {
+                    while (rs.next()) {
+                        result.add(FromDb.map(rs, Script::map));
+                    }
+                }
+            }
+            return new Result.Ok<>(result);
+        });
+    }
+
+    public Result<Void> updateScript(FromDb<Script> script) {
+        return runTransaction(conn -> {
+            String sql = "UPDATE script SET name = ?, json = ? WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                Script model = script.model();
+                statement.setString(1, model.name);
+                statement.setString(2, model.json);
+                statement.executeUpdate();
+            }
+            return Result.ok();
+        });
+    }
+
+    public Result<Void> deleteScript(int id) {
+        return runTransaction(conn -> {
+            String sql = "DELETE FROM script WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 statement.executeUpdate();
