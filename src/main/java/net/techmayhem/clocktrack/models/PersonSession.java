@@ -7,8 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class PersonSession {
-    public int sessionId;
-    public int personId;
+    public final int sessionId;
+    public final int personId;
     @NotNull
     public String role;
     @Nullable
