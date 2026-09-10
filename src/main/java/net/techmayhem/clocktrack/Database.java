@@ -231,7 +231,7 @@ public class Database implements AutoCloseable {
 
     public Result<List<FromDb<Session>>> getAllSessions() {
         return runTransaction(conn -> {
-            String sql = "SELECT * FROM Session";
+            String sql = "SELECT * FROM session";
             ArrayList<FromDb<Session>> result = new ArrayList<>();
             try (Statement statement = conn.createStatement()) {
                 statement.execute(sql);
@@ -356,8 +356,10 @@ public class Database implements AutoCloseable {
                 } else {
                     statement.setInt(2, model.deathOnDay);
                 }
-                statement.setBoolean(3, model.good);
-                statement.setString(4, model.note);
+                statement.setString(3, model.causeOfDeath);
+                statement.setBoolean(4, model.good);
+                statement.setString(5, model.note);
+                statement.setInt(6, personSession.id());
                 statement.executeUpdate();
             }
             return Result.ok();
@@ -429,6 +431,7 @@ public class Database implements AutoCloseable {
                 Script model = script.model();
                 statement.setString(1, model.name);
                 statement.setString(2, model.json);
+                statement.setInt(3, script.id());
                 statement.executeUpdate();
             }
             return Result.ok();

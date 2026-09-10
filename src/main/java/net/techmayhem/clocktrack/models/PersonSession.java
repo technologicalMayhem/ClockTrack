@@ -34,7 +34,7 @@ public class PersonSession {
                 rs.getInt("session_id"),
                 rs.getInt("person_id"),
                 rs.getString("role"),
-                rs.getInt("death_on_day"),
+                rs.getObject("death_on_day", Integer.class),
                 rs.getString("cause_of_death"),
                 rs.getBoolean("good"),
                 rs.getString("note")
