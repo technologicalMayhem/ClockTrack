@@ -1,7 +1,6 @@
 package net.techmayhem.clocktrack.models;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +8,6 @@ import java.sql.SQLException;
 public class PersonSession {
     public final int sessionId;
     public final int personId;
-    @NotNull
     public String role;
     @Nullable
     public Integer deathOnDay;
@@ -19,7 +17,7 @@ public class PersonSession {
     @Nullable
     public String note;
 
-    public PersonSession(int sessionId, int personId, @NotNull String role, @Nullable Integer deathOnDay, @Nullable String causeOfDeath, boolean good, @Nullable String note) {
+    public PersonSession(int sessionId, int personId, String role, @Nullable Integer deathOnDay, @Nullable String causeOfDeath, boolean good, @Nullable String note) {
         this.sessionId = sessionId;
         this.personId = personId;
         this.role = role;

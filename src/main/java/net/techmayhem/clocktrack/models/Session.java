@@ -1,14 +1,12 @@
 package net.techmayhem.clocktrack.models;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class Session {
-    @NotNull
     public LocalDate date;
     public int storyteller;
     public boolean goodWon;
@@ -16,7 +14,7 @@ public class Session {
     @Nullable
     public String note;
 
-    public Session(@NotNull LocalDate date, int storyteller, boolean goodWon, int script, @Nullable String note) {
+    public Session(LocalDate date, int storyteller, boolean goodWon, int script, @Nullable String note) {
         this.date = date;
         this.storyteller = storyteller;
         this.goodWon = goodWon;

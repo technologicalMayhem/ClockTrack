@@ -32,12 +32,11 @@
             <version>2.7.0</version>
         </dependency>
 
-        <!-- Source: https://mvnrepository.com/artifact/org.jetbrains/annotations -->
+        <!-- Source: https://jspecify.dev/docs/using/ -->
         <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>26.1.0</version>
-            <scope>compile</scope>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- As per https://openjfx.io/openjfx-docs/#maven -->
@@ -56,6 +55,9 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>net.techmayhem.clocktrack.FXApp</mainClass>
+                    <options>
+                        <option>--enable-native-access=javafx.graphics,org.xerial.sqlitejdbc</option>
+                    </options>
                 </configuration>
             </plugin>
         </plugins>
