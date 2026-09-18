@@ -1,3 +1,5 @@
+TODO: Describe updated UI
+
 # Schulprojekt: ClockTrack
 
 ## Projektbeschreibung
