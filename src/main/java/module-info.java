@@ -1,8 +1,7 @@
 @org.jspecify.annotations.NullMarked
-module ClockTrack {
+module net.techmayhem.clocktrack {
     requires java.sql;
     requires javafx.controls;
-    requires javafx.graphics;
     requires org.tinylog.api;
     requires static org.jspecify;
 
