@@ -29,36 +29,45 @@ public class PeopleOverview extends Overview {
 
     public PeopleOverview(Consumer<Screen> createTabCallback) {
         super(createTabCallback);
-        root = new HBox();
-        root.setPadding(new Insets(10));
-        root.setSpacing(5);
-        Button createButton = new Button("Add person");
-        createButton.setOnAction(_ -> spawnNewPersonDialog());
-        Button editButton = new Button("Edit person");
-        editButton.setOnAction(_ -> spawnEditPersonDialog());
-        Button deleteButton = new Button("Delete person");
-        deleteButton.setOnAction(_ -> deleteSelectedPerson());
         table = new TableView<>();
-        editButton.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-        deleteButton.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-        TableColumn<FromDb<Person>, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().model().getName()));
-        table.getColumns().add(nameCol);
-        HBox.setHgrow(table, Priority.ALWAYS);
-        List<Button> buttons = List.of(createButton, editButton, deleteButton);
-        for (Button button : buttons) {
-            button.setMaxWidth(Double.MAX_VALUE);
-        }
-        VBox buttonColumns = new VBox();
-        buttonColumns.setSpacing(5);
-        buttonColumns.getChildren().addAll(buttons);
-        root.getChildren().addAll(table, buttonColumns);
+        root = new HBox();
+        buildUi();
         updateTable();
     }
 
     @Override
     protected String getSectionName() {
         return "People";
+    }
+
+    private void buildUi() {
+        Button createButton = new Button("Add person");
+        Button editButton = new Button("Edit person");
+        Button deleteButton = new Button("Delete person");
+
+        createButton.setOnAction(_ -> spawnNewPersonDialog());
+        editButton.setOnAction(_ -> spawnEditPersonDialog());
+        deleteButton.setOnAction(_ -> deleteSelectedPerson());
+        var noSelection = table.getSelectionModel().selectedItemProperty().isNull();
+        editButton.disableProperty().bind(noSelection);
+        deleteButton.disableProperty().bind(noSelection);
+
+        List<Button> buttons = List.of(createButton, editButton, deleteButton);
+        for (Button button : buttons) {
+            button.setMaxWidth(Double.MAX_VALUE);
+        }
+        VBox buttonColumn = new VBox();
+        buttonColumn.setSpacing(5);
+        buttonColumn.getChildren().addAll(buttons);
+
+        TableColumn<FromDb<Person>, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().model().getName()));
+        table.getColumns().add(nameCol);
+        HBox.setHgrow(table, Priority.ALWAYS);
+
+        root.setPadding(new Insets(10));
+        root.setSpacing(5);
+        root.getChildren().addAll(table, buttonColumn);
     }
 
     private void updateTable() {
