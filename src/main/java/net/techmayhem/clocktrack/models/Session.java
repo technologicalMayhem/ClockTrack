@@ -7,19 +7,19 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class Session {
-    public LocalDate date;
-    public int storyteller;
-    public boolean goodWon;
-    public int script;
+    private LocalDate date;
+    private int storyteller;
+    private boolean goodWon;
+    private int script;
     @Nullable
-    public String note;
+    private String note;
 
     public Session(LocalDate date, int storyteller, boolean goodWon, int script, @Nullable String note) {
-        this.date = date;
-        this.storyteller = storyteller;
-        this.goodWon = goodWon;
-        this.script = script;
-        this.note = note;
+        this.setDate(date);
+        this.setStoryteller(storyteller);
+        this.setGoodWon(goodWon);
+        this.setScript(script);
+        this.setNote(note);
     }
 
     public static Session map(ResultSet rs) throws SQLException {
@@ -30,5 +30,45 @@ public class Session {
                 rs.getInt("script"),
                 rs.getString("note")
         );
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public int getStoryteller() {
+        return storyteller;
+    }
+
+    public void setStoryteller(int storyteller) {
+        this.storyteller = storyteller;
+    }
+
+    public boolean isGoodWon() {
+        return goodWon;
+    }
+
+    public void setGoodWon(boolean goodWon) {
+        this.goodWon = goodWon;
+    }
+
+    public int getScript() {
+        return script;
+    }
+
+    public void setScript(int script) {
+        this.script = script;
+    }
+
+    public @Nullable String getNote() {
+        return note;
+    }
+
+    public void setNote(@Nullable String note) {
+        this.note = note;
     }
 }

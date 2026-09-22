@@ -6,13 +6,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Script {
-    public String name;
+    private String name;
     @Nullable
-    public String json;
+    private String json;
 
     public Script(String name, @Nullable String json) {
-        this.name = name;
-        this.json = json;
+        this.setName(name);
+        this.setJson(json);
     }
 
     public static Script map(ResultSet rs) throws SQLException {
@@ -20,5 +20,21 @@ public class Script {
                 rs.getString("name"),
                 rs.getString("json")
         );
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public @Nullable String getJson() {
+        return json;
+    }
+
+    public void setJson(@Nullable String json) {
+        this.json = json;
     }
 }

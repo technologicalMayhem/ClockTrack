@@ -6,25 +6,25 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class PersonSession {
-    public final int sessionId;
-    public final int personId;
-    public String role;
+    private final int sessionId;
+    private final int personId;
+    private String role;
     @Nullable
-    public Integer deathOnDay;
+    private Integer deathOnDay;
     @Nullable
-    public String causeOfDeath;
-    public boolean good;
+    private String causeOfDeath;
+    private boolean good;
     @Nullable
-    public String note;
+    private String note;
 
     public PersonSession(int sessionId, int personId, String role, @Nullable Integer deathOnDay, @Nullable String causeOfDeath, boolean good, @Nullable String note) {
         this.sessionId = sessionId;
         this.personId = personId;
-        this.role = role;
-        this.deathOnDay = deathOnDay;
-        this.causeOfDeath = causeOfDeath;
-        this.good = good;
-        this.note = note;
+        this.setRole(role);
+        this.setDeathOnDay(deathOnDay);
+        this.setCauseOfDeath(causeOfDeath);
+        this.setGood(good);
+        this.setNote(note);
     }
 
     public static PersonSession map(ResultSet rs) throws SQLException {
@@ -37,5 +37,53 @@ public class PersonSession {
                 rs.getBoolean("good"),
                 rs.getString("note")
         );
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public @Nullable Integer getDeathOnDay() {
+        return deathOnDay;
+    }
+
+    public void setDeathOnDay(@Nullable Integer deathOnDay) {
+        this.deathOnDay = deathOnDay;
+    }
+
+    public int getSessionId() {
+        return sessionId;
+    }
+
+    public int getPersonId() {
+        return personId;
+    }
+
+    public @Nullable String getCauseOfDeath() {
+        return causeOfDeath;
+    }
+
+    public void setCauseOfDeath(@Nullable String causeOfDeath) {
+        this.causeOfDeath = causeOfDeath;
+    }
+
+    public boolean isGood() {
+        return good;
+    }
+
+    public void setGood(boolean good) {
+        this.good = good;
+    }
+
+    public @Nullable String getNote() {
+        return note;
+    }
+
+    public void setNote(@Nullable String note) {
+        this.note = note;
     }
 }

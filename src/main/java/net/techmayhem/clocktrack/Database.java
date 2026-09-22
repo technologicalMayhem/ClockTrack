@@ -130,7 +130,7 @@ public class Database implements AutoCloseable {
         return runTransaction(conn -> {
             String sql = "INSERT INTO person(name) VALUES (?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, person.name);
+                statement.setString(1, person.getName());
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
@@ -176,7 +176,7 @@ public class Database implements AutoCloseable {
         return runTransaction(conn -> {
             String sql = "UPDATE person SET name = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setString(1, person.model().name);
+                statement.setString(1, person.model().getName());
                 statement.setInt(2, person.id());
                 statement.executeUpdate();
             }
@@ -199,11 +199,11 @@ public class Database implements AutoCloseable {
         return runTransaction(conn -> {
             String sql = "INSERT INTO session(date, storyteller, good_won, script, note) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, session.date.toString());
-                statement.setInt(2, session.storyteller);
-                statement.setBoolean(3, session.goodWon);
-                statement.setInt(4, session.script);
-                statement.setString(5, session.note);
+                statement.setString(1, session.getDate().toString());
+                statement.setInt(2, session.getStoryteller());
+                statement.setBoolean(3, session.isGoodWon());
+                statement.setInt(4, session.getScript());
+                statement.setString(5, session.getNote());
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
@@ -250,11 +250,11 @@ public class Database implements AutoCloseable {
             String sql = "UPDATE session SET date = ?, storyteller = ?, good_won = ?, script = ?, note = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 Session model = session.model();
-                statement.setString(1, model.date.toString());
-                statement.setInt(2, model.storyteller);
-                statement.setBoolean(3, model.goodWon);
-                statement.setInt(4, model.script);
-                statement.setString(5, model.note);
+                statement.setString(1, model.getDate().toString());
+                statement.setInt(2, model.getStoryteller());
+                statement.setBoolean(3, model.isGoodWon());
+                statement.setInt(4, model.getScript());
+                statement.setString(5, model.getNote());
                 statement.setInt(6, session.id());
                 statement.executeUpdate();
             }
@@ -277,17 +277,17 @@ public class Database implements AutoCloseable {
         return runTransaction(conn -> {
             String sql = "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setInt(1, personSession.sessionId);
-                statement.setInt(2, personSession.personId);
-                statement.setString(3, personSession.role);
-                if (personSession.deathOnDay == null) {
+                statement.setInt(1, personSession.getSessionId());
+                statement.setInt(2, personSession.getPersonId());
+                statement.setString(3, personSession.getRole());
+                if (personSession.getDeathOnDay() == null) {
                     statement.setNull(4, Types.INTEGER);
                 } else {
-                    statement.setInt(4, personSession.deathOnDay);
+                    statement.setInt(4, personSession.getDeathOnDay());
                 }
-                statement.setString(5, personSession.causeOfDeath);
-                statement.setBoolean(6, personSession.good);
-                statement.setString(7, personSession.note);
+                statement.setString(5, personSession.getCauseOfDeath());
+                statement.setBoolean(6, personSession.isGood());
+                statement.setString(7, personSession.getNote());
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
@@ -350,15 +350,15 @@ public class Database implements AutoCloseable {
             String sql = "UPDATE person_session SET role = ?, death_on_day = ?, cause_of_death = ?, good = ?, note = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 PersonSession model = personSession.model();
-                statement.setString(1, model.role);
-                if (model.deathOnDay == null) {
+                statement.setString(1, model.getRole());
+                if (model.getDeathOnDay() == null) {
                     statement.setNull(2, Types.INTEGER);
                 } else {
-                    statement.setInt(2, model.deathOnDay);
+                    statement.setInt(2, model.getDeathOnDay());
                 }
-                statement.setString(3, model.causeOfDeath);
-                statement.setBoolean(4, model.good);
-                statement.setString(5, model.note);
+                statement.setString(3, model.getCauseOfDeath());
+                statement.setBoolean(4, model.isGood());
+                statement.setString(5, model.getNote());
                 statement.setInt(6, personSession.id());
                 statement.executeUpdate();
             }
@@ -381,8 +381,8 @@ public class Database implements AutoCloseable {
         return runTransaction(conn -> {
             String sql = "INSERT INTO script(name, json) VALUES (?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, script.name);
-                statement.setString(2, script.json);
+                statement.setString(1, script.getName());
+                statement.setString(2, script.getJson());
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
@@ -429,8 +429,8 @@ public class Database implements AutoCloseable {
             String sql = "UPDATE script SET name = ?, json = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 Script model = script.model();
-                statement.setString(1, model.name);
-                statement.setString(2, model.json);
+                statement.setString(1, model.getName());
+                statement.setString(2, model.getJson());
                 statement.setInt(3, script.id());
                 statement.executeUpdate();
             }

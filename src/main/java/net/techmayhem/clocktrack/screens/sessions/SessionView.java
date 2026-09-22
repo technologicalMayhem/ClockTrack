@@ -14,8 +14,8 @@ public class SessionView extends Screen {
     SessionView(Session session) {
         this.session = session;
         root = new StackPane();
-        root.getChildren().add(new Text("Hello, I happened on " + session.date + "."));
-        name = "View: " + session.date;
+        root.getChildren().add(new Text("Hello, I happened on " + session.getDate() + "."));
+        name = "View: " + session.getDate();
     }
 
     @Override
