@@ -31,6 +31,7 @@ public class Database implements AutoCloseable {
                 Logger.error("Could not connect to database: " + e.getMessage());
                 System.exit(1);
             }
+            instance.initSchema();
         }
         return instance;
     }
