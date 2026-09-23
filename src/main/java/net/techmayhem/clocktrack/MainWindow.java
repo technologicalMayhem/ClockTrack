@@ -11,8 +11,11 @@ import net.techmayhem.clocktrack.screens.scripts.ScriptsOverview;
 import net.techmayhem.clocktrack.screens.sessions.SessionsOverview;
 
 public class MainWindow extends Application {
+    private static Stage primaryStage;
+
     @Override
     public void start(Stage stage) {
+        primaryStage = stage;
         TabPane tabPane = new TabPane();
         Tab sessions = new TabbedEntityEditor(SessionsOverview::new).buildTab();
         Tab people = new TabbedEntityEditor(PeopleOverview::new).buildTab();
@@ -26,5 +29,9 @@ public class MainWindow extends Application {
         Scene scene = new Scene(tabPane, width, width * ratio);
         stage.setScene(scene);
         stage.show();
+    }
+
+    public static Stage getPrimaryStage() {
+        return primaryStage;
     }
 }
