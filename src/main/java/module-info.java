@@ -4,6 +4,7 @@ module net.techmayhem.clocktrack {
     requires javafx.controls;
     requires org.tinylog.api;
     requires static org.jspecify;
+    requires org.xerial.sqlitejdbc;
 
     exports net.techmayhem.clocktrack;
 }

@@ -8,6 +8,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static org.sqlite.SQLiteErrorCode.*;
 
 public class Database implements AutoCloseable {
     private final Connection connection;
@@ -464,7 +467,13 @@ public class Database implements AutoCloseable {
     }
 
     private boolean isRecoverable(SQLException e) {
-        return false;
+        // Chops off everything but the low byte, as we are not interested in the extended codes
+        int primaryCode = e.getErrorCode() & 0xFF;
+        return Set.of(
+                SQLITE_CONSTRAINT.code,
+                SQLITE_READONLY.code,
+                SQLITE_TOOBIG.code
+        ).contains(primaryCode);
     }
 
     /// Used to print a ResultSet. For debugging purposes.
