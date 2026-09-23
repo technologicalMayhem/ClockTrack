@@ -4,15 +4,19 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import net.techmayhem.clocktrack.MainWindow;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.function.Consumer;
 
 public class Dialogs {
@@ -85,5 +89,34 @@ public class Dialogs {
         Scene dialogScene = new Scene(vBox);
         stage.setScene(dialogScene);
         stage.show();
+    }
+
+    public static void showErrorDialog(Throwable error, boolean isFatal) {
+        Stage stage = createStage("An error occurred");
+
+        Text header = new Text("An error occurred:");
+        Text errorText = new Text(error.getMessage());
+        Text footer = new Text(isFatal ? "The application cannot recover from this and will exit." : "Press ok to continue.");
+
+        StringWriter sw = new StringWriter();
+        error.printStackTrace(new PrintWriter(sw));
+        TextArea stackTraceArea = new TextArea(sw.toString());
+        stackTraceArea.setEditable(false);
+        stackTraceArea.setWrapText(false);
+        stackTraceArea.setPrefRowCount(15);
+
+        Button button = new Button("Ok");
+        button.setDefaultButton(true);
+        button.setOnAction(_ -> {
+            if (isFatal) System.exit(1);
+            stage.close();
+        });
+
+        VBox vBox = createVBox();
+        vBox.getChildren().addAll(header, errorText, stackTraceArea, footer, button);
+
+        Scene dialogScene = new Scene(vBox);
+        stage.setScene(dialogScene);
+        stage.showAndWait();
     }
 }

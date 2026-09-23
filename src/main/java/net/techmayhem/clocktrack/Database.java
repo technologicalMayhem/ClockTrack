@@ -1,6 +1,7 @@
 package net.techmayhem.clocktrack;
 
 import net.techmayhem.clocktrack.models.*;
+import org.jspecify.annotations.Nullable;
 import org.tinylog.Logger;
 
 import java.sql.*;
@@ -11,6 +12,7 @@ import java.util.List;
 public class Database implements AutoCloseable {
     private final Connection connection;
 
+    @Nullable
     private static Database instance;
 
     private Database() throws SQLException {
@@ -40,7 +42,7 @@ public class Database implements AutoCloseable {
         }
 
         Logger.info("Creating database schema");
-        Result<Void> result = runTransaction(conn -> {
+        runTransaction(conn -> {
             try (Statement statement = conn.createStatement()) {
                 statement.execute("""
                         CREATE TABLE person(
@@ -83,19 +85,15 @@ public class Database implements AutoCloseable {
                         );
                         """);
             }
-            return Result.ok();
+            return null;
         });
-        if (result instanceof Result.Err<Void>(String message)) {
-            Logger.error("Failed to create database: {}", message);
-            System.exit(1);
-        }
     }
 
     /// Checks if the schema needs to be set up. Returns true if no tables have been created yet.
     ///
     /// If tables have already been created but do not match the expected schema, an error is printed instead and the application exits.
-    private boolean isDbSetup() {
-        Result<HashSet<String>> result = runTransaction(conn -> {
+    private Boolean isDbSetup() {
+        HashSet<String> foundTables = runTransaction(conn -> {
             HashSet<String> tables = new HashSet<>();
             try (Statement statement = conn.createStatement();
                  ResultSet rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
@@ -103,30 +101,21 @@ public class Database implements AutoCloseable {
                     tables.add(rs.getString("name"));
                 }
             }
-            return new Result.Ok<>(tables);
+            return tables;
         });
-
-        HashSet<String> foundTables = switch (result) {
-            case Result.Ok<HashSet<String>>(HashSet<String> tables) -> tables;
-            case Result.Err<HashSet<String>>(String message) -> {
-                Logger.error("Failed to read database schema: {}", message);
-                System.exit(1);
-                yield new HashSet<>(); // unreachable
-            }
-        };
 
         HashSet<String> expectedTables = new HashSet<>(List.of("person", "script", "session", "person_session"));
         if (foundTables.isEmpty()) {
             return false;
         }
         if (!(foundTables.containsAll(expectedTables) && foundTables.size() == expectedTables.size())) {
-            Logger.error("Invalid schema\nExpected table: {}\nActual tables: {}", expectedTables, foundTables);
-            System.exit(1);
+            String message = "Invalid schema\nExpected table: " + expectedTables + "\nActual tables: " + foundTables;
+            throw new DatabaseException(message, null, false);
         }
         return true;
     }
 
-    public Result<FromDb<Person>> insertPerson(Person person) {
+    public FromDb<Person> insertPerson(Person person) {
         return runTransaction(conn -> {
             String sql = "INSERT INTO person(name) VALUES (?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -134,29 +123,29 @@ public class Database implements AutoCloseable {
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
-                    return new Result.Ok<>(new FromDb<>(keys.getInt(1), person));
+                    return new FromDb<>(keys.getInt(1), person);
                 }
             }
         });
     }
 
-    public Result<FromDb<Person>> getPerson(int id) {
+    public FromDb<Person> getPerson(int id) {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM person WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 try (ResultSet rs = statement.executeQuery()) {
                     if (rs.next()) {
-                        return new Result.Ok<>(FromDb.map(rs, Person::map));
+                        return FromDb.map(rs, Person::map);
                     } else {
-                        return new Result.Err<>("No person with id " + id);
+                        throw new DatabaseException("No person with id " + id, null, true);
                     }
                 }
             }
         });
     }
 
-    public Result<List<FromDb<Person>>> getAllPersons() {
+    public List<FromDb<Person>> getAllPersons() {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM person";
             ArrayList<FromDb<Person>> result = new ArrayList<>();
@@ -168,34 +157,34 @@ public class Database implements AutoCloseable {
                     }
                 }
             }
-            return new Result.Ok<>(result);
+            return result;
         });
     }
 
-    public Result<Void> updatePerson(FromDb<Person> person) {
-        return runTransaction(conn -> {
+    public void updatePerson(FromDb<Person> person) {
+        runTransaction(conn -> {
             String sql = "UPDATE person SET name = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setString(1, person.model().getName());
                 statement.setInt(2, person.id());
                 statement.executeUpdate();
             }
-            return Result.ok();
+            return null;
         });
     }
 
-    public Result<Void> deletePerson(int id) {
-        return runTransaction(conn -> {
+    public void deletePerson(int id) {
+        runTransaction(conn -> {
             String sql = "DELETE FROM person WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 statement.executeUpdate();
             }
-            return Result.ok();
+            return null;
         });
     }
 
-    public Result<FromDb<Session>> insertSession(Session session) {
+    public FromDb<Session> insertSession(Session session) {
         return runTransaction(conn -> {
             String sql = "INSERT INTO session(date, storyteller, good_won, script, note) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -207,29 +196,29 @@ public class Database implements AutoCloseable {
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
-                    return new Result.Ok<>(new FromDb<>(keys.getInt(1), session));
+                    return new FromDb<>(keys.getInt(1), session);
                 }
             }
         });
     }
 
-    public Result<FromDb<Session>> getSession(int id) {
+    public FromDb<Session> getSession(int id) {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM session WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 try (ResultSet rs = statement.executeQuery()) {
                     if (rs.next()) {
-                        return new Result.Ok<>(FromDb.map(rs, Session::map));
+                        return FromDb.map(rs, Session::map);
                     } else {
-                        return new Result.Err<>("No Session with id " + id);
+                        throw new DatabaseException("No Session with id " + id, null, true);
                     }
                 }
             }
         });
     }
 
-    public Result<List<FromDb<Session>>> getAllSessions() {
+    public List<FromDb<Session>> getAllSessions() {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM session";
             ArrayList<FromDb<Session>> result = new ArrayList<>();
@@ -241,12 +230,12 @@ public class Database implements AutoCloseable {
                     }
                 }
             }
-            return new Result.Ok<>(result);
+            return result;
         });
     }
 
-    public Result<Void> updateSession(FromDb<Session> session) {
-        return runTransaction(conn -> {
+    public void updateSession(FromDb<Session> session) {
+        runTransaction(conn -> {
             String sql = "UPDATE session SET date = ?, storyteller = ?, good_won = ?, script = ?, note = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 Session model = session.model();
@@ -258,22 +247,22 @@ public class Database implements AutoCloseable {
                 statement.setInt(6, session.id());
                 statement.executeUpdate();
             }
-            return Result.ok();
+            return null;
         });
     }
 
-    public Result<Void> deleteSession(int id) {
-        return runTransaction(conn -> {
+    public void deleteSession(int id) {
+        runTransaction(conn -> {
             String sql = "DELETE FROM session WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 statement.executeUpdate();
             }
-            return Result.ok();
+            return null;
         });
     }
 
-    public Result<FromDb<PersonSession>> insertPersonSession(PersonSession personSession) {
+    public FromDb<PersonSession> insertPersonSession(PersonSession personSession) {
         return runTransaction(conn -> {
             String sql = "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -291,29 +280,29 @@ public class Database implements AutoCloseable {
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
-                    return new Result.Ok<>(new FromDb<>(keys.getInt(1), personSession));
+                    return new FromDb<>(keys.getInt(1), personSession);
                 }
             }
         });
     }
 
-    public Result<FromDb<PersonSession>> getPersonSession(int id) {
+    public FromDb<PersonSession> getPersonSession(int id) {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM person_session WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 try (ResultSet rs = statement.executeQuery()) {
                     if (rs.next()) {
-                        return new Result.Ok<>(FromDb.map(rs, PersonSession::map));
+                        return FromDb.map(rs, PersonSession::map);
                     } else {
-                        return new Result.Err<>("No PersonSession with id " + id);
+                        throw new DatabaseException("No PersonSession with id " + id, null, true);
                     }
                 }
             }
         });
     }
 
-    public Result<List<FromDb<PersonSession>>> getAllPersonSessionsForSession(int session_id) {
+    public List<FromDb<PersonSession>> getAllPersonSessionsForSession(int session_id) {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM person_session WHERE session_id = ?";
             ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
@@ -325,11 +314,11 @@ public class Database implements AutoCloseable {
                     }
                 }
             }
-            return new Result.Ok<>(result);
+            return result;
         });
     }
 
-    public Result<List<FromDb<PersonSession>>> getAllPersonSessionsForPerson(int person_id) {
+    public List<FromDb<PersonSession>> getAllPersonSessionsForPerson(int person_id) {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM person_session WHERE person_id = ?";
             ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
@@ -341,12 +330,12 @@ public class Database implements AutoCloseable {
                     }
                 }
             }
-            return new Result.Ok<>(result);
+            return result;
         });
     }
 
-    public Result<Void> updatePersonSession(FromDb<PersonSession> personSession) {
-        return runTransaction(conn -> {
+    public void updatePersonSession(FromDb<PersonSession> personSession) {
+        runTransaction(conn -> {
             String sql = "UPDATE person_session SET role = ?, death_on_day = ?, cause_of_death = ?, good = ?, note = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 PersonSession model = personSession.model();
@@ -362,22 +351,22 @@ public class Database implements AutoCloseable {
                 statement.setInt(6, personSession.id());
                 statement.executeUpdate();
             }
-            return Result.ok();
+            return null;
         });
     }
 
-    public Result<Void> deletePersonSession(int id) {
-        return runTransaction(conn -> {
+    public void deletePersonSession(int id) {
+        runTransaction(conn -> {
             String sql = "DELETE FROM person_session WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 statement.executeUpdate();
             }
-            return Result.ok();
+            return null;
         });
     }
 
-    public Result<FromDb<Script>> insertScript(Script script) {
+    public FromDb<Script> insertScript(Script script) {
         return runTransaction(conn -> {
             String sql = "INSERT INTO script(name, json) VALUES (?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -386,29 +375,29 @@ public class Database implements AutoCloseable {
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
-                    return new Result.Ok<>(new FromDb<>(keys.getInt(1), script));
+                    return new FromDb<>(keys.getInt(1), script);
                 }
             }
         });
     }
 
-    public Result<FromDb<Script>> getScript(int id) {
+    public FromDb<Script> getScript(int id) {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM script WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 try (ResultSet rs = statement.executeQuery()) {
                     if (rs.next()) {
-                        return new Result.Ok<>(FromDb.map(rs, Script::map));
+                        return FromDb.map(rs, Script::map);
                     } else {
-                        return new Result.Err<>("No Script with id " + id);
+                        throw new DatabaseException("No script with id " + id, null, true);
                     }
                 }
             }
         });
     }
 
-    public Result<List<FromDb<Script>>> getAllScripts() {
+    public List<FromDb<Script>> getAllScripts() {
         return runTransaction(conn -> {
             String sql = "SELECT * FROM script";
             ArrayList<FromDb<Script>> result = new ArrayList<>();
@@ -420,12 +409,12 @@ public class Database implements AutoCloseable {
                     }
                 }
             }
-            return new Result.Ok<>(result);
+            return result;
         });
     }
 
-    public Result<Void> updateScript(FromDb<Script> script) {
-        return runTransaction(conn -> {
+    public void updateScript(FromDb<Script> script) {
+        runTransaction(conn -> {
             String sql = "UPDATE script SET name = ?, json = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 Script model = script.model();
@@ -434,52 +423,47 @@ public class Database implements AutoCloseable {
                 statement.setInt(3, script.id());
                 statement.executeUpdate();
             }
-            return Result.ok();
+            return null;
         });
     }
 
-    public Result<Void> deleteScript(int id) {
-        return runTransaction(conn -> {
+    public void deleteScript(int id) {
+        runTransaction(conn -> {
             String sql = "DELETE FROM script WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, id);
                 statement.executeUpdate();
             }
-            return Result.ok();
+
+            return null;
         });
     }
 
     @FunctionalInterface
-    interface SqlFunction<T> {
-        Result<T> apply(Connection conn) throws SQLException;
+    interface SqlFunction<T extends @Nullable Object> {
+        T apply(Connection conn) throws SQLException;
     }
 
     /// Wrapper function for common database exception handling logic.
-    private <T> Result<T> runTransaction(SqlFunction<T> body) {
+    private <T> T runTransaction(SqlFunction<T> body) {
         try {
-            Result<T> value = body.apply(connection);
+            T value = body.apply(connection);
             connection.commit();
             return value;
         } catch (SQLException e) {
+            DatabaseException dbException = new DatabaseException(e.getMessage(), e, isRecoverable(e));
             try {
                 connection.rollback();
-            } catch (SQLException sqlException) {
-                Logger.error("Could not rollback transaction: {}", sqlException.getMessage());
+            } catch (SQLException rollbackException) {
+                dbException.setIrrecoverable();
+                dbException.addSuppressed(rollbackException);
             }
-            return new Result.Err<>(e.getMessage());
+            throw dbException;
         }
     }
 
-    public sealed interface Result<T> {
-        record Ok<T>(T value) implements Result<T> {
-        }
-
-        record Err<T>(String message) implements Result<T> {
-        }
-
-        static Result<Void> ok() {
-            return new Ok<>(null);
-        }
+    private boolean isRecoverable(SQLException e) {
+        return false;
     }
 
     /// Used to print a ResultSet. For debugging purposes.

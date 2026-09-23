@@ -17,7 +17,6 @@ import net.techmayhem.clocktrack.models.Person;
 import net.techmayhem.clocktrack.screens.Overview;
 import net.techmayhem.clocktrack.screens.Screen;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -70,12 +69,8 @@ public class PeopleOverview extends Overview {
     }
 
     private void updateTable() {
-        List<FromDb<Person>> peopleList = new ArrayList<>();
-        switch (Database.getInstance().getAllPersons()) {
-            case Database.Result.Err<List<FromDb<Person>>> _ -> System.exit(1);
-            case Database.Result.Ok<List<FromDb<Person>>> v -> peopleList.addAll(v.value());
-        }
-        table.setItems(FXCollections.observableArrayList(peopleList));
+        List<FromDb<Person>> allPersons = Database.getInstance().getAllPersons();
+        table.setItems(FXCollections.observableArrayList(allPersons));
     }
 
     private void spawnNewPersonDialog() {
