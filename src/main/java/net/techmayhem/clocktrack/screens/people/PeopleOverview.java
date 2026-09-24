@@ -67,6 +67,11 @@ public class PeopleOverview extends Overview {
         root.getChildren().addAll(table, buttonColumn);
     }
 
+    @Override
+    protected void onShow() {
+        updateTable();
+    }
+
     private void updateTable() {
         List<FromDb<Person>> allPersons = Database.getInstance().getAllPersons();
         table.setItems(FXCollections.observableArrayList(allPersons));

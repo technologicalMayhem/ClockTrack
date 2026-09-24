@@ -12,10 +12,10 @@ public abstract class Screen {
 
     protected abstract String getName();
 
-    void onShow() {
+    protected void onShow() {
     }
 
-    void onHide() {
+    protected void onHide() {
     }
 
     boolean isDirty() {
@@ -23,6 +23,14 @@ public abstract class Screen {
     }
 
     public Tab buildTab() {
-        return new Tab(getName(), getView());
+        Tab tab = new Tab(getName(), getView());
+        tab.setOnSelectionChanged(_ -> {
+            if (tab.isSelected()) {
+                onShow();
+            } else {
+                onHide();
+            }
+        });
+        return tab;
     }
 }
