@@ -14,8 +14,8 @@ public class PersonView extends Screen {
     PersonView(Person person) {
         this.person = person;
         root = new StackPane();
-        root.getChildren().add(new Text("Hello, my name is " + person.getName()));
-        name = "View: " + person.getName();
+        root.getChildren().add(new Text("Hello, my name is " + person.name()));
+        name = "View: " + person.name();
     }
 
     @Override

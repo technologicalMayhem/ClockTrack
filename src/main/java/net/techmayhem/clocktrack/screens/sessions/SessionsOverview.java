@@ -56,10 +56,10 @@ public class SessionsOverview extends Overview {
 
         TableHelper.buildTableColumns(table,
                 new TableColumn<>("Id", session -> String.valueOf(session.id())),
-                new TableColumn<>("Date", session -> session.model().getDate().toString()),
-                new TableColumn<>("Storyteller", session -> Database.getInstance().getPerson(session.model().getStoryteller()).model().getName()),
-                new TableColumn<>("Winner", session -> session.model().isGoodWon() ? "Good" : "Evil"),
-                new TableColumn<>("Script", session -> Database.getInstance().getScript(session.model().getScript()).model().getName()));
+                new TableColumn<>("Date", session -> session.model().date().toString()),
+                new TableColumn<>("Storyteller", session -> Database.getInstance().getPerson(session.model().storyteller()).model().name()),
+                new TableColumn<>("Winner", session -> session.model().goodWon() ? "Good" : "Evil"),
+                new TableColumn<>("Script", session -> Database.getInstance().getScript(session.model().script()).model().name()));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 

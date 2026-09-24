@@ -7,4 +7,8 @@ public record FromDb<T>(int id, T model) {
     public static <T> FromDb<T> map(ResultSet rs, FromResultSet<T> mapper) throws SQLException {
         return new FromDb<>(rs.getInt("id"), mapper.map(rs));
     }
+
+    public FromDb<T> with(T updatedModel) {
+        return new FromDb<>(id, updatedModel);
+    }
 }
