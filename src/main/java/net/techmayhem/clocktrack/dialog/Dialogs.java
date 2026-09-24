@@ -1,11 +1,9 @@
 package net.techmayhem.clocktrack.dialog;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -105,6 +103,11 @@ public class Dialogs {
         stackTraceArea.setWrapText(false);
         stackTraceArea.setPrefRowCount(15);
 
+        TitledPane collapseStackTrack = new TitledPane("Stack trace", stackTraceArea);
+        collapseStackTrack.setExpanded(false);
+        collapseStackTrack.setAnimated(false);
+        collapseStackTrack.expandedProperty().addListener((_, _, _) -> Platform.runLater(stage::sizeToScene));
+
         Button button = new Button("Ok");
         button.setDefaultButton(true);
         button.setOnAction(_ -> {
@@ -113,7 +116,7 @@ public class Dialogs {
         });
 
         VBox vBox = createVBox();
-        vBox.getChildren().addAll(header, errorText, stackTraceArea, footer, button);
+        vBox.getChildren().addAll(header, errorText, collapseStackTrack, footer, button);
 
         Scene dialogScene = new Scene(vBox);
         stage.setScene(dialogScene);
