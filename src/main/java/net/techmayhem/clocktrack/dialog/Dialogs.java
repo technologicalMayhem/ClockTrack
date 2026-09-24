@@ -24,7 +24,9 @@ public class Dialogs {
         stage.setTitle(title);
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(MainWindow.getPrimaryStage());
+        Stage primaryStage = MainWindow.getPrimaryStage();
+        stage.initOwner(primaryStage);
+        stage.getIcons().setAll(primaryStage.getIcons());
         return stage;
     }
 

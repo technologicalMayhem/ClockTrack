@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.techmayhem.clocktrack.dialog.Dialogs;
 import net.techmayhem.clocktrack.screens.TabbedEntityEditor;
@@ -14,14 +15,20 @@ import net.techmayhem.clocktrack.screens.sessions.SessionsOverview;
 import org.jspecify.annotations.Nullable;
 import org.tinylog.Logger;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
 public class MainWindow extends Application {
     @Nullable
     private static Stage primaryStage;
 
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage) throws FileNotFoundException {
         primaryStage = stage;
         Thread.setDefaultUncaughtExceptionHandler(MainWindow::handleUncaughtException);
+
+        stage.getIcons().add(new Image(getIcon("/icons/app-256.png")));
+        stage.setTitle("ClockTrack");
 
         TabPane tabPane = new TabPane();
         double ratio = 3.0 / 4.0;
@@ -41,6 +48,12 @@ public class MainWindow extends Application {
         } catch (DatabaseException e) {
             handleUncaughtException(Thread.currentThread(), e);
         }
+    }
+
+    private InputStream getIcon(String name) throws FileNotFoundException {
+        InputStream icon = getClass().getResourceAsStream(name);
+        if (icon == null) throw new FileNotFoundException("Failed to find app icon " + name);
+        return icon;
     }
 
     public static Stage getPrimaryStage() {

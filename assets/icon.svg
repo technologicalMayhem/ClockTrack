@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+        width="512"
+        height="512"
+        viewBox="0 0 512 512"
+        version="1.1"
+        id="svg1"
+        xml:space="preserve"
+        inkscape:export-filename="app-16.png"
+        inkscape:export-xdpi="3"
+        inkscape:export-ydpi="3"
+        inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+        sodipodi:docname="icon.svg"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        xmlns="http://www.w3.org/2000/svg"
+><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#aeaeae"
+     bordercolor="#eeeeeeff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050ff"
+     inkscape:document-units="px"
+     inkscape:export-bgcolor="#ffffff00"
+     inkscape:zoom="1.9707839"
+     inkscape:cx="179.62395"
+     inkscape:cy="312.31227"
+     inkscape:window-width="2880"
+     inkscape:window-height="1694"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+    <defs
+            id="defs1"/>
+    <path
+            fill="#ffffff"
+            fill-rule="evenodd"
+            d="M 256,40.598638 7.8937216,471.40136 H 504.10628 Z m -57.65088,254.196172 57.96665,99.55826 57.01934,-100.0996 z"
+            id="path1"
+            style="display:inline;stroke-width:2.25551"
+            inkscape:label="White backround"/>
+    <g
+            fill="none"
+            stroke="#1c88cb"
+            stroke-linejoin="round"
+            id="g6"
+            transform="matrix(2.2555117,0,0,2.2555117,-195.10234,-166.90884)"
+            inkscape:label="Triangles"><polygon
+       points="90,283 310,283 200,92 "
+       stroke-width="7"
+       id="polygon1"
+       style="display:inline"
+       inkscape:label="Triangle 1" />
+        <polygon
+                points="290.2,248.62 180.2,126.38 129.6,283 "
+                stroke-width="4.5"
+                id="polygon2"
+                inkscape:label="Triangle 2"/>
+        <polygon
+                points="270.4,226.62 171.09,154.57 158.51,276.81 "
+                stroke-width="4.5"
+                id="polygon3"
+                inkscape:label="Triangle 3"/>
+        <polygon
+                points="252.52,213.65 168.83,176.57 178.65,267.78 "
+                stroke-width="4.5"
+                id="polygon4"
+                inkscape:label="Triangle 4"/>
+        <polygon
+                points="237.46,206.98 170.59,192.99 191.95,258.03 "
+                stroke-width="4.5"
+                id="polygon5"
+                inkscape:label="Triangle 5"/>
+        <polygon
+                points="225.42,204.46 174.44,204.7 200.14,248.84 "
+                stroke-width="4.5"
+                id="polygon6"
+                inkscape:label="Triangle 6"/></g></svg>
