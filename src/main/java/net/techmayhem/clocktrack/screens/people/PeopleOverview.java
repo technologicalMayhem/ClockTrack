@@ -20,7 +20,6 @@ import net.techmayhem.clocktrack.screens.Screen;
 import java.util.List;
 import java.util.function.Consumer;
 
-// Todo: Implement proper error handling for DB operations
 public class PeopleOverview extends Overview {
     private final HBox root;
     private final TableView<FromDb<Person>> table;
