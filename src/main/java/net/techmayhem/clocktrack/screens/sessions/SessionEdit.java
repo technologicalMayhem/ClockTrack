@@ -12,6 +12,7 @@ import net.techmayhem.clocktrack.models.FromDb;
 import net.techmayhem.clocktrack.models.Person;
 import net.techmayhem.clocktrack.models.Script;
 import net.techmayhem.clocktrack.models.Session;
+import net.techmayhem.clocktrack.screens.DisplayConverter;
 import net.techmayhem.clocktrack.screens.Screen;
 import org.jspecify.annotations.Nullable;
 
@@ -38,6 +39,7 @@ public class SessionEdit extends Screen {
 
         storyteller = new ChoiceBox<>();
         storyteller.getItems().addAll(db.getAllPersons());
+        storyteller.setConverter(new DisplayConverter<>(p -> p.model().name()));
 
         ToggleGroup winnerGroup = new ToggleGroup();
         goodWon = new RadioButton("Good");
@@ -47,6 +49,7 @@ public class SessionEdit extends Screen {
 
         script = new ChoiceBox<>();
         script.getItems().addAll(db.getAllScripts());
+        script.setConverter(new DisplayConverter<>(s -> s.model().name()));
 
         note = new TextArea();
 
@@ -92,7 +95,7 @@ public class SessionEdit extends Screen {
         if (session == null) {
             return "Creating Session";
         }
-        return "Editing " + session;
+        return "Editing " + session.model().date();
     }
 
     private boolean cannotSubmit() {

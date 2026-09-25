@@ -8,10 +8,5 @@ public record Person(String name) {
     public static Person map(ResultSet rs) throws SQLException {
         return new Person(rs.getString("name"));
     }
-
-    @Override
-    public String toString() {
-        return name;
-    }
 }
 

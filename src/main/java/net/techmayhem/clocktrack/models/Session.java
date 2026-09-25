@@ -17,9 +17,4 @@ public record Session(LocalDate date, int storyteller, boolean goodWon, int scri
                 rs.getString("note")
         );
     }
-
-    @Override
-    public String toString() {
-        return date.toString();
-    }
 }
