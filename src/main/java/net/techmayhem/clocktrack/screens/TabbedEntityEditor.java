@@ -67,6 +67,7 @@ public class TabbedEntityEditor extends Screen {
             }
         });
         tab.setOnCloseRequest(_ -> screen.onHide());
+        tab.setOnClosed(_ -> screens.remove(tab));
         tab.setClosable(closeable);
 
         tabPane.getTabs().add(tab);
