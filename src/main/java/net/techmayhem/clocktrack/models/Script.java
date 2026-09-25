@@ -13,4 +13,9 @@ public record Script(String name, @Nullable String json) {
                 rs.getString("json")
         );
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

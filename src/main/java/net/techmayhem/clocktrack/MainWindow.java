@@ -38,9 +38,9 @@ public class MainWindow extends Application {
         stage.show();
 
         try {
-            Tab sessions = new TabbedEntityEditor(SessionsOverview::new).buildTab();
-            Tab people = new TabbedEntityEditor(PeopleOverview::new).buildTab();
-            Tab scripts = new TabbedEntityEditor(ScriptsOverview::new).buildTab();
+            Tab sessions = new TabbedEntityEditor(SessionsOverview::new).getTab();
+            Tab people = new TabbedEntityEditor(PeopleOverview::new).getTab();
+            Tab scripts = new TabbedEntityEditor(ScriptsOverview::new).getTab();
             sessions.setClosable(false);
             people.setClosable(false);
             scripts.setClosable(false);

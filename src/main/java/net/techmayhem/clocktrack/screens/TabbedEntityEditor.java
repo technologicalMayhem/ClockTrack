@@ -57,7 +57,7 @@ public class TabbedEntityEditor extends Screen {
     }
 
     private void addScreen(Screen screen, boolean closeable) {
-        Tab tab = new Tab(screen.getName(), screen.getView());
+        Tab tab = screen.getTab();
         screens.put(tab, screen);
         tab.setOnSelectionChanged(_ -> {
             if (tab.isSelected()) {

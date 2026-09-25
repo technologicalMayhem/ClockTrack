@@ -89,7 +89,7 @@ public class SessionsOverview extends Overview {
     }
 
     private void createNewSession() {
-
+        createTabCallback.accept(new SessionEdit(null));
     }
 
     private void viewSession() {
@@ -99,10 +99,14 @@ public class SessionsOverview extends Overview {
     }
 
     private void editSession() {
-
+        FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
+        SessionEdit sessionEdit = new SessionEdit(selectedItem);
+        createTabCallback.accept(sessionEdit);
     }
 
     private void deleteSession() {
-
+        FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
+        Database.getInstance().deleteSession(selectedItem.id());
+        updateTable();
     }
 }
