@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.Database;
+import net.techmayhem.clocktrack.dialog.Dialogs;
 import net.techmayhem.clocktrack.models.FromDb;
 import net.techmayhem.clocktrack.models.Session;
 import net.techmayhem.clocktrack.screens.Overview;
@@ -106,7 +107,9 @@ public class SessionsOverview extends Overview {
 
     private void deleteSession() {
         FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
-        Database.getInstance().deleteSession(selectedItem.id());
-        updateTable();
+        Dialogs.showConfirmDialog("Delete session", "Do you really want to delete the session from" + selectedItem.model().date() + "?", "Delete session", "Cancel", () -> {
+            Database.getInstance().deleteSession(selectedItem.id());
+            updateTable();
+        });
     }
 }
