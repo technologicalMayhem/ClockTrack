@@ -370,6 +370,17 @@ public class Database implements AutoCloseable {
         });
     }
 
+    public void deleteAllPersonSessionsForSession(int sessionId) {
+        runTransaction(conn -> {
+            String sql = "DELETE FROM person_session WHERE session_id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, sessionId);
+                statement.executeUpdate();
+            }
+            return null;
+        });
+    }
+
     public FromDb<Script> insertScript(Script script) {
         return runTransaction(conn -> {
             String sql = "INSERT INTO script(name, json) VALUES (?, ?)";

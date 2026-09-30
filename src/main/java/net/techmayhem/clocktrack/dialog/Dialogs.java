@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 public class Dialogs {
 
-    private static Stage createStage(String title) {
+    static Stage createStage(String title) {
         Stage stage = new Stage();
         stage.setTitle(title);
         stage.setResizable(false);
@@ -30,7 +30,7 @@ public class Dialogs {
         return stage;
     }
 
-    private static VBox createVBox() {
+    static VBox createVBox() {
         VBox vBox = new VBox(5);
         vBox.setPadding(new Insets(10));
         return vBox;

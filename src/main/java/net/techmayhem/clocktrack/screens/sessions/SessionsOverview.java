@@ -11,10 +11,11 @@ import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.Database;
 import net.techmayhem.clocktrack.dialog.Dialogs;
 import net.techmayhem.clocktrack.models.FromDb;
+import net.techmayhem.clocktrack.models.PersonSession;
 import net.techmayhem.clocktrack.models.Session;
 import net.techmayhem.clocktrack.screens.Overview;
 import net.techmayhem.clocktrack.screens.Screen;
-import net.techmayhem.clocktrack.utils.TableColumn;
+import net.techmayhem.clocktrack.utils.ColumnDef;
 import net.techmayhem.clocktrack.utils.TableHelper;
 
 import java.util.List;
@@ -56,11 +57,11 @@ public class SessionsOverview extends Overview {
         buttonColumn.getChildren().addAll(buttons);
 
         TableHelper.buildTableColumns(table,
-                new TableColumn<>("Id", session -> String.valueOf(session.id())),
-                new TableColumn<>("Date", session -> session.model().date().toString()),
-                new TableColumn<>("Storyteller", session -> Database.getInstance().getPerson(session.model().storyteller()).model().name()),
-                new TableColumn<>("Winner", session -> session.model().goodWon() ? "Good" : "Evil"),
-                new TableColumn<>("Script", session -> Database.getInstance().getScript(session.model().script()).model().name()));
+                new ColumnDef<>("Id", session -> String.valueOf(session.id())),
+                new ColumnDef<>("Date", session -> session.model().date().toString()),
+                new ColumnDef<>("Storyteller", session -> Database.getInstance().getPerson(session.model().storyteller()).model().name()),
+                new ColumnDef<>("Winner", session -> session.model().goodWon() ? "Good" : "Evil"),
+                new ColumnDef<>("Script", session -> Database.getInstance().getScript(session.model().script()).model().name()));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
@@ -90,7 +91,7 @@ public class SessionsOverview extends Overview {
     }
 
     private void createNewSession() {
-        createTabCallback.accept(new SessionEdit(null));
+        createTabCallback.accept(new SessionEdit(null, null));
     }
 
     private void viewSession() {
@@ -101,7 +102,8 @@ public class SessionsOverview extends Overview {
 
     private void editSession() {
         FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
-        SessionEdit sessionEdit = new SessionEdit(selectedItem);
+        List<FromDb<PersonSession>> personSessions = Database.getInstance().getAllPersonSessionsForSession(selectedItem.id());
+        SessionEdit sessionEdit = new SessionEdit(selectedItem, personSessions);
         createTabCallback.accept(sessionEdit);
     }
 

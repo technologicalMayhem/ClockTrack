@@ -19,4 +19,8 @@ public record PersonSession(int sessionId, int personId, String role, @Nullable 
                 rs.getString("note")
         );
     }
+
+    public PersonSession withSessionId(int sessionId) {
+        return new PersonSession(sessionId, this.personId, this.role, this.deathOnDay, this.causeOfDeath, this.good, this.note);
+    }
 }
