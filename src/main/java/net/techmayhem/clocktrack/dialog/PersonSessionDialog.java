@@ -30,7 +30,7 @@ public class PersonSessionDialog {
 
     private final Stage stage;
 
-    private boolean submit = false;
+    private boolean shouldSubmit = false;
 
     public PersonSessionDialog(@Nullable MaybeFromDb<PersonSession> personSession) {
         Database db = Database.getInstance();
@@ -68,7 +68,7 @@ public class PersonSessionDialog {
 
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(_ -> {
-            submit = true;
+            shouldSubmit = true;
             stage.close();
         });
         submitButton.disableProperty().bind(Bindings.createBooleanBinding(
@@ -113,7 +113,7 @@ public class PersonSessionDialog {
 
     public @Nullable PersonSession showAndWait() {
         stage.showAndWait();
-        if (!submit && cannotSubmit()) return null;
+        if (!shouldSubmit || cannotSubmit()) return null;
 
         int personId = personChoice.getSelectionModel().getSelectedItem().id();
         String role = roleField.getText();

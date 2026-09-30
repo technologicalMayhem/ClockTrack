@@ -15,6 +15,7 @@ import net.techmayhem.clocktrack.utils.ColumnDef;
 import net.techmayhem.clocktrack.utils.TableHelper;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +40,7 @@ public class SessionEdit extends Screen {
         if (personSessions != null) {
             this.personSessions = personSessions.stream().map(MaybeFromDb::of).collect(Collectors.toList());
         } else {
-            this.personSessions = List.of();
+            this.personSessions = new ArrayList<>();
         }
 
         Database db = Database.getInstance();
