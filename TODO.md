@@ -14,3 +14,5 @@ A list of things I still need to do, apart from unimplemented features:
 - [ ] Think about a proper form of deployment. Right now I am using javafx's jlink. I have no idea how 'proper' this is
   though. Maybe a single "fat jar" might be better? The deployment should be sensible for the project and simple to get
   running from just a repository state. It should also be relatively easy to share a copy of the app once compiled.
+- [ ] None of the editors right now give any feedback about what is wrong with the entered data beyond not allowing you
+  to submit. There should be a indicator showing what is wrong.

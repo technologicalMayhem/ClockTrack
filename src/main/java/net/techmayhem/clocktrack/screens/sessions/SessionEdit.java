@@ -15,6 +15,7 @@ import net.techmayhem.clocktrack.utils.TableHelper;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +38,7 @@ public class SessionEdit extends Screen {
         root.setPadding(new Insets(10));
         this.session = session;
         if (personSessions != null) {
-            this.personSessions = personSessions.stream().map(FromDb::model).collect(Collectors.toList());
+            this.personSessions = personSessions.stream().map(FromDb::model).collect(Collectors.toCollection(ArrayList::new));
         } else {
             this.personSessions = new ArrayList<>();
         }
@@ -116,7 +117,8 @@ public class SessionEdit extends Screen {
                 datePicker.valueProperty(),
                 storyteller.valueProperty(),
                 winnerGroup.selectedToggleProperty(),
-                script.valueProperty()
+                script.valueProperty(),
+                personSessionTable.getItems()
         ));
 
         root.getChildren().addAll(grid, aboveTable, personSessionTable, new Label("Notes"), note, submitButton);
@@ -136,8 +138,6 @@ public class SessionEdit extends Screen {
     }
 
     private void addPlayer() {
-        // Todo: Adding a player with a name that already exists makes it impossible to submit changes due to the
-        //  uniqueness constraint being violated. This needs to prevented from happening.
         PersonSession newPersonSession = new PersonSessionDialog(null).showAndWait();
         if (newPersonSession == null) return;
         personSessions.add(newPersonSession);
@@ -145,12 +145,10 @@ public class SessionEdit extends Screen {
     }
 
     private void editPlayer() {
-        // Todo: how editing work needs to be overhauled. Changing players on an edit has strange results.
-        PersonSession sessionFromDb = personSessionTable.getSelectionModel().getSelectedItem();
-        PersonSession editedPersonSession = new PersonSessionDialog(sessionFromDb).showAndWait();
-        if (editedPersonSession == null) return;
-        personSessions.removeIf(current -> current.personId() == editedPersonSession.personId());
-        personSessions.add(editedPersonSession);
+        int index = personSessionTable.getSelectionModel().getSelectedIndex();
+        PersonSession edited = new PersonSessionDialog(personSessionTable.getSelectionModel().getSelectedItem()).showAndWait();
+        if (edited == null) return;
+        personSessions.set(index, edited);
         updateTable();
     }
 
@@ -178,7 +176,16 @@ public class SessionEdit extends Screen {
     }
 
     private boolean cannotSubmit() {
-        return datePicker.getValue() == null || storyteller.getSelectionModel().isEmpty() || (!goodWon.isSelected() && !evilWon.isSelected()) || script.getSelectionModel().isEmpty();
+        return datePicker.getValue() == null || storyteller.getSelectionModel().isEmpty() || (!goodWon.isSelected() && !evilWon.isSelected()) || script.getSelectionModel().isEmpty() || duplicatePlayer();
+    }
+
+    private boolean duplicatePlayer() {
+        HashSet<Integer> names = new HashSet<>();
+        for (PersonSession personSession : personSessions) {
+            if (names.contains(personSession.personId())) return true;
+            else names.add(personSession.personId());
+        }
+        return false;
     }
 
     private void submit() {
