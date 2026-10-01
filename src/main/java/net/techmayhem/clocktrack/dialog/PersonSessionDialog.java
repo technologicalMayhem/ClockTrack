@@ -13,7 +13,6 @@ import net.techmayhem.clocktrack.models.FromDb;
 import net.techmayhem.clocktrack.models.Person;
 import net.techmayhem.clocktrack.models.PersonSession;
 import net.techmayhem.clocktrack.screens.DisplayConverter;
-import net.techmayhem.clocktrack.screens.MaybeFromDb;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -32,11 +31,11 @@ public class PersonSessionDialog {
 
     private boolean shouldSubmit = false;
 
-    public PersonSessionDialog(@Nullable MaybeFromDb<PersonSession> personSession) {
+    public PersonSessionDialog(@Nullable PersonSession personSession) {
         Database db = Database.getInstance();
         String title;
         if (personSession != null) {
-            FromDb<Person> person = db.getPerson(personSession.getEither().personId());
+            FromDb<Person> person = db.getPerson(personSession.personId());
             title = "Editing Session for " + person.model().name();
         } else {
             title = "Creating a new session person entry";
@@ -91,20 +90,19 @@ public class PersonSessionDialog {
         vBox.getChildren().addAll(grid, new Label("Notes"), noteText, submitButton);
 
         if (personSession != null) {
-            PersonSession model = personSession.getEither();
-            personChoice.getItems().stream().filter(tablePerson -> tablePerson.id() == model.personId()).findFirst().ifPresent(personChoice::setValue);
-            roleField.setText(model.role());
-            if (model.deathOnDay() != null && model.causeOfDeath() != null) {
+            personChoice.getItems().stream().filter(tablePerson -> tablePerson.id() == personSession.personId()).findFirst().ifPresent(personChoice::setValue);
+            roleField.setText(personSession.role());
+            if (personSession.deathOnDay() != null && personSession.causeOfDeath() != null) {
                 died.setSelected(true);
-                deathOnDaySpinner.getValueFactory().setValue(model.deathOnDay());
-                causeOfDeathField.setText(model.causeOfDeath());
+                deathOnDaySpinner.getValueFactory().setValue(personSession.deathOnDay());
+                causeOfDeathField.setText(personSession.causeOfDeath());
             }
-            if (model.good()) {
+            if (personSession.good()) {
                 goodRadio.setSelected(true);
             } else {
                 evilRadio.setSelected(true);
             }
-            noteText.setText(model.note());
+            noteText.setText(personSession.note());
         }
 
         Scene dialogScene = new Scene(vBox);

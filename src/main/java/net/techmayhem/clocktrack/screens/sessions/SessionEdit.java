@@ -9,7 +9,6 @@ import net.techmayhem.clocktrack.Database;
 import net.techmayhem.clocktrack.dialog.PersonSessionDialog;
 import net.techmayhem.clocktrack.models.*;
 import net.techmayhem.clocktrack.screens.DisplayConverter;
-import net.techmayhem.clocktrack.screens.MaybeFromDb;
 import net.techmayhem.clocktrack.screens.Screen;
 import net.techmayhem.clocktrack.utils.ColumnDef;
 import net.techmayhem.clocktrack.utils.TableHelper;
@@ -23,7 +22,7 @@ public class SessionEdit extends Screen {
     private final VBox root;
     @Nullable
     private final FromDb<Session> session;
-    private final List<MaybeFromDb<PersonSession>> personSessions;
+    private final List<PersonSession> personSessions;
 
     private final DatePicker datePicker;
     private final ChoiceBox<FromDb<Person>> storyteller;
@@ -31,14 +30,14 @@ public class SessionEdit extends Screen {
     private final RadioButton evilWon;
     private final ChoiceBox<FromDb<Script>> script;
     private final TextArea note;
-    private final TableView<MaybeFromDb<PersonSession>> personSessionTable;
+    private final TableView<PersonSession> personSessionTable;
 
     public SessionEdit(@Nullable FromDb<Session> session, @Nullable List<FromDb<PersonSession>> personSessions) {
         root = new VBox(5.0);
         root.setPadding(new Insets(10));
         this.session = session;
         if (personSessions != null) {
-            this.personSessions = personSessions.stream().map(MaybeFromDb::of).collect(Collectors.toList());
+            this.personSessions = personSessions.stream().map(FromDb::model).collect(Collectors.toList());
         } else {
             this.personSessions = new ArrayList<>();
         }
@@ -86,18 +85,18 @@ public class SessionEdit extends Screen {
         aboveTable.getChildren().addAll(new Label("People"), spacer, buttonRow);
 
         TableHelper.buildTableColumns(personSessionTable,
-                new ColumnDef<>("Player", ps -> Database.getInstance().getPerson(ps.getEither().personId()).model().name()),
-                new ColumnDef<>("Role", ps -> ps.getEither().role()),
-                new ColumnDef<>("Alignment", ps -> ps.getEither().good() ? "Good" : "Evil"),
+                new ColumnDef<>("Player", ps -> Database.getInstance().getPerson(ps.personId()).model().name()),
+                new ColumnDef<>("Role", PersonSession::role),
+                new ColumnDef<>("Alignment", ps -> ps.good() ? "Good" : "Evil"),
                 new ColumnDef<>("Died on day", ps -> {
-                    Integer day = ps.getEither().deathOnDay();
+                    Integer day = ps.deathOnDay();
                     return day == null ? "" : String.valueOf(day);
                 }),
                 new ColumnDef<>("Cause of death", ps -> {
-                    String cause = ps.getEither().causeOfDeath();
+                    String cause = ps.causeOfDeath();
                     return cause == null ? "" : cause;
                 }),
-                new ColumnDef<>("Note", ps -> ps.getEither().note() == null ? "" : ps.getEither().note())
+                new ColumnDef<>("Note", ps -> ps.note() == null ? "" : ps.note())
         );
         personSessionTable.getItems().setAll(this.personSessions);
         personSessionTable.refresh();
@@ -141,22 +140,22 @@ public class SessionEdit extends Screen {
         //  uniqueness constraint being violated. This needs to prevented from happening.
         PersonSession newPersonSession = new PersonSessionDialog(null).showAndWait();
         if (newPersonSession == null) return;
-        personSessions.add(MaybeFromDb.of(newPersonSession));
+        personSessions.add(newPersonSession);
         updateTable();
     }
 
     private void editPlayer() {
         // Todo: how editing work needs to be overhauled. Changing players on an edit has strange results.
-        MaybeFromDb<PersonSession> sessionFromDb = personSessionTable.getSelectionModel().getSelectedItem();
+        PersonSession sessionFromDb = personSessionTable.getSelectionModel().getSelectedItem();
         PersonSession editedPersonSession = new PersonSessionDialog(sessionFromDb).showAndWait();
         if (editedPersonSession == null) return;
-        personSessions.removeIf(current -> current.getEither().personId() == editedPersonSession.personId());
-        personSessions.add(MaybeFromDb.of(editedPersonSession));
+        personSessions.removeIf(current -> current.personId() == editedPersonSession.personId());
+        personSessions.add(editedPersonSession);
         updateTable();
     }
 
     private void removePlayer() {
-        MaybeFromDb<PersonSession> sessionFromDb = personSessionTable.getSelectionModel().getSelectedItem();
+        PersonSession sessionFromDb = personSessionTable.getSelectionModel().getSelectedItem();
         this.personSessions.remove(sessionFromDb);
         updateTable();
     }
@@ -187,16 +186,10 @@ public class SessionEdit extends Screen {
         Database db = Database.getInstance();
         String text = note.getText();
         Session newSession = new Session(datePicker.getValue(), storyteller.getValue().id(), goodWon.isSelected(), script.getValue().id(), text.isEmpty() ? null : text);
-        int sessionId;
         if (session == null) {
-            sessionId = db.insertSession(newSession).id();
+            db.saveSession(MaybeFromDb.of(newSession), personSessions);
         } else {
-            sessionId = session.id();
-            db.updateSession(session.with(newSession));
-            db.deleteAllPersonSessionsForSession(session.id());
-        }
-        for (MaybeFromDb<PersonSession> personSession : personSessions) {
-            db.insertPersonSession(personSession.getEither().withSessionId(sessionId));
+            db.saveSession(MaybeFromDb.of(session.with(newSession)), personSessions);
         }
         closeTab();
     }

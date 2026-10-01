@@ -1,6 +1,4 @@
-package net.techmayhem.clocktrack.screens;
-
-import net.techmayhem.clocktrack.models.FromDb;
+package net.techmayhem.clocktrack.models;
 
 public sealed interface MaybeFromDb<T> {
 

@@ -17,6 +17,7 @@ public class Database implements AutoCloseable {
 
     @Nullable
     private static Database instance;
+    private boolean inTransaction = false;
 
     private Database() throws SQLException {
         connection = DriverManager.getConnection("jdbc:sqlite:ClockTrack.db");
@@ -188,22 +189,40 @@ public class Database implements AutoCloseable {
         });
     }
 
-    public FromDb<Session> insertSession(Session session) {
-        return runTransaction(conn -> {
-            String sql = "INSERT INTO session(date, storyteller, good_won, script, note) VALUES (?, ?, ?, ?, ?)";
-            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, session.date().toString());
-                statement.setInt(2, session.storyteller());
-                statement.setBoolean(3, session.goodWon());
-                statement.setInt(4, session.script());
-                statement.setString(5, session.note());
-                statement.executeUpdate();
-                try (ResultSet keys = statement.getGeneratedKeys()) {
-                    keys.next();
-                    return new FromDb<>(keys.getInt(1), session);
+    public void saveSession(MaybeFromDb<Session> session, List<PersonSession> personSessions) {
+        runTransaction(conn -> {
+            int sessionId;
+            switch (session) {
+                case MaybeFromDb.Persisted<Session> v -> {
+                    FromDb<Session> fromDb = v.fromDb();
+                    updateSession(fromDb, conn);
+                    sessionId = fromDb.id();
                 }
+                case MaybeFromDb.Unsaved<Session> v -> sessionId = insertSession(v.raw(), conn).id();
             }
+
+            deleteAllPersonSessionsForSession(sessionId, conn);
+            for (PersonSession personSession : personSessions) {
+                insertPersonSession(personSession.withSessionId(sessionId), conn);
+            }
+            return null;
         });
+    }
+
+    private static FromDb<Session> insertSession(Session session, Connection conn) throws SQLException {
+        String sql = "INSERT INTO session(date, storyteller, good_won, script, note) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, session.date().toString());
+            statement.setInt(2, session.storyteller());
+            statement.setBoolean(3, session.goodWon());
+            statement.setInt(4, session.script());
+            statement.setString(5, session.note());
+            statement.executeUpdate();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                keys.next();
+                return new FromDb<>(keys.getInt(1), session);
+            }
+        }
     }
 
     public FromDb<Session> getSession(int id) {
@@ -238,21 +257,18 @@ public class Database implements AutoCloseable {
         });
     }
 
-    public void updateSession(FromDb<Session> session) {
-        runTransaction(conn -> {
-            String sql = "UPDATE session SET date = ?, storyteller = ?, good_won = ?, script = ?, note = ? WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                Session model = session.model();
-                statement.setString(1, model.date().toString());
-                statement.setInt(2, model.storyteller());
-                statement.setBoolean(3, model.goodWon());
-                statement.setInt(4, model.script());
-                statement.setString(5, model.note());
-                statement.setInt(6, session.id());
-                statement.executeUpdate();
-            }
-            return null;
-        });
+    private static void updateSession(FromDb<Session> session, Connection conn) throws SQLException {
+        String sql = "UPDATE session SET date = ?, storyteller = ?, good_won = ?, script = ?, note = ? WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            Session model = session.model();
+            statement.setString(1, model.date().toString());
+            statement.setInt(2, model.storyteller());
+            statement.setBoolean(3, model.goodWon());
+            statement.setInt(4, model.script());
+            statement.setString(5, model.note());
+            statement.setInt(6, session.id());
+            statement.executeUpdate();
+        }
     }
 
     public void deleteSession(int id) {
@@ -266,28 +282,22 @@ public class Database implements AutoCloseable {
         });
     }
 
-    public FromDb<PersonSession> insertPersonSession(PersonSession personSession) {
-        return runTransaction(conn -> {
-            String sql = "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setInt(1, personSession.sessionId());
-                statement.setInt(2, personSession.personId());
-                statement.setString(3, personSession.role());
-                if (personSession.deathOnDay() == null) {
-                    statement.setNull(4, Types.INTEGER);
-                } else {
-                    statement.setInt(4, personSession.deathOnDay());
-                }
-                statement.setString(5, personSession.causeOfDeath());
-                statement.setBoolean(6, personSession.good());
-                statement.setString(7, personSession.note());
-                statement.executeUpdate();
-                try (ResultSet keys = statement.getGeneratedKeys()) {
-                    keys.next();
-                    return new FromDb<>(keys.getInt(1), personSession);
-                }
+    private static void insertPersonSession(PersonSession personSession, Connection conn) throws SQLException {
+        String sql = "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setInt(1, personSession.sessionId());
+            statement.setInt(2, personSession.personId());
+            statement.setString(3, personSession.role());
+            if (personSession.deathOnDay() == null) {
+                statement.setNull(4, Types.INTEGER);
+            } else {
+                statement.setInt(4, personSession.deathOnDay());
             }
-        });
+            statement.setString(5, personSession.causeOfDeath());
+            statement.setBoolean(6, personSession.good());
+            statement.setString(7, personSession.note());
+            statement.executeUpdate();
+        }
     }
 
     public FromDb<PersonSession> getPersonSession(int id) {
@@ -338,47 +348,30 @@ public class Database implements AutoCloseable {
         });
     }
 
-    public void updatePersonSession(FromDb<PersonSession> personSession) {
-        runTransaction(conn -> {
-            String sql = "UPDATE person_session SET role = ?, death_on_day = ?, cause_of_death = ?, good = ?, note = ? WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                PersonSession model = personSession.model();
-                statement.setString(1, model.role());
-                if (model.deathOnDay() == null) {
-                    statement.setNull(2, Types.INTEGER);
-                } else {
-                    statement.setInt(2, model.deathOnDay());
-                }
-                statement.setString(3, model.causeOfDeath());
-                statement.setBoolean(4, model.good());
-                statement.setString(5, model.note());
-                statement.setInt(6, personSession.id());
-                statement.executeUpdate();
+    private static void updatePersonSession(FromDb<PersonSession> personSession, Connection conn) throws SQLException {
+        String sql = "UPDATE person_session SET role = ?, death_on_day = ?, cause_of_death = ?, good = ?, note = ? WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            PersonSession model = personSession.model();
+            statement.setString(1, model.role());
+            if (model.deathOnDay() == null) {
+                statement.setNull(2, Types.INTEGER);
+            } else {
+                statement.setInt(2, model.deathOnDay());
             }
-            return null;
-        });
+            statement.setString(3, model.causeOfDeath());
+            statement.setBoolean(4, model.good());
+            statement.setString(5, model.note());
+            statement.setInt(6, personSession.id());
+            statement.executeUpdate();
+        }
     }
 
-    public void deletePersonSession(int id) {
-        runTransaction(conn -> {
-            String sql = "DELETE FROM person_session WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, id);
-                statement.executeUpdate();
-            }
-            return null;
-        });
-    }
-
-    public void deleteAllPersonSessionsForSession(int sessionId) {
-        runTransaction(conn -> {
-            String sql = "DELETE FROM person_session WHERE session_id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, sessionId);
-                statement.executeUpdate();
-            }
-            return null;
-        });
+    private static void deleteAllPersonSessionsForSession(int sessionId, Connection conn) throws SQLException {
+        String sql = "DELETE FROM person_session WHERE session_id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, sessionId);
+            statement.executeUpdate();
+        }
     }
 
     public FromDb<Script> insertScript(Script script) {
@@ -461,6 +454,9 @@ public class Database implements AutoCloseable {
 
     /// Wrapper function for common database exception handling logic.
     private <T> T runTransaction(SqlFunction<T> body) {
+        if (inTransaction)
+            throw new IllegalStateException("Nested transaction. runTransaction must not be called within a transaction.");
+        inTransaction = true;
         try {
             T value = body.apply(connection);
             connection.commit();
@@ -474,6 +470,15 @@ public class Database implements AutoCloseable {
                 dbException.addSuppressed(rollbackException);
             }
             throw dbException;
+        } catch (RuntimeException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException re) {
+                e.addSuppressed(re);
+            }
+            throw e;
+        } finally {
+            inTransaction = false;
         }
     }
 
