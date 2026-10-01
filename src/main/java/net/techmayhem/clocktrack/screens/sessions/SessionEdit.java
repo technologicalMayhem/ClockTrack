@@ -24,9 +24,10 @@ public class SessionEdit extends Screen {
     @Nullable
     private final FromDb<Session> session;
     private final List<PersonSession> personSessions;
+    private final List<FromDb<Person>> people;
 
     private final DatePicker datePicker;
-    private final ChoiceBox<FromDb<Person>> storyteller;
+    private final ChoiceBox<FromDb<Person>> storytellerChoice;
     private final RadioButton goodWon;
     private final RadioButton evilWon;
     private final ChoiceBox<FromDb<Script>> script;
@@ -47,9 +48,10 @@ public class SessionEdit extends Screen {
 
         datePicker = new DatePicker();
 
-        storyteller = new ChoiceBox<>();
-        storyteller.getItems().addAll(db.getAllPersons());
-        storyteller.setConverter(new DisplayConverter<>(p -> p.model().name()));
+        people = db.getAllPersons();
+        storytellerChoice = new ChoiceBox<>();
+        storytellerChoice.getItems().addAll(people);
+        storytellerChoice.setConverter(new DisplayConverter<>(p -> p.model().name()));
 
         ToggleGroup winnerGroup = new ToggleGroup();
         goodWon = new RadioButton("Good");
@@ -106,7 +108,7 @@ public class SessionEdit extends Screen {
 
         GridPane grid = new GridPane(5.0, 5.0);
         grid.addRow(0, new Label("Date"), datePicker);
-        grid.addRow(1, new Label("Storyteller"), storyteller);
+        grid.addRow(1, new Label("Storyteller"), storytellerChoice);
         grid.addRow(2, new Label("Winner"), new HBox(5.0, goodWon, evilWon));
         grid.addRow(3, new Label("Script"), script);
 
@@ -115,7 +117,7 @@ public class SessionEdit extends Screen {
         submitButton.disableProperty().bind(Bindings.createBooleanBinding(
                 this::cannotSubmit,
                 datePicker.valueProperty(),
-                storyteller.valueProperty(),
+                storytellerChoice.valueProperty(),
                 winnerGroup.selectedToggleProperty(),
                 script.valueProperty(),
                 personSessionTable.getItems()
@@ -126,7 +128,7 @@ public class SessionEdit extends Screen {
         if (session != null) {
             Session model = session.model();
             datePicker.setValue(model.date());
-            storyteller.setValue(db.getPerson(model.storyteller()));
+            storytellerChoice.setValue(db.getPerson(model.storyteller()));
             if (model.goodWon()) {
                 goodWon.setSelected(true);
             } else {
@@ -138,18 +140,35 @@ public class SessionEdit extends Screen {
     }
 
     private void addPlayer() {
-        PersonSession newPersonSession = new PersonSessionDialog(null).showAndWait();
+        PersonSession newPersonSession = new PersonSessionDialog(null, availablePeople(null), unavailablePeople(null)).showAndWait();
         if (newPersonSession == null) return;
         personSessions.add(newPersonSession);
         updateTable();
     }
 
     private void editPlayer() {
-        int index = personSessionTable.getSelectionModel().getSelectedIndex();
-        PersonSession edited = new PersonSessionDialog(personSessionTable.getSelectionModel().getSelectedItem()).showAndWait();
+        PersonSession selected = personSessionTable.getSelectionModel().getSelectedItem();
+        // Look the row up by value. The table can be sorted, so its selection index is not the index in personSessions.
+        int index = personSessions.indexOf(selected);
+        PersonSession edited = new PersonSessionDialog(selected, availablePeople(selected), unavailablePeople(selected)).showAndWait();
         if (edited == null) return;
         personSessions.set(index, edited);
         updateTable();
+    }
+
+    private boolean isUnavailable(FromDb<Person> p, @Nullable PersonSession editing) {
+        if (editing != null && editing.personId() == p.id()) return false;
+        boolean hasStoryteller = !storytellerChoice.getSelectionModel().isEmpty();
+        if (hasStoryteller && storytellerChoice.getValue().id() == p.id()) return true;
+        return personSessions.stream().anyMatch(ps -> ps != editing && ps.personId() == p.id());
+    }
+
+    private List<FromDb<Person>> availablePeople(@Nullable PersonSession editing) {
+        return people.stream().filter(p -> !isUnavailable(p, editing)).toList();
+    }
+
+    private List<FromDb<Person>> unavailablePeople(@Nullable PersonSession editing) {
+        return people.stream().filter(p -> isUnavailable(p, editing)).toList();
     }
 
     private void removePlayer() {
@@ -176,7 +195,7 @@ public class SessionEdit extends Screen {
     }
 
     private boolean cannotSubmit() {
-        return datePicker.getValue() == null || storyteller.getSelectionModel().isEmpty() || (!goodWon.isSelected() && !evilWon.isSelected()) || script.getSelectionModel().isEmpty() || duplicatePlayer();
+        return datePicker.getValue() == null || storytellerChoice.getSelectionModel().isEmpty() || (!goodWon.isSelected() && !evilWon.isSelected()) || script.getSelectionModel().isEmpty() || duplicatePlayer() || storytellerIsPlayer();
     }
 
     private boolean duplicatePlayer() {
@@ -188,11 +207,17 @@ public class SessionEdit extends Screen {
         return false;
     }
 
+    private boolean storytellerIsPlayer() {
+        if (storytellerChoice.getSelectionModel().isEmpty()) return false;
+        FromDb<Person> currentStoryteller = storytellerChoice.getValue();
+        return personSessions.stream().anyMatch(personSession -> personSession.personId() == currentStoryteller.id());
+    }
+
     private void submit() {
         if (cannotSubmit()) return;
         Database db = Database.getInstance();
         String text = note.getText();
-        Session newSession = new Session(datePicker.getValue(), storyteller.getValue().id(), goodWon.isSelected(), script.getValue().id(), text.isEmpty() ? null : text);
+        Session newSession = new Session(datePicker.getValue(), storytellerChoice.getValue().id(), goodWon.isSelected(), script.getValue().id(), text.isEmpty() ? null : text);
         if (session == null) {
             db.saveSession(MaybeFromDb.of(newSession), personSessions);
         } else {

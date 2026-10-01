@@ -8,7 +8,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import net.techmayhem.clocktrack.Database;
 import net.techmayhem.clocktrack.models.FromDb;
 import net.techmayhem.clocktrack.models.Person;
 import net.techmayhem.clocktrack.models.PersonSession;
@@ -16,9 +15,10 @@ import net.techmayhem.clocktrack.screens.DisplayConverter;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public class PersonSessionDialog {
-    private final ChoiceBox<FromDb<Person>> personChoice;
+    private final ComboBox<FromDb<Person>> personChoice;
     private final TextField roleField;
     private final CheckBox died;
     private final Spinner<Integer> deathOnDaySpinner;
@@ -28,24 +28,33 @@ public class PersonSessionDialog {
     private final TextArea noteText;
 
     private final Stage stage;
+    private final List<FromDb<Person>> unavailablePeople;
+
 
     private boolean shouldSubmit = false;
 
-    public PersonSessionDialog(@Nullable PersonSession personSession) {
-        Database db = Database.getInstance();
+    public PersonSessionDialog(@Nullable PersonSession personSession,
+                               List<FromDb<Person>> availablePeople,
+                               List<FromDb<Person>> unavailablePeople) {
+        this.unavailablePeople = unavailablePeople;
+        List<FromDb<Person>> allPeople = Stream.concat(availablePeople.stream(), this.unavailablePeople.stream()).toList();
         String title;
         if (personSession != null) {
-            FromDb<Person> person = db.getPerson(personSession.personId());
-            title = "Editing Session for " + person.model().name();
+            String name = allPeople.stream()
+                    .filter(person -> person.id() == personSession.personId())
+                    .findFirst()
+                    .map(person -> person.model().name())
+                    .orElse("player");
+            title = "Editing Session for " + name;
         } else {
             title = "Creating a new session person entry";
         }
         stage = Dialogs.createStage(title);
 
-        List<FromDb<Person>> people = db.getAllPersons();
-        personChoice = new ChoiceBox<>();
-        personChoice.getItems().addAll(people);
+        personChoice = new ComboBox<>();
+        personChoice.getItems().addAll(allPeople);
         personChoice.setConverter(new DisplayConverter<>(personFromDb -> personFromDb.model().name()));
+        personChoice.setCellFactory(_ -> new PersonChoiceCell());
 
         roleField = new TextField();
 
@@ -124,6 +133,28 @@ public class PersonSessionDialog {
     }
 
     private boolean cannotSubmit() {
-        return personChoice.getSelectionModel().isEmpty() || roleField.getText().isBlank() || (died.isSelected() && causeOfDeathField.getText().isBlank()) || (!goodRadio.isSelected() && !evilRadio.isSelected());
+        return personChoice.getSelectionModel().isEmpty() || isSelectedPersonUnavailable() || roleField.getText().isBlank() || (died.isSelected() && causeOfDeathField.getText().isBlank()) || (!goodRadio.isSelected() && !evilRadio.isSelected());
+    }
+
+    private boolean isSelectedPersonUnavailable() {
+        FromDb<Person> selected = personChoice.getValue();
+        return unavailablePeople.contains(selected);
+    }
+
+    private class PersonChoiceCell extends ListCell<FromDb<Person>> {
+        @Override
+        protected void updateItem(FromDb<Person> person, boolean empty) {
+            super.updateItem(person, empty);
+            if (empty) {
+                setText(null);
+                setDisable(false);
+                setOpacity(1.0);
+                return;
+            }
+            boolean unavailable = unavailablePeople.contains(person);
+            setText(person.model().name());
+            setDisable(unavailable);
+            setOpacity(unavailable ? 0.4 : 1.0);
+        }
     }
 }
