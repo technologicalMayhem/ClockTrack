@@ -9,11 +9,14 @@ public record PersonSession(int sessionId, int personId, String role, @Nullable 
                             @Nullable String causeOfDeath, boolean good, @Nullable String note) {
 
     public static PersonSession map(ResultSet rs) throws SQLException {
+        int day = rs.getInt("death_on_day");
+        Integer deathOnDay = rs.wasNull() ? null : day;
+
         return new PersonSession(
                 rs.getInt("session_id"),
                 rs.getInt("person_id"),
                 rs.getString("role"),
-                rs.getObject("death_on_day", Integer.class),
+                deathOnDay,
                 rs.getString("cause_of_death"),
                 rs.getBoolean("good"),
                 rs.getString("note")
