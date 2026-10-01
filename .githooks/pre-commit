@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Checking code formatting..."
+
+if ./mvnw spotless:check > /dev/null 2>&1; then
+  :
+else
+  echo "Error: formatting check failed."
+  exit 1
+fi
