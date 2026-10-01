@@ -284,7 +284,7 @@ public class Database implements AutoCloseable {
 
     private static void insertPersonSession(PersonSession personSession, Connection conn) throws SQLException {
         String sql = "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, personSession.sessionId());
             statement.setInt(2, personSession.personId());
             statement.setString(3, personSession.role());
@@ -346,24 +346,6 @@ public class Database implements AutoCloseable {
             }
             return result;
         });
-    }
-
-    private static void updatePersonSession(FromDb<PersonSession> personSession, Connection conn) throws SQLException {
-        String sql = "UPDATE person_session SET role = ?, death_on_day = ?, cause_of_death = ?, good = ?, note = ? WHERE id = ?";
-        try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            PersonSession model = personSession.model();
-            statement.setString(1, model.role());
-            if (model.deathOnDay() == null) {
-                statement.setNull(2, Types.INTEGER);
-            } else {
-                statement.setInt(2, model.deathOnDay());
-            }
-            statement.setString(3, model.causeOfDeath());
-            statement.setBoolean(4, model.good());
-            statement.setString(5, model.note());
-            statement.setInt(6, personSession.id());
-            statement.executeUpdate();
-        }
     }
 
     private static void deleteAllPersonSessionsForSession(int sessionId, Connection conn) throws SQLException {
