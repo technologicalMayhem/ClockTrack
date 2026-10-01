@@ -9,8 +9,10 @@ public class TableHelper {
     public static <T> void buildTableColumns(TableView<T> tableView, ColumnDef<T>... columns) {
         ObservableList<javafx.scene.control.TableColumn<T, ?>> tableViewColumns = tableView.getColumns();
         for (ColumnDef<T> column : columns) {
-            javafx.scene.control.TableColumn<T, String> tableColumn = new javafx.scene.control.TableColumn<>(column.name());
-            tableColumn.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(column.valueMap().apply(cellData.getValue())));
+            javafx.scene.control.TableColumn<T, String> tableColumn =
+                    new javafx.scene.control.TableColumn<>(column.name());
+            tableColumn.setCellValueFactory(
+                    cellData -> new ReadOnlyObjectWrapper<>(column.valueMap().apply(cellData.getValue())));
             tableViewColumns.add(tableColumn);
         }
     }

@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.screens.sessions;
 
+import java.util.List;
+import java.util.function.Consumer;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -17,9 +19,6 @@ import net.techmayhem.clocktrack.screens.Overview;
 import net.techmayhem.clocktrack.screens.Screen;
 import net.techmayhem.clocktrack.utils.ColumnDef;
 import net.techmayhem.clocktrack.utils.TableHelper;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 public class SessionsOverview extends Overview {
     private final HBox root;
@@ -56,12 +55,23 @@ public class SessionsOverview extends Overview {
         buttonColumn.setSpacing(5);
         buttonColumn.getChildren().addAll(buttons);
 
-        TableHelper.buildTableColumns(table,
+        TableHelper.buildTableColumns(
+                table,
                 new ColumnDef<>("Id", session -> String.valueOf(session.id())),
                 new ColumnDef<>("Date", session -> session.model().date().toString()),
-                new ColumnDef<>("Storyteller", session -> Database.getInstance().getPerson(session.model().storyteller()).model().name()),
+                new ColumnDef<>(
+                        "Storyteller",
+                        session -> Database.getInstance()
+                                .getPerson(session.model().storyteller())
+                                .model()
+                                .name()),
                 new ColumnDef<>("Winner", session -> session.model().goodWon() ? "Good" : "Evil"),
-                new ColumnDef<>("Script", session -> Database.getInstance().getScript(session.model().script()).model().name()));
+                new ColumnDef<>(
+                        "Script",
+                        session -> Database.getInstance()
+                                .getScript(session.model().script())
+                                .model()
+                                .name()));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
@@ -102,16 +112,23 @@ public class SessionsOverview extends Overview {
 
     private void editSession() {
         FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
-        List<FromDb<PersonSession>> personSessions = Database.getInstance().getAllPersonSessionsForSession(selectedItem.id());
+        List<FromDb<PersonSession>> personSessions =
+                Database.getInstance().getAllPersonSessionsForSession(selectedItem.id());
         SessionEdit sessionEdit = new SessionEdit(selectedItem, personSessions);
         createTabCallback.accept(sessionEdit);
     }
 
     private void deleteSession() {
         FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
-        Dialogs.showConfirmDialog("Delete session", "Do you really want to delete the session from" + selectedItem.model().date() + "?", "Delete session", "Cancel", () -> {
-            Database.getInstance().deleteSession(selectedItem.id());
-            updateTable();
-        });
+        Dialogs.showConfirmDialog(
+                "Delete session",
+                "Do you really want to delete the session from"
+                        + selectedItem.model().date() + "?",
+                "Delete session",
+                "Cancel",
+                () -> {
+                    Database.getInstance().deleteSession(selectedItem.id());
+                    updateTable();
+                });
     }
 }

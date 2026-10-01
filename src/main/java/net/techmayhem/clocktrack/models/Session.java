@@ -1,12 +1,16 @@
 package net.techmayhem.clocktrack.models;
 
-import org.jspecify.annotations.Nullable;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import org.jspecify.annotations.Nullable;
 
-public record Session(LocalDate date, int storyteller, boolean goodWon, int script, @Nullable String note) {
+public record Session(
+        LocalDate date,
+        int storyteller,
+        boolean goodWon,
+        int script,
+        @Nullable String note) {
 
     public static Session map(ResultSet rs) throws SQLException {
         return new Session(
@@ -14,7 +18,6 @@ public record Session(LocalDate date, int storyteller, boolean goodWon, int scri
                 rs.getInt("storyteller"),
                 rs.getBoolean("good_won"),
                 rs.getInt("script"),
-                rs.getString("note")
-        );
+                rs.getString("note"));
     }
 }

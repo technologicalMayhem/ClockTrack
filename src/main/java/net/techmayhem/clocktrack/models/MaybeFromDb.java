@@ -2,11 +2,9 @@ package net.techmayhem.clocktrack.models;
 
 public sealed interface MaybeFromDb<T> {
 
-    record Persisted<T>(FromDb<T> fromDb) implements MaybeFromDb<T> {
-    }
+    record Persisted<T>(FromDb<T> fromDb) implements MaybeFromDb<T> {}
 
-    record Unsaved<T>(T raw) implements MaybeFromDb<T> {
-    }
+    record Unsaved<T>(T raw) implements MaybeFromDb<T> {}
 
     static <T> MaybeFromDb<T> of(FromDb<T> fromDb) {
         return new Persisted<>(fromDb);

@@ -7,21 +7,17 @@ import javafx.scene.control.Tab;
 import org.jspecify.annotations.Nullable;
 
 public abstract class Screen {
-    @Nullable
-    private Tab tab;
+    @Nullable private Tab tab;
 
-    protected Screen() {
-    }
+    protected Screen() {}
 
     protected abstract Parent getView();
 
     protected abstract String getName();
 
-    protected void onShow() {
-    }
+    protected void onShow() {}
 
-    protected void onHide() {
-    }
+    protected void onHide() {}
 
     boolean isDirty() {
         return false;
@@ -47,7 +43,7 @@ public abstract class Screen {
         if (request != null) {
             Event e = new Event(Tab.TAB_CLOSE_REQUEST_EVENT);
             request.handle(e);
-            if (e.isConsumed()) return;   // handler vetoed the close
+            if (e.isConsumed()) return; // handler vetoed the close
         }
 
         tab.getTabPane().getTabs().remove(tab);

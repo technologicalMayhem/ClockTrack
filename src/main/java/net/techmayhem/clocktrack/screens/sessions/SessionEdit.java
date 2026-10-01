@@ -1,5 +1,9 @@
 package net.techmayhem.clocktrack.screens.sessions;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -14,15 +18,11 @@ import net.techmayhem.clocktrack.utils.ColumnDef;
 import net.techmayhem.clocktrack.utils.TableHelper;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class SessionEdit extends Screen {
     private final VBox root;
-    @Nullable
-    private final FromDb<Session> session;
+
+    @Nullable private final FromDb<Session> session;
+
     private final List<PersonSession> personSessions;
     private final List<FromDb<Person>> people;
 
@@ -39,7 +39,8 @@ public class SessionEdit extends Screen {
         root.setPadding(new Insets(10));
         this.session = session;
         if (personSessions != null) {
-            this.personSessions = personSessions.stream().map(FromDb::model).collect(Collectors.toCollection(ArrayList::new));
+            this.personSessions =
+                    personSessions.stream().map(FromDb::model).collect(Collectors.toCollection(ArrayList::new));
         } else {
             this.personSessions = new ArrayList<>();
         }
@@ -71,7 +72,8 @@ public class SessionEdit extends Screen {
         editButton.setOnAction(_ -> editPlayer());
         removeButton.setOnAction(_ -> removePlayer());
         personSessionTable = new TableView<>();
-        var noSelection = personSessionTable.getSelectionModel().selectedItemProperty().isNull();
+        var noSelection =
+                personSessionTable.getSelectionModel().selectedItemProperty().isNull();
         editButton.disableProperty().bind(noSelection);
         removeButton.disableProperty().bind(noSelection);
 
@@ -87,8 +89,14 @@ public class SessionEdit extends Screen {
         HBox.setHgrow(spacer, Priority.ALWAYS);
         aboveTable.getChildren().addAll(new Label("People"), spacer, buttonRow);
 
-        TableHelper.buildTableColumns(personSessionTable,
-                new ColumnDef<>("Player", ps -> Database.getInstance().getPerson(ps.personId()).model().name()),
+        TableHelper.buildTableColumns(
+                personSessionTable,
+                new ColumnDef<>(
+                        "Player",
+                        ps -> Database.getInstance()
+                                .getPerson(ps.personId())
+                                .model()
+                                .name()),
                 new ColumnDef<>("Role", PersonSession::role),
                 new ColumnDef<>("Alignment", ps -> ps.good() ? "Good" : "Evil"),
                 new ColumnDef<>("Died on day", ps -> {
@@ -99,8 +107,7 @@ public class SessionEdit extends Screen {
                     String cause = ps.causeOfDeath();
                     return cause == null ? "" : cause;
                 }),
-                new ColumnDef<>("Note", ps -> ps.note() == null ? "" : ps.note())
-        );
+                new ColumnDef<>("Note", ps -> ps.note() == null ? "" : ps.note()));
         personSessionTable.getItems().setAll(this.personSessions);
         personSessionTable.refresh();
 
@@ -114,14 +121,15 @@ public class SessionEdit extends Screen {
 
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(_ -> submit());
-        submitButton.disableProperty().bind(Bindings.createBooleanBinding(
-                this::cannotSubmit,
-                datePicker.valueProperty(),
-                storytellerChoice.valueProperty(),
-                winnerGroup.selectedToggleProperty(),
-                script.valueProperty(),
-                personSessionTable.getItems()
-        ));
+        submitButton
+                .disableProperty()
+                .bind(Bindings.createBooleanBinding(
+                        this::cannotSubmit,
+                        datePicker.valueProperty(),
+                        storytellerChoice.valueProperty(),
+                        winnerGroup.selectedToggleProperty(),
+                        script.valueProperty(),
+                        personSessionTable.getItems()));
 
         root.getChildren().addAll(grid, aboveTable, personSessionTable, new Label("Notes"), note, submitButton);
 
@@ -140,7 +148,8 @@ public class SessionEdit extends Screen {
     }
 
     private void addPlayer() {
-        PersonSession newPersonSession = new PersonSessionDialog(null, availablePeople(null), unavailablePeople(null)).showAndWait();
+        PersonSession newPersonSession =
+                new PersonSessionDialog(null, availablePeople(null), unavailablePeople(null)).showAndWait();
         if (newPersonSession == null) return;
         personSessions.add(newPersonSession);
         updateTable();
@@ -150,7 +159,8 @@ public class SessionEdit extends Screen {
         PersonSession selected = personSessionTable.getSelectionModel().getSelectedItem();
         // Look the row up by value. The table can be sorted, so its selection index is not the index in personSessions.
         int index = personSessions.indexOf(selected);
-        PersonSession edited = new PersonSessionDialog(selected, availablePeople(selected), unavailablePeople(selected)).showAndWait();
+        PersonSession edited =
+                new PersonSessionDialog(selected, availablePeople(selected), unavailablePeople(selected)).showAndWait();
         if (edited == null) return;
         personSessions.set(index, edited);
         updateTable();
@@ -195,7 +205,12 @@ public class SessionEdit extends Screen {
     }
 
     private boolean cannotSubmit() {
-        return datePicker.getValue() == null || storytellerChoice.getSelectionModel().isEmpty() || (!goodWon.isSelected() && !evilWon.isSelected()) || script.getSelectionModel().isEmpty() || duplicatePlayer() || storytellerIsPlayer();
+        return datePicker.getValue() == null
+                || storytellerChoice.getSelectionModel().isEmpty()
+                || (!goodWon.isSelected() && !evilWon.isSelected())
+                || script.getSelectionModel().isEmpty()
+                || duplicatePlayer()
+                || storytellerIsPlayer();
     }
 
     private boolean duplicatePlayer() {
@@ -217,7 +232,12 @@ public class SessionEdit extends Screen {
         if (cannotSubmit()) return;
         Database db = Database.getInstance();
         String text = note.getText();
-        Session newSession = new Session(datePicker.getValue(), storytellerChoice.getValue().id(), goodWon.isSelected(), script.getValue().id(), text.isEmpty() ? null : text);
+        Session newSession = new Session(
+                datePicker.getValue(),
+                storytellerChoice.getValue().id(),
+                goodWon.isSelected(),
+                script.getValue().id(),
+                text.isEmpty() ? null : text);
         if (session == null) {
             db.saveSession(MaybeFromDb.of(newSession), personSessions);
         } else {

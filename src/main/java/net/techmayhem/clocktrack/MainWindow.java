@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -15,12 +17,8 @@ import net.techmayhem.clocktrack.screens.sessions.SessionsOverview;
 import org.jspecify.annotations.Nullable;
 import org.tinylog.Logger;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
 public class MainWindow extends Application {
-    @Nullable
-    private static Stage primaryStage;
+    @Nullable private static Stage primaryStage;
 
     @Override
     public void start(Stage stage) throws FileNotFoundException {

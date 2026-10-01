@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.screens.scripts;
 
+import java.util.List;
+import java.util.function.Consumer;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -16,9 +18,6 @@ import net.techmayhem.clocktrack.screens.Overview;
 import net.techmayhem.clocktrack.screens.Screen;
 import net.techmayhem.clocktrack.utils.ColumnDef;
 import net.techmayhem.clocktrack.utils.TableHelper;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 public class ScriptsOverview extends Overview {
     private final HBox root;
@@ -55,10 +54,10 @@ public class ScriptsOverview extends Overview {
         buttonColumn.setSpacing(5);
         buttonColumn.getChildren().addAll(buttons);
 
-        TableHelper.buildTableColumns(table,
+        TableHelper.buildTableColumns(
+                table,
                 new ColumnDef<>("Id", session -> String.valueOf(session.id())),
-                new ColumnDef<>("Name", session -> session.model().name())
-        );
+                new ColumnDef<>("Name", session -> session.model().name()));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
@@ -105,9 +104,15 @@ public class ScriptsOverview extends Overview {
 
     private void deleteScript() {
         FromDb<Script> selectedItem = table.getSelectionModel().getSelectedItem();
-        Dialogs.showConfirmDialog("Delete script", "Do you really want to delete the script '" + selectedItem.model().name() + "'?", "Delete script", "Cancel", () -> {
-            Database.getInstance().deleteScript(selectedItem.id());
-            updateTable();
-        });
+        Dialogs.showConfirmDialog(
+                "Delete script",
+                "Do you really want to delete the script '"
+                        + selectedItem.model().name() + "'?",
+                "Delete script",
+                "Cancel",
+                () -> {
+                    Database.getInstance().deleteScript(selectedItem.id());
+                    updateTable();
+                });
     }
 }

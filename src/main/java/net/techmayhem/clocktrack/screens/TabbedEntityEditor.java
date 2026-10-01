@@ -1,12 +1,11 @@
 package net.techmayhem.clocktrack.screens;
 
-import javafx.scene.Parent;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-
 import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javafx.scene.Parent;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 
 public class TabbedEntityEditor extends Screen {
     private final Overview overview;
@@ -21,7 +20,6 @@ public class TabbedEntityEditor extends Screen {
         this.name = overview.getSectionName();
         addScreen(overview, false);
     }
-
 
     @Override
     protected void onShow() {

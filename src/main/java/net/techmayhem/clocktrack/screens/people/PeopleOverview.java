@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.screens.people;
 
+import java.util.List;
+import java.util.function.Consumer;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -16,9 +18,6 @@ import net.techmayhem.clocktrack.models.FromDb;
 import net.techmayhem.clocktrack.models.Person;
 import net.techmayhem.clocktrack.screens.Overview;
 import net.techmayhem.clocktrack.screens.Screen;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 public class PeopleOverview extends Overview {
     private final HBox root;
@@ -58,7 +57,8 @@ public class PeopleOverview extends Overview {
         buttonColumn.getChildren().addAll(buttons);
 
         TableColumn<FromDb<Person>, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().model().name()));
+        nameCol.setCellValueFactory(
+                cellData -> new SimpleStringProperty(cellData.getValue().model().name()));
         table.getColumns().add(nameCol);
         HBox.setHgrow(table, Priority.ALWAYS);
 
@@ -78,7 +78,8 @@ public class PeopleOverview extends Overview {
     }
 
     private void spawnNewPersonDialog() {
-        Dialogs.showTextDialog("Add Person", "Enter the name of the person to add", "", "Add", "Cancel", this::createPerson);
+        Dialogs.showTextDialog(
+                "Add Person", "Enter the name of the person to add", "", "Add", "Cancel", this::createPerson);
     }
 
     private void createPerson(String name) {
@@ -88,10 +89,15 @@ public class PeopleOverview extends Overview {
 
     private void deleteSelectedPerson() {
         FromDb<Person> selectedPerson = table.getSelectionModel().getSelectedItem();
-        Dialogs.showConfirmDialog("Confirm deletion", "Do you really want to delete " + selectedPerson.model().name() + "?", "Delete", "Cancel", () -> {
-            Database.getInstance().deletePerson(selectedPerson.id());
-            updateTable();
-        });
+        Dialogs.showConfirmDialog(
+                "Confirm deletion",
+                "Do you really want to delete " + selectedPerson.model().name() + "?",
+                "Delete",
+                "Cancel",
+                () -> {
+                    Database.getInstance().deletePerson(selectedPerson.id());
+                    updateTable();
+                });
     }
 
     @Override
@@ -101,7 +107,13 @@ public class PeopleOverview extends Overview {
 
     private void spawnEditPersonDialog() {
         FromDb<Person> selectedPerson = table.getSelectionModel().getSelectedItem();
-        Dialogs.showTextDialog("Edit Person", "Enter the new name of the person", selectedPerson.model().name(), "Rename", "Cancel", s -> updateName(selectedPerson, s));
+        Dialogs.showTextDialog(
+                "Edit Person",
+                "Enter the new name of the person",
+                selectedPerson.model().name(),
+                "Rename",
+                "Cancel",
+                s -> updateName(selectedPerson, s));
     }
 
     private void updateName(FromDb<Person> person, String newName) {

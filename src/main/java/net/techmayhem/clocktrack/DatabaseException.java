@@ -1,8 +1,7 @@
 package net.techmayhem.clocktrack;
 
-import org.jspecify.annotations.Nullable;
-
 import java.sql.SQLException;
+import org.jspecify.annotations.Nullable;
 
 public class DatabaseException extends RuntimeException {
     private boolean recoverable;

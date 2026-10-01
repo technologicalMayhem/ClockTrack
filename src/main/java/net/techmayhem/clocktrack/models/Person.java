@@ -9,4 +9,3 @@ public record Person(String name) {
         return new Person(rs.getString("name"));
     }
 }
-

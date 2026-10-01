@@ -1,9 +1,8 @@
 package net.techmayhem.clocktrack.screens;
 
+import java.util.function.Function;
 import javafx.util.StringConverter;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Function;
 
 public class DisplayConverter<T> extends StringConverter<T> {
     private final Function<T, String> display;

@@ -16,8 +16,8 @@ import net.techmayhem.clocktrack.screens.Screen;
 import org.jspecify.annotations.Nullable;
 
 public class ScriptEdit extends Screen {
-    @Nullable
-    private final FromDb<Script> scriptFromDb;
+    @Nullable private final FromDb<Script> scriptFromDb;
+
     private final String name;
     private final VBox root;
     private final TextField scriptName;
@@ -38,10 +38,9 @@ public class ScriptEdit extends Screen {
         Button submitButton = new Button("Submit");
         submitButton.setDefaultButton(true);
         submitButton.setOnAction(_ -> submit());
-        submitButton.disableProperty().bind(Bindings.createBooleanBinding(
-                this::cannotSubmit,
-                scriptName.textProperty()
-        ));
+        submitButton
+                .disableProperty()
+                .bind(Bindings.createBooleanBinding(this::cannotSubmit, scriptName.textProperty()));
 
         VBox nameRow = new VBox(new Label("Name"), scriptName);
 
@@ -71,7 +70,6 @@ public class ScriptEdit extends Screen {
         }
         closeTab();
     }
-
 
     @Override
     protected Parent getView() {

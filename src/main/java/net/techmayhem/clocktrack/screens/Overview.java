@@ -14,5 +14,5 @@ public abstract class Overview extends Screen {
         return "Overview";
     }
 
-    abstract protected String getSectionName();
+    protected abstract String getSectionName();
 }

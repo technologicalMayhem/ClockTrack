@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.dialog;
 
+import java.util.List;
+import java.util.stream.Stream;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.scene.Scene;
@@ -14,9 +16,6 @@ import net.techmayhem.clocktrack.models.PersonSession;
 import net.techmayhem.clocktrack.screens.DisplayConverter;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.stream.Stream;
-
 public class PersonSessionDialog {
     private final ComboBox<FromDb<Person>> personChoice;
     private final TextField roleField;
@@ -30,14 +29,15 @@ public class PersonSessionDialog {
     private final Stage stage;
     private final List<FromDb<Person>> unavailablePeople;
 
-
     private boolean shouldSubmit = false;
 
-    public PersonSessionDialog(@Nullable PersonSession personSession,
-                               List<FromDb<Person>> availablePeople,
-                               List<FromDb<Person>> unavailablePeople) {
+    public PersonSessionDialog(
+            @Nullable PersonSession personSession,
+            List<FromDb<Person>> availablePeople,
+            List<FromDb<Person>> unavailablePeople) {
         this.unavailablePeople = unavailablePeople;
-        List<FromDb<Person>> allPeople = Stream.concat(availablePeople.stream(), this.unavailablePeople.stream()).toList();
+        List<FromDb<Person>> allPeople = Stream.concat(availablePeople.stream(), this.unavailablePeople.stream())
+                .toList();
         String title;
         if (personSession != null) {
             String name = allPeople.stream()
@@ -53,7 +53,8 @@ public class PersonSessionDialog {
 
         personChoice = new ComboBox<>();
         personChoice.getItems().addAll(allPeople);
-        personChoice.setConverter(new DisplayConverter<>(personFromDb -> personFromDb.model().name()));
+        personChoice.setConverter(
+                new DisplayConverter<>(personFromDb -> personFromDb.model().name()));
         personChoice.setCellFactory(_ -> new PersonChoiceCell());
 
         roleField = new TextField();
@@ -79,15 +80,16 @@ public class PersonSessionDialog {
             shouldSubmit = true;
             stage.close();
         });
-        submitButton.disableProperty().bind(Bindings.createBooleanBinding(
-                this::cannotSubmit,
-                personChoice.valueProperty(),
-                roleField.textProperty(),
-                died.selectedProperty(),
-                deathOnDaySpinner.valueProperty(),
-                causeOfDeathField.textProperty(),
-                alignmentGroup.selectedToggleProperty()
-        ));
+        submitButton
+                .disableProperty()
+                .bind(Bindings.createBooleanBinding(
+                        this::cannotSubmit,
+                        personChoice.valueProperty(),
+                        roleField.textProperty(),
+                        died.selectedProperty(),
+                        deathOnDaySpinner.valueProperty(),
+                        causeOfDeathField.textProperty(),
+                        alignmentGroup.selectedToggleProperty()));
 
         GridPane grid = new GridPane(5.0, 5.0);
         grid.addRow(0, new Label("Person"), personChoice);
@@ -99,7 +101,10 @@ public class PersonSessionDialog {
         vBox.getChildren().addAll(grid, new Label("Notes"), noteText, submitButton);
 
         if (personSession != null) {
-            personChoice.getItems().stream().filter(tablePerson -> tablePerson.id() == personSession.personId()).findFirst().ifPresent(personChoice::setValue);
+            personChoice.getItems().stream()
+                    .filter(tablePerson -> tablePerson.id() == personSession.personId())
+                    .findFirst()
+                    .ifPresent(personChoice::setValue);
             roleField.setText(personSession.role());
             if (personSession.deathOnDay() != null && personSession.causeOfDeath() != null) {
                 died.setSelected(true);
@@ -133,7 +138,11 @@ public class PersonSessionDialog {
     }
 
     private boolean cannotSubmit() {
-        return personChoice.getSelectionModel().isEmpty() || isSelectedPersonUnavailable() || roleField.getText().isBlank() || (died.isSelected() && causeOfDeathField.getText().isBlank()) || (!goodRadio.isSelected() && !evilRadio.isSelected());
+        return personChoice.getSelectionModel().isEmpty()
+                || isSelectedPersonUnavailable()
+                || roleField.getText().isBlank()
+                || (died.isSelected() && causeOfDeathField.getText().isBlank())
+                || (!goodRadio.isSelected() && !evilRadio.isSelected());
     }
 
     private boolean isSelectedPersonUnavailable() {

@@ -1,5 +1,8 @@
 package net.techmayhem.clocktrack.dialog;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -12,10 +15,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import net.techmayhem.clocktrack.MainWindow;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.function.Consumer;
 
 public class Dialogs {
 
@@ -36,7 +35,8 @@ public class Dialogs {
         return vBox;
     }
 
-    public static void showTextDialog(String title, String prompt, String defaultValue, String accept, String cancel, Consumer<String> callback) {
+    public static void showTextDialog(
+            String title, String prompt, String defaultValue, String accept, String cancel, Consumer<String> callback) {
         Stage stage = createStage(title);
 
         Label label = new Label(prompt);
@@ -96,7 +96,8 @@ public class Dialogs {
 
         Text header = new Text("An error occurred:");
         Text errorText = new Text(error.getMessage());
-        Text footer = new Text(isFatal ? "The application cannot recover from this and will exit." : "Press ok to continue.");
+        Text footer =
+                new Text(isFatal ? "The application cannot recover from this and will exit." : "Press ok to continue.");
 
         StringWriter sw = new StringWriter();
         error.printStackTrace(new PrintWriter(sw));

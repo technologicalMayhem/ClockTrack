@@ -1,22 +1,21 @@
 package net.techmayhem.clocktrack;
 
-import net.techmayhem.clocktrack.models.*;
-import org.jspecify.annotations.Nullable;
-import org.tinylog.Logger;
+import static org.sqlite.SQLiteErrorCode.*;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.sqlite.SQLiteErrorCode.*;
+import net.techmayhem.clocktrack.models.*;
+import org.jspecify.annotations.Nullable;
+import org.tinylog.Logger;
 
 public class Database implements AutoCloseable {
     private final Connection connection;
 
-    @Nullable
-    private static Database instance;
+    @Nullable private static Database instance;
+
     private boolean inTransaction = false;
 
     private Database() throws SQLException {
@@ -41,7 +40,8 @@ public class Database implements AutoCloseable {
         return instance;
     }
 
-    /// Checks the database and sets up the schema if necessary. If the schema is invalid, a `DatabaseException` is thrown.
+    /// Checks the database and sets up the schema if necessary. If the schema is invalid, a `DatabaseException` is
+    /// thrown.
     public void initSchema() {
         runTransaction(conn -> {
             if (isDbSetup(conn)) {
@@ -104,7 +104,7 @@ public class Database implements AutoCloseable {
     private static boolean isDbSetup(Connection conn) throws SQLException {
         HashSet<String> foundTables = new HashSet<>();
         try (Statement statement = conn.createStatement();
-             ResultSet rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
+                ResultSet rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
             while (rs.next()) {
                 foundTables.add(rs.getString("name"));
             }
@@ -213,7 +213,8 @@ public class Database implements AutoCloseable {
                     updateSession(conn, fromDb);
                     sessionId = fromDb.id();
                 }
-                case MaybeFromDb.Unsaved<Session> v -> sessionId = insertSession(conn, v.raw()).id();
+                case MaybeFromDb.Unsaved<Session> v ->
+                    sessionId = insertSession(conn, v.raw()).id();
             }
 
             deleteAllPersonSessionsForSession(conn, sessionId);
@@ -307,7 +308,8 @@ public class Database implements AutoCloseable {
     }
 
     private static void insertPersonSession(Connection conn, PersonSession personSession) throws SQLException {
-        String sql = "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql =
+                "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, personSession.sessionId());
             statement.setInt(2, personSession.personId());
@@ -346,7 +348,8 @@ public class Database implements AutoCloseable {
         return runTransaction(conn -> getAllPersonSessionsForSession(conn, session_id));
     }
 
-    private static List<FromDb<PersonSession>> getAllPersonSessionsForSession(Connection conn, int session_id) throws SQLException {
+    private static List<FromDb<PersonSession>> getAllPersonSessionsForSession(Connection conn, int session_id)
+            throws SQLException {
         String sql = "SELECT * FROM person_session WHERE session_id = ?";
         ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -364,7 +367,8 @@ public class Database implements AutoCloseable {
         return runTransaction(conn -> getAllPersonSessionsForPerson(conn, person_id));
     }
 
-    private static List<FromDb<PersonSession>> getAllPersonSessionsForPerson(Connection conn, int person_id) throws SQLException {
+    private static List<FromDb<PersonSession>> getAllPersonSessionsForPerson(Connection conn, int person_id)
+            throws SQLException {
         String sql = "SELECT * FROM person_session WHERE person_id = ?";
         ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -484,7 +488,8 @@ public class Database implements AutoCloseable {
     /// Wrapper function for common database exception handling logic.
     private <T> T runTransaction(SqlFunction<T> body) {
         if (inTransaction)
-            throw new IllegalStateException("Nested transaction. runTransaction must not be called within a transaction.");
+            throw new IllegalStateException(
+                    "Nested transaction. runTransaction must not be called within a transaction.");
         inTransaction = true;
         try {
             T value = body.apply(connection);
@@ -514,11 +519,8 @@ public class Database implements AutoCloseable {
     private boolean isRecoverable(SQLException e) {
         // Chops off everything but the low byte, as we are not interested in the extended codes
         int primaryCode = e.getErrorCode() & 0xFF;
-        return Set.of(
-                SQLITE_CONSTRAINT.code,
-                SQLITE_READONLY.code,
-                SQLITE_TOOBIG.code
-        ).contains(primaryCode);
+        return Set.of(SQLITE_CONSTRAINT.code, SQLITE_READONLY.code, SQLITE_TOOBIG.code)
+                .contains(primaryCode);
     }
 
     /// Used to print a ResultSet. For debugging purposes.
