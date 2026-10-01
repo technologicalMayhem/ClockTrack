@@ -57,7 +57,7 @@ public class ScriptsOverview extends Overview {
 
         TableHelper.buildTableColumns(table,
                 new ColumnDef<>("Id", session -> String.valueOf(session.id())),
-                new ColumnDef<>("Date", session -> session.model().name())
+                new ColumnDef<>("Name", session -> session.model().name())
         );
 
         HBox.setHgrow(table, Priority.ALWAYS);
