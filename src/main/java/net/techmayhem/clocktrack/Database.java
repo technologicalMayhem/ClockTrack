@@ -29,85 +29,86 @@ public class Database implements AutoCloseable {
 
     public static Database getInstance() {
         if (instance == null) {
+            Database db;
             try {
-                instance = new Database();
+                db = new Database();
             } catch (SQLException e) {
-                Logger.error("Could not connect to database: " + e.getMessage());
-                System.exit(1);
+                throw new DatabaseException("Could not connect to database: " + e.getMessage(), e, false);
             }
-            instance.initSchema();
+            db.initSchema();
+            instance = db;
         }
         return instance;
     }
 
-    /// Checks the database and sets up the schema if necessary. If the schema is invalid, exits the application.
+    /// Checks the database and sets up the schema if necessary. If the schema is invalid, a `DatabaseException` is thrown.
     public void initSchema() {
-        if (isDbSetup()) {
-            return;
-        }
-
-        Logger.info("Creating database schema");
         runTransaction(conn -> {
-            try (Statement statement = conn.createStatement()) {
-                statement.execute("""
-                        CREATE TABLE person(
-                            id INTEGER PRIMARY KEY,
-                            name TEXT NOT NULL
-                        );
-                        """);
-                statement.execute("""
-                        CREATE TABLE script(
-                            id INTEGER PRIMARY KEY,
-                            name TEXT NOT NULL,
-                            json TEXT
-                        );
-                        """);
-                statement.execute("""
-                        CREATE TABLE session(
-                            id INTEGER PRIMARY KEY,
-                            date DATE NOT NULL,
-                            storyteller INTEGER NOT NULL,
-                            good_won BOOLEAN NOT NULL,
-                            script INTEGER NOT NULL,
-                            note TEXT,
-                            FOREIGN KEY(storyteller) REFERENCES person(id),
-                            FOREIGN KEY(script) REFERENCES script(id)
-                        );
-                        """);
-                statement.execute("""
-                        CREATE TABLE person_session(
-                            id INTEGER PRIMARY KEY,
-                            session_id INTEGER NOT NULL,
-                            person_id INTEGER NOT NULL,
-                            role TEXT NOT NULL,
-                            death_on_day INTEGER,
-                            cause_of_death TEXT,
-                            good BOOLEAN NOT NULL,
-                            note TEXT,
-                            FOREIGN KEY(session_id) REFERENCES session(id),
-                            FOREIGN KEY(person_id) REFERENCES person(id),
-                            UNIQUE(session_id, person_id)
-                        );
-                        """);
+            if (isDbSetup(conn)) {
+                return null;
             }
+            Logger.info("Creating database schema");
+            createSchema(conn);
             return null;
         });
     }
 
+    private static void createSchema(Connection conn) throws SQLException {
+        try (Statement statement = conn.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE person(
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL
+                    );
+                    """);
+            statement.execute("""
+                    CREATE TABLE script(
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        json TEXT
+                    );
+                    """);
+            statement.execute("""
+                    CREATE TABLE session(
+                        id INTEGER PRIMARY KEY,
+                        date DATE NOT NULL,
+                        storyteller INTEGER NOT NULL,
+                        good_won BOOLEAN NOT NULL,
+                        script INTEGER NOT NULL,
+                        note TEXT,
+                        FOREIGN KEY(storyteller) REFERENCES person(id),
+                        FOREIGN KEY(script) REFERENCES script(id)
+                    );
+                    """);
+            statement.execute("""
+                    CREATE TABLE person_session(
+                        id INTEGER PRIMARY KEY,
+                        session_id INTEGER NOT NULL,
+                        person_id INTEGER NOT NULL,
+                        role TEXT NOT NULL,
+                        death_on_day INTEGER,
+                        cause_of_death TEXT,
+                        good BOOLEAN NOT NULL,
+                        note TEXT,
+                        FOREIGN KEY(session_id) REFERENCES session(id),
+                        FOREIGN KEY(person_id) REFERENCES person(id),
+                        UNIQUE(session_id, person_id)
+                    );
+                    """);
+        }
+    }
+
     /// Checks if the schema needs to be set up. Returns true if no tables have been created yet.
     ///
-    /// If tables have already been created but do not match the expected schema, an error is printed instead and the application exits.
-    private Boolean isDbSetup() {
-        HashSet<String> foundTables = runTransaction(conn -> {
-            HashSet<String> tables = new HashSet<>();
-            try (Statement statement = conn.createStatement();
-                 ResultSet rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
-                while (rs.next()) {
-                    tables.add(rs.getString("name"));
-                }
+    /// If tables have already been created but do not match the expected schema, a `DatabaseException` is thrown.
+    private static boolean isDbSetup(Connection conn) throws SQLException {
+        HashSet<String> foundTables = new HashSet<>();
+        try (Statement statement = conn.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
+            while (rs.next()) {
+                foundTables.add(rs.getString("name"));
             }
-            return tables;
-        });
+        }
 
         HashSet<String> expectedTables = new HashSet<>(List.of("person", "script", "session", "person_session"));
         if (foundTables.isEmpty()) {
@@ -121,72 +122,86 @@ public class Database implements AutoCloseable {
     }
 
     public FromDb<Person> insertPerson(Person person) {
-        return runTransaction(conn -> {
-            String sql = "INSERT INTO person(name) VALUES (?)";
-            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, person.name());
-                statement.executeUpdate();
-                try (ResultSet keys = statement.getGeneratedKeys()) {
-                    keys.next();
-                    return new FromDb<>(keys.getInt(1), person);
-                }
+        return runTransaction(conn -> insertPerson(conn, person));
+    }
+
+    private static FromDb<Person> insertPerson(Connection conn, Person person) throws SQLException {
+        String sql = "INSERT INTO person(name) VALUES (?)";
+        try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, person.name());
+            statement.executeUpdate();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                keys.next();
+                return new FromDb<>(keys.getInt(1), person);
             }
-        });
+        }
     }
 
     public FromDb<Person> getPerson(int id) {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM person WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, id);
-                try (ResultSet rs = statement.executeQuery()) {
-                    if (rs.next()) {
-                        return FromDb.map(rs, Person::map);
-                    } else {
-                        throw new DatabaseException("No person with id " + id, null, true);
-                    }
+        return runTransaction(conn -> getPerson(conn, id));
+    }
+
+    private static FromDb<Person> getPerson(Connection conn, int id) throws SQLException {
+        String sql = "SELECT * FROM person WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return FromDb.map(rs, Person::map);
+                } else {
+                    throw new DatabaseException("No person with id " + id, null, true);
                 }
             }
-        });
+        }
     }
 
     public List<FromDb<Person>> getAllPersons() {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM person";
-            ArrayList<FromDb<Person>> result = new ArrayList<>();
-            try (Statement statement = conn.createStatement()) {
-                statement.execute(sql);
-                try (ResultSet rs = statement.getResultSet()) {
-                    while (rs.next()) {
-                        result.add(FromDb.map(rs, Person::map));
-                    }
+        return runTransaction(Database::getAllPersons);
+    }
+
+    private static List<FromDb<Person>> getAllPersons(Connection conn) throws SQLException {
+        String sql = "SELECT * FROM person";
+        ArrayList<FromDb<Person>> result = new ArrayList<>();
+        try (Statement statement = conn.createStatement()) {
+            statement.execute(sql);
+            try (ResultSet rs = statement.getResultSet()) {
+                while (rs.next()) {
+                    result.add(FromDb.map(rs, Person::map));
                 }
             }
-            return result;
-        });
+        }
+        return result;
     }
 
     public void updatePerson(FromDb<Person> person) {
         runTransaction(conn -> {
-            String sql = "UPDATE person SET name = ? WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setString(1, person.model().name());
-                statement.setInt(2, person.id());
-                statement.executeUpdate();
-            }
+            updatePerson(conn, person);
             return null;
         });
     }
 
+    private static void updatePerson(Connection conn, FromDb<Person> person) throws SQLException {
+        String sql = "UPDATE person SET name = ? WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setString(1, person.model().name());
+            statement.setInt(2, person.id());
+            ensureUpdated(statement.executeUpdate());
+        }
+    }
+
     public void deletePerson(int id) {
         runTransaction(conn -> {
-            String sql = "DELETE FROM person WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, id);
-                statement.executeUpdate();
-            }
+            deletePerson(conn, id);
             return null;
         });
+    }
+
+    private static void deletePerson(Connection conn, int id) throws SQLException {
+        String sql = "DELETE FROM person WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            statement.executeUpdate();
+        }
     }
 
     public void saveSession(MaybeFromDb<Session> session, List<PersonSession> personSessions) {
@@ -195,21 +210,21 @@ public class Database implements AutoCloseable {
             switch (session) {
                 case MaybeFromDb.Persisted<Session> v -> {
                     FromDb<Session> fromDb = v.fromDb();
-                    updateSession(fromDb, conn);
+                    updateSession(conn, fromDb);
                     sessionId = fromDb.id();
                 }
-                case MaybeFromDb.Unsaved<Session> v -> sessionId = insertSession(v.raw(), conn).id();
+                case MaybeFromDb.Unsaved<Session> v -> sessionId = insertSession(conn, v.raw()).id();
             }
 
-            deleteAllPersonSessionsForSession(sessionId, conn);
+            deleteAllPersonSessionsForSession(conn, sessionId);
             for (PersonSession personSession : personSessions) {
-                insertPersonSession(personSession.withSessionId(sessionId), conn);
+                insertPersonSession(conn, personSession.withSessionId(sessionId));
             }
             return null;
         });
     }
 
-    private static FromDb<Session> insertSession(Session session, Connection conn) throws SQLException {
+    private static FromDb<Session> insertSession(Connection conn, Session session) throws SQLException {
         String sql = "INSERT INTO session(date, storyteller, good_won, script, note) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, session.date().toString());
@@ -226,38 +241,42 @@ public class Database implements AutoCloseable {
     }
 
     public FromDb<Session> getSession(int id) {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM session WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, id);
-                try (ResultSet rs = statement.executeQuery()) {
-                    if (rs.next()) {
-                        return FromDb.map(rs, Session::map);
-                    } else {
-                        throw new DatabaseException("No Session with id " + id, null, true);
-                    }
+        return runTransaction(conn -> getSession(conn, id));
+    }
+
+    private static FromDb<Session> getSession(Connection conn, int id) throws SQLException {
+        String sql = "SELECT * FROM session WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return FromDb.map(rs, Session::map);
+                } else {
+                    throw new DatabaseException("No Session with id " + id, null, true);
                 }
             }
-        });
+        }
     }
 
     public List<FromDb<Session>> getAllSessions() {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM session";
-            ArrayList<FromDb<Session>> result = new ArrayList<>();
-            try (Statement statement = conn.createStatement()) {
-                statement.execute(sql);
-                try (ResultSet rs = statement.getResultSet()) {
-                    while (rs.next()) {
-                        result.add(FromDb.map(rs, Session::map));
-                    }
-                }
-            }
-            return result;
-        });
+        return runTransaction(Database::getAllSessions);
     }
 
-    private static void updateSession(FromDb<Session> session, Connection conn) throws SQLException {
+    private static List<FromDb<Session>> getAllSessions(Connection conn) throws SQLException {
+        String sql = "SELECT * FROM session";
+        ArrayList<FromDb<Session>> result = new ArrayList<>();
+        try (Statement statement = conn.createStatement()) {
+            statement.execute(sql);
+            try (ResultSet rs = statement.getResultSet()) {
+                while (rs.next()) {
+                    result.add(FromDb.map(rs, Session::map));
+                }
+            }
+        }
+        return result;
+    }
+
+    private static void updateSession(Connection conn, FromDb<Session> session) throws SQLException {
         String sql = "UPDATE session SET date = ?, storyteller = ?, good_won = ?, script = ?, note = ? WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             Session model = session.model();
@@ -267,22 +286,27 @@ public class Database implements AutoCloseable {
             statement.setInt(4, model.script());
             statement.setString(5, model.note());
             statement.setInt(6, session.id());
-            statement.executeUpdate();
+            ensureUpdated(statement.executeUpdate());
         }
     }
 
     public void deleteSession(int id) {
         runTransaction(conn -> {
-            String sql = "DELETE FROM session WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, id);
-                statement.executeUpdate();
-            }
+            deleteAllPersonSessionsForSession(conn, id);
+            deleteSession(conn, id);
             return null;
         });
     }
 
-    private static void insertPersonSession(PersonSession personSession, Connection conn) throws SQLException {
+    private static void deleteSession(Connection conn, int id) throws SQLException {
+        String sql = "DELETE FROM session WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            statement.executeUpdate();
+        }
+    }
+
+    private static void insertPersonSession(Connection conn, PersonSession personSession) throws SQLException {
         String sql = "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, personSession.sessionId());
@@ -301,54 +325,60 @@ public class Database implements AutoCloseable {
     }
 
     public FromDb<PersonSession> getPersonSession(int id) {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM person_session WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, id);
-                try (ResultSet rs = statement.executeQuery()) {
-                    if (rs.next()) {
-                        return FromDb.map(rs, PersonSession::map);
-                    } else {
-                        throw new DatabaseException("No PersonSession with id " + id, null, true);
-                    }
+        return runTransaction(conn -> getPersonSession(conn, id));
+    }
+
+    private static FromDb<PersonSession> getPersonSession(Connection conn, int id) throws SQLException {
+        String sql = "SELECT * FROM person_session WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return FromDb.map(rs, PersonSession::map);
+                } else {
+                    throw new DatabaseException("No PersonSession with id " + id, null, true);
                 }
             }
-        });
+        }
     }
 
     public List<FromDb<PersonSession>> getAllPersonSessionsForSession(int session_id) {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM person_session WHERE session_id = ?";
-            ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, session_id);
-                try (ResultSet rs = statement.executeQuery()) {
-                    while (rs.next()) {
-                        result.add(FromDb.map(rs, PersonSession::map));
-                    }
+        return runTransaction(conn -> getAllPersonSessionsForSession(conn, session_id));
+    }
+
+    private static List<FromDb<PersonSession>> getAllPersonSessionsForSession(Connection conn, int session_id) throws SQLException {
+        String sql = "SELECT * FROM person_session WHERE session_id = ?";
+        ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, session_id);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result.add(FromDb.map(rs, PersonSession::map));
                 }
             }
-            return result;
-        });
+        }
+        return result;
     }
 
     public List<FromDb<PersonSession>> getAllPersonSessionsForPerson(int person_id) {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM person_session WHERE person_id = ?";
-            ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, person_id);
-                try (ResultSet rs = statement.executeQuery()) {
-                    while (rs.next()) {
-                        result.add(FromDb.map(rs, PersonSession::map));
-                    }
-                }
-            }
-            return result;
-        });
+        return runTransaction(conn -> getAllPersonSessionsForPerson(conn, person_id));
     }
 
-    private static void deleteAllPersonSessionsForSession(int sessionId, Connection conn) throws SQLException {
+    private static List<FromDb<PersonSession>> getAllPersonSessionsForPerson(Connection conn, int person_id) throws SQLException {
+        String sql = "SELECT * FROM person_session WHERE person_id = ?";
+        ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, person_id);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result.add(FromDb.map(rs, PersonSession::map));
+                }
+            }
+        }
+        return result;
+    }
+
+    private static void deleteAllPersonSessionsForSession(Connection conn, int sessionId) throws SQLException {
         String sql = "DELETE FROM person_session WHERE session_id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, sessionId);
@@ -357,76 +387,93 @@ public class Database implements AutoCloseable {
     }
 
     public FromDb<Script> insertScript(Script script) {
-        return runTransaction(conn -> {
-            String sql = "INSERT INTO script(name, json) VALUES (?, ?)";
-            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, script.name());
-                statement.setString(2, script.json());
-                statement.executeUpdate();
-                try (ResultSet keys = statement.getGeneratedKeys()) {
-                    keys.next();
-                    return new FromDb<>(keys.getInt(1), script);
-                }
+        return runTransaction(conn -> insertScript(conn, script));
+    }
+
+    private static FromDb<Script> insertScript(Connection conn, Script script) throws SQLException {
+        String sql = "INSERT INTO script(name, json) VALUES (?, ?)";
+        try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, script.name());
+            statement.setString(2, script.json());
+            statement.executeUpdate();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                keys.next();
+                return new FromDb<>(keys.getInt(1), script);
             }
-        });
+        }
     }
 
     public FromDb<Script> getScript(int id) {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM script WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, id);
-                try (ResultSet rs = statement.executeQuery()) {
-                    if (rs.next()) {
-                        return FromDb.map(rs, Script::map);
-                    } else {
-                        throw new DatabaseException("No script with id " + id, null, true);
-                    }
+        return runTransaction(conn -> getScript(conn, id));
+    }
+
+    private static FromDb<Script> getScript(Connection conn, int id) throws SQLException {
+        String sql = "SELECT * FROM script WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return FromDb.map(rs, Script::map);
+                } else {
+                    throw new DatabaseException("No script with id " + id, null, true);
                 }
             }
-        });
+        }
     }
 
     public List<FromDb<Script>> getAllScripts() {
-        return runTransaction(conn -> {
-            String sql = "SELECT * FROM script";
-            ArrayList<FromDb<Script>> result = new ArrayList<>();
-            try (Statement statement = conn.createStatement()) {
-                statement.execute(sql);
-                try (ResultSet rs = statement.getResultSet()) {
-                    while (rs.next()) {
-                        result.add(FromDb.map(rs, Script::map));
-                    }
+        return runTransaction(Database::getAllScripts);
+    }
+
+    private static List<FromDb<Script>> getAllScripts(Connection conn) throws SQLException {
+        String sql = "SELECT * FROM script";
+        ArrayList<FromDb<Script>> result = new ArrayList<>();
+        try (Statement statement = conn.createStatement()) {
+            statement.execute(sql);
+            try (ResultSet rs = statement.getResultSet()) {
+                while (rs.next()) {
+                    result.add(FromDb.map(rs, Script::map));
                 }
             }
-            return result;
-        });
+        }
+        return result;
     }
 
     public void updateScript(FromDb<Script> script) {
         runTransaction(conn -> {
-            String sql = "UPDATE script SET name = ?, json = ? WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                Script model = script.model();
-                statement.setString(1, model.name());
-                statement.setString(2, model.json());
-                statement.setInt(3, script.id());
-                statement.executeUpdate();
-            }
+            updateScript(conn, script);
             return null;
         });
     }
 
+    private static void updateScript(Connection conn, FromDb<Script> script) throws SQLException {
+        String sql = "UPDATE script SET name = ?, json = ? WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            Script model = script.model();
+            statement.setString(1, model.name());
+            statement.setString(2, model.json());
+            statement.setInt(3, script.id());
+            ensureUpdated(statement.executeUpdate());
+        }
+    }
+
     public void deleteScript(int id) {
         runTransaction(conn -> {
-            String sql = "DELETE FROM script WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, id);
-                statement.executeUpdate();
-            }
-
+            deleteScript(conn, id);
             return null;
         });
+    }
+
+    private static void deleteScript(Connection conn, int id) throws SQLException {
+        String sql = "DELETE FROM script WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            statement.executeUpdate();
+        }
+    }
+
+    private static void ensureUpdated(int rowCount) {
+        if (rowCount != 1) throw new DatabaseException("Update changed " + rowCount + " rows instead of 1", null, true);
     }
 
     @FunctionalInterface
