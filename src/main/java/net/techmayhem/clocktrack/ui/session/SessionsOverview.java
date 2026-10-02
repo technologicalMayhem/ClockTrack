@@ -1,7 +1,6 @@
 package net.techmayhem.clocktrack.ui.session;
 
 import java.util.List;
-import java.util.function.Consumer;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -15,7 +14,7 @@ import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.PersonSession;
 import net.techmayhem.clocktrack.model.Session;
 import net.techmayhem.clocktrack.ui.EntityOverview;
-import net.techmayhem.clocktrack.ui.Screen;
+import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
@@ -24,8 +23,8 @@ public class SessionsOverview extends EntityOverview {
     private final HBox root;
     private final TableView<FromDb<Session>> table;
 
-    public SessionsOverview(Consumer<Screen> createTabCallback) {
-        super(createTabCallback);
+    public SessionsOverview(ScreenHost screenHost) {
+        super(screenHost);
         table = new TableView<>();
         root = new HBox();
         buildUi();
@@ -101,13 +100,13 @@ public class SessionsOverview extends EntityOverview {
     }
 
     private void createNewSession() {
-        createTabCallback.accept(new SessionEditor(null, null));
+        screenHost.open(new SessionEditor(null, null));
     }
 
     private void viewSession() {
         FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
         SessionView sessionView = new SessionView(selectedItem.model());
-        createTabCallback.accept(sessionView);
+        screenHost.open(sessionView);
     }
 
     private void editSession() {
@@ -115,7 +114,7 @@ public class SessionsOverview extends EntityOverview {
         List<FromDb<PersonSession>> personSessions =
                 Database.getInstance().getAllPersonSessionsForSession(selectedItem.id());
         SessionEditor sessionEditor = new SessionEditor(selectedItem, personSessions);
-        createTabCallback.accept(sessionEditor);
+        screenHost.open(sessionEditor);
     }
 
     private void deleteSession() {

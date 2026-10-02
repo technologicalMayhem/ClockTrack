@@ -1,7 +1,6 @@
 package net.techmayhem.clocktrack.ui.script;
 
 import java.util.List;
-import java.util.function.Consumer;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -14,7 +13,7 @@ import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Script;
 import net.techmayhem.clocktrack.ui.EntityOverview;
-import net.techmayhem.clocktrack.ui.Screen;
+import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
@@ -23,8 +22,8 @@ public class ScriptsOverview extends EntityOverview {
     private final HBox root;
     private final TableView<FromDb<Script>> table;
 
-    public ScriptsOverview(Consumer<Screen> createTabCallback) {
-        super(createTabCallback);
+    public ScriptsOverview(ScreenHost screenHost) {
+        super(screenHost);
         table = new TableView<>();
         root = new HBox();
         buildUi();
@@ -87,19 +86,19 @@ public class ScriptsOverview extends EntityOverview {
     }
 
     private void createNewScript() {
-        createTabCallback.accept(new ScriptEditor(null));
+        screenHost.open(new ScriptEditor(null));
     }
 
     private void viewScript() {
         FromDb<Script> selectedItem = table.getSelectionModel().getSelectedItem();
         ScriptView sessionView = new ScriptView(selectedItem.model());
-        createTabCallback.accept(sessionView);
+        screenHost.open(sessionView);
     }
 
     private void editScript() {
         FromDb<Script> selectedItem = table.getSelectionModel().getSelectedItem();
         ScriptEditor sessionEdit = new ScriptEditor(selectedItem);
-        createTabCallback.accept(sessionEdit);
+        screenHost.open(sessionEdit);
     }
 
     private void deleteScript() {

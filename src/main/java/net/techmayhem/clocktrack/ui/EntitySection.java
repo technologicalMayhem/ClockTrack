@@ -1,8 +1,6 @@
 package net.techmayhem.clocktrack.ui;
 
 import java.util.HashMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import javafx.scene.Parent;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -12,8 +10,8 @@ public class EntitySection extends Screen {
     private final TabPane tabPane;
     private final String name;
 
-    public EntitySection(Function<Consumer<Screen>, ? extends EntityOverview> overviewFactory) {
-        EntityOverview overview = overviewFactory.apply(screen -> addScreen(screen, true));
+    public EntitySection(OverviewFactory factory) {
+        EntityOverview overview = factory.create(screen -> addScreen(screen, true));
         this.screens = new HashMap<>();
         this.tabPane = new TabPane();
         this.name = overview.getSectionName();

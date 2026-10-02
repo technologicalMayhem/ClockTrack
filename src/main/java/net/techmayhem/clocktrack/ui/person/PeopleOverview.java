@@ -1,7 +1,6 @@
 package net.techmayhem.clocktrack.ui.person;
 
 import java.util.List;
-import java.util.function.Consumer;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -16,15 +15,15 @@ import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Person;
 import net.techmayhem.clocktrack.ui.EntityOverview;
-import net.techmayhem.clocktrack.ui.Screen;
+import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 
 public class PeopleOverview extends EntityOverview {
     private final HBox root;
     private final TableView<FromDb<Person>> table;
 
-    public PeopleOverview(Consumer<Screen> createTabCallback) {
-        super(createTabCallback);
+    public PeopleOverview(ScreenHost screenHost) {
+        super(screenHost);
         table = new TableView<>();
         root = new HBox();
         buildUi();

@@ -1,12 +1,10 @@
 package net.techmayhem.clocktrack.ui;
 
-import java.util.function.Consumer;
-
 public abstract class EntityOverview extends Screen {
-    protected final Consumer<Screen> createTabCallback;
+    protected final ScreenHost screenHost;
 
-    protected EntityOverview(Consumer<Screen> createTabCallback) {
-        this.createTabCallback = createTabCallback;
+    protected EntityOverview(ScreenHost screenHost) {
+        this.screenHost = screenHost;
     }
 
     @Override
