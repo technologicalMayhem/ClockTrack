@@ -14,16 +14,21 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import net.techmayhem.clocktrack.ClockTrackApp;
+import org.jspecify.annotations.Nullable;
 
 public class Dialogs {
+    @Nullable private static Stage primaryStage;
+
+    public static void setPrimaryStage(Stage stage) {
+        primaryStage = stage;
+    }
 
     public static Stage createStage(String title) {
         Stage stage = new Stage();
         stage.setTitle(title);
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
-        Stage primaryStage = ClockTrackApp.getPrimaryStage();
+        if (primaryStage == null) throw new IllegalStateException("Primary stage is not set");
         stage.initOwner(primaryStage);
         stage.getIcons().setAll(primaryStage.getIcons());
         return stage;

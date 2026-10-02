@@ -15,15 +15,12 @@ import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import net.techmayhem.clocktrack.ui.person.PeopleOverview;
 import net.techmayhem.clocktrack.ui.script.ScriptsOverview;
 import net.techmayhem.clocktrack.ui.session.SessionsOverview;
-import org.jspecify.annotations.Nullable;
 import org.tinylog.Logger;
 
 public class ClockTrackApp extends Application {
-    @Nullable private static Stage primaryStage;
-
     @Override
     public void start(Stage stage) throws FileNotFoundException {
-        primaryStage = stage;
+        Dialogs.setPrimaryStage(stage);
         Thread.setDefaultUncaughtExceptionHandler(ClockTrackApp::handleUncaughtException);
 
         stage.getIcons().add(new Image(getIcon()));
@@ -50,16 +47,10 @@ public class ClockTrackApp extends Application {
     }
 
     private InputStream getIcon() throws FileNotFoundException {
-        InputStream icon = getClass().getResourceAsStream("/icons/app-256.png");
-        if (icon == null) throw new FileNotFoundException("Failed to find app icon " + "/icons/app-256.png");
+        String iconPath = "/icons/app-256.png";
+        InputStream icon = getClass().getResourceAsStream(iconPath);
+        if (icon == null) throw new FileNotFoundException("Failed to find app icon " + iconPath);
         return icon;
-    }
-
-    public static Stage getPrimaryStage() {
-        if (primaryStage == null) {
-            throw new IllegalStateException("Primary Stage not initialized");
-        }
-        return primaryStage;
     }
 
     private static void handleUncaughtException(Thread thread, Throwable throwable) {
