@@ -17,7 +17,7 @@ import net.techmayhem.clocktrack.ui.component.DisplayConverter;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
 
-public class PersonSessionDialog {
+class PersonSessionDialog {
     private final ComboBox<FromDb<Person>> personChoice;
     private final TextField roleField;
     private final CheckBox died;
