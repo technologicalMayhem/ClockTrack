@@ -5,16 +5,16 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import net.techmayhem.clocktrack.model.*;
 
-public class RowMappers {
-    public static <T> FromDb<T> fromDb(ResultSet rs, FromResultSet<T> mapper) throws SQLException {
+class RowMappers {
+    static <T> FromDb<T> fromDb(ResultSet rs, FromResultSet<T> mapper) throws SQLException {
         return new FromDb<>(rs.getInt("id"), mapper.map(rs));
     }
 
-    public static Person person(ResultSet rs) throws SQLException {
+    static Person person(ResultSet rs) throws SQLException {
         return new Person(rs.getString("name"));
     }
 
-    public static PersonSession personSession(ResultSet rs) throws SQLException {
+    static PersonSession personSession(ResultSet rs) throws SQLException {
         int day = rs.getInt("death_on_day");
         Integer deathOnDay = rs.wasNull() ? null : day;
 
@@ -28,11 +28,11 @@ public class RowMappers {
                 rs.getString("note"));
     }
 
-    public static Script script(ResultSet rs) throws SQLException {
+    static Script script(ResultSet rs) throws SQLException {
         return new Script(rs.getString("name"), rs.getString("json"));
     }
 
-    public static Session session(ResultSet rs) throws SQLException {
+    static Session session(ResultSet rs) throws SQLException {
         return new Session(
                 LocalDate.parse(rs.getString("date")),
                 rs.getInt("storyteller"),

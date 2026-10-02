@@ -7,7 +7,7 @@ import java.sql.Statement;
 import java.util.HashSet;
 import java.util.List;
 
-public class Schema {
+class Schema {
     static void createSchema(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
             statement.execute("""

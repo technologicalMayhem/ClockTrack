@@ -37,7 +37,7 @@ public class Database implements AutoCloseable {
 
     /// Checks the database and sets up the schema if necessary. If the schema is invalid, a `DatabaseException` is
     /// thrown.
-    public void initSchema() {
+    private void initSchema() {
         runTransaction(conn -> {
             if (Schema.isDbSetup(conn)) {
                 return null;
