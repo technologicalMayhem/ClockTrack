@@ -27,12 +27,12 @@ class Schema {
                     CREATE TABLE session(
                         id INTEGER PRIMARY KEY,
                         date DATE NOT NULL,
-                        storyteller INTEGER NOT NULL,
+                        storyteller_id INTEGER NOT NULL,
                         good_won BOOLEAN NOT NULL,
-                        script INTEGER NOT NULL,
+                        script_id INTEGER NOT NULL,
                         note TEXT,
-                        FOREIGN KEY(storyteller) REFERENCES person(id),
-                        FOREIGN KEY(script) REFERENCES script(id)
+                        FOREIGN KEY(storyteller_id) REFERENCES person(id),
+                        FOREIGN KEY(script_id) REFERENCES script(id)
                     );
                     """);
             statement.execute("""

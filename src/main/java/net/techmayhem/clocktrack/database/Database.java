@@ -152,12 +152,12 @@ public class Database implements AutoCloseable {
     }
 
     private static FromDb<Session> insertSession(Connection conn, Session session) throws SQLException {
-        String sql = "INSERT INTO session(date, storyteller, good_won, script, note) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO session(date, storyteller_id, good_won, script_id, note) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, session.date().toString());
-            statement.setInt(2, session.storyteller());
+            statement.setInt(2, session.storytellerId());
             statement.setBoolean(3, session.goodWon());
-            statement.setInt(4, session.script());
+            statement.setInt(4, session.scriptId());
             statement.setString(5, session.note());
             statement.executeUpdate();
             try (ResultSet keys = statement.getGeneratedKeys()) {
@@ -186,13 +186,14 @@ public class Database implements AutoCloseable {
     }
 
     private static void updateSession(Connection conn, FromDb<Session> session) throws SQLException {
-        String sql = "UPDATE session SET date = ?, storyteller = ?, good_won = ?, script = ?, note = ? WHERE id = ?";
+        String sql =
+                "UPDATE session SET date = ?, storyteller_id = ?, good_won = ?, script_id = ?, note = ? WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             Session model = session.model();
             statement.setString(1, model.date().toString());
-            statement.setInt(2, model.storyteller());
+            statement.setInt(2, model.storytellerId());
             statement.setBoolean(3, model.goodWon());
-            statement.setInt(4, model.script());
+            statement.setInt(4, model.scriptId());
             statement.setString(5, model.note());
             statement.setInt(6, session.id());
             ensureUpdated(statement.executeUpdate());

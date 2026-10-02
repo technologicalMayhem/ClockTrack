@@ -135,13 +135,13 @@ public class SessionEditor extends Screen {
         if (session != null) {
             Session model = session.model();
             datePicker.setValue(model.date());
-            storytellerChoice.setValue(db.getPerson(model.storyteller()));
+            storytellerChoice.setValue(db.getPerson(model.storytellerId()));
             if (model.goodWon()) {
                 goodWon.setSelected(true);
             } else {
                 evilWon.setSelected(true);
             }
-            script.setValue(db.getScript(model.script()));
+            script.setValue(db.getScript(model.scriptId()));
             if (model.note() != null) note.setText(model.note());
         }
     }

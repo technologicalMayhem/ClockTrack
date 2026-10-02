@@ -61,14 +61,14 @@ public class SessionsOverview extends EntityOverview {
                 new ColumnDef<>(
                         "Storyteller",
                         session -> Database.getInstance()
-                                .getPerson(session.model().storyteller())
+                                .getPerson(session.model().storytellerId())
                                 .model()
                                 .name()),
                 new ColumnDef<>("Winner", session -> session.model().goodWon() ? "Good" : "Evil"),
                 new ColumnDef<>(
                         "Script",
                         session -> Database.getInstance()
-                                .getScript(session.model().script())
+                                .getScript(session.model().scriptId())
                                 .model()
                                 .name()));
 

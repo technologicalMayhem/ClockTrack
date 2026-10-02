@@ -35,9 +35,9 @@ class RowMappers {
     static Session session(ResultSet rs) throws SQLException {
         return new Session(
                 LocalDate.parse(rs.getString("date")),
-                rs.getInt("storyteller"),
+                rs.getInt("storyteller_id"),
                 rs.getBoolean("good_won"),
-                rs.getInt("script"),
+                rs.getInt("script_id"),
                 rs.getString("note"));
     }
 }
