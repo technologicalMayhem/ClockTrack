@@ -1,4 +1,4 @@
-package net.techmayhem.clocktrack.screens;
+package net.techmayhem.clocktrack.ui;
 
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -27,7 +27,7 @@ public abstract class Screen {
         if (tab == null) {
             tab = new Tab(getName(), getView());
             tab.setOnSelectionChanged(_ -> {
-                if (tab.isSelected()) {
+                if (tab != null && tab.isSelected()) {
                     onShow();
                 } else {
                     onHide();
