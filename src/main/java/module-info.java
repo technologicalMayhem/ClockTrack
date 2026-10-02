@@ -6,5 +6,5 @@ module net.techmayhem.clocktrack {
     requires static org.jspecify;
     requires org.xerial.sqlitejdbc;
 
-    exports net.techmayhem.clocktrack;
+    exports net.techmayhem.clocktrack to javafx.graphics;
 }
