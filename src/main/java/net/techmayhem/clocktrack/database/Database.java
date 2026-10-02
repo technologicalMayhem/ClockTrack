@@ -388,29 +388,6 @@ public class Database implements AutoCloseable {
         }
     }
 
-    /// Used to print a ResultSet. For debugging purposes.
-    @SuppressWarnings("unused")
-    private void printResultSet(ResultSet rs) throws SQLException {
-        ResultSetMetaData meta = rs.getMetaData();
-        int columnCount = meta.getColumnCount();
-
-        // print header
-        for (int i = 1; i <= columnCount; i++) {
-            System.out.print(meta.getColumnName(i));
-            if (i < columnCount) System.out.print(" | ");
-        }
-        System.out.println();
-
-        // print rows
-        while (rs.next()) {
-            for (int i = 1; i <= columnCount; i++) {
-                System.out.print(rs.getString(i));
-                if (i < columnCount) System.out.print(" | ");
-            }
-            System.out.println();
-        }
-    }
-
     @Override
     public void close() throws SQLException {
         connection.close();
