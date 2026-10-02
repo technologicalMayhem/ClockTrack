@@ -3,7 +3,12 @@ package net.techmayhem.clocktrack.database;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.function.Function;
 import net.techmayhem.clocktrack.model.*;
+import net.techmayhem.clocktrack.projections.PersonSummary;
+import net.techmayhem.clocktrack.projections.ScriptSummary;
+import net.techmayhem.clocktrack.projections.SessionSummary;
+import org.jspecify.annotations.Nullable;
 
 class RowMappers {
     static <T> FromDb<T> fromDb(ResultSet rs, FromResultSet<T> mapper) throws SQLException {
@@ -39,5 +44,43 @@ class RowMappers {
                 rs.getBoolean("good_won"),
                 rs.getInt("script_id"),
                 rs.getString("note"));
+    }
+
+    static PersonSummary personSummary(ResultSet rs) throws SQLException {
+        return new PersonSummary(
+                rs.getInt("id"),
+                rs.getString("name"),
+                mapIfNotNull(rs.getString("first_game"), LocalDate::parse),
+                mapIfNotNull(rs.getString("last_game"), LocalDate::parse),
+                rs.getInt("games_played"),
+                rs.getInt("games_storytold"));
+    }
+
+    static ScriptSummary scriptSummary(ResultSet rs) throws SQLException {
+        return new ScriptSummary(
+                rs.getInt("id"),
+                rs.getString("name"),
+                mapIfNotNull(rs.getString("first_played"), LocalDate::parse),
+                mapIfNotNull(rs.getString("last_played"), LocalDate::parse),
+                rs.getInt("times_played"),
+                rs.getInt("good_wins"));
+    }
+
+    static SessionSummary sessionSummary(ResultSet rs) throws SQLException {
+        return new SessionSummary(
+                rs.getInt("id"),
+                LocalDate.parse(rs.getString("date")),
+                rs.getBoolean("good_won"),
+                rs.getString("storyteller"),
+                rs.getString("script_name"),
+                rs.getInt("player_count"));
+    }
+
+    private static <In, Out> @Nullable Out mapIfNotNull(@Nullable In in, Function<In, Out> map) {
+        if (in != null) {
+            return map.apply(in);
+        } else {
+            return null;
+        }
     }
 }

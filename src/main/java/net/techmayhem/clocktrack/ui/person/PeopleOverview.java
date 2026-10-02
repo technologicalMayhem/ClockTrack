@@ -1,12 +1,11 @@
 package net.techmayhem.clocktrack.ui.person;
 
+import java.time.LocalDate;
 import java.util.List;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -14,13 +13,17 @@ import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Person;
+import net.techmayhem.clocktrack.projections.PersonSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
 import net.techmayhem.clocktrack.ui.ScreenHost;
+import net.techmayhem.clocktrack.ui.component.ColumnDef;
+import net.techmayhem.clocktrack.ui.component.TableHelper;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
+import org.jspecify.annotations.Nullable;
 
 public class PeopleOverview extends EntityOverview {
     private final HBox root;
-    private final TableView<FromDb<Person>> table;
+    private final TableView<PersonSummary> table;
 
     public PeopleOverview(ScreenHost screenHost) {
         super(screenHost);
@@ -55,15 +58,22 @@ public class PeopleOverview extends EntityOverview {
         buttonColumn.setSpacing(5);
         buttonColumn.getChildren().addAll(buttons);
 
-        TableColumn<FromDb<Person>, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(
-                cellData -> new SimpleStringProperty(cellData.getValue().model().name()));
-        table.getColumns().add(nameCol);
+        TableHelper.buildTableColumns(
+                table,
+                new ColumnDef<>("Name", PersonSummary::name),
+                new ColumnDef<>("First game", po -> formatDate(po.firstGame())),
+                new ColumnDef<>("Latest game", po -> formatDate(po.lastGame())),
+                new ColumnDef<>("Games played", po -> Integer.toString(po.games_played())),
+                new ColumnDef<>("Games storytold", po -> Integer.toString(po.games_storytold())));
         HBox.setHgrow(table, Priority.ALWAYS);
 
         root.setPadding(new Insets(10));
         root.setSpacing(5);
         root.getChildren().addAll(table, buttonColumn);
+    }
+
+    private static String formatDate(@Nullable LocalDate po) {
+        return po == null ? "Never played" : po.toString();
     }
 
     @Override
@@ -72,7 +82,7 @@ public class PeopleOverview extends EntityOverview {
     }
 
     private void updateTable() {
-        List<FromDb<Person>> allPersons = Database.getInstance().getAllPersons();
+        List<PersonSummary> allPersons = Database.getInstance().getPersonSummaries();
         table.setItems(FXCollections.observableArrayList(allPersons));
     }
 
@@ -87,10 +97,10 @@ public class PeopleOverview extends EntityOverview {
     }
 
     private void deleteSelectedPerson() {
-        FromDb<Person> selectedPerson = table.getSelectionModel().getSelectedItem();
+        PersonSummary selectedPerson = table.getSelectionModel().getSelectedItem();
         Dialogs.showConfirmDialog(
                 "Confirm deletion",
-                "Do you really want to delete " + selectedPerson.model().name() + "?",
+                "Do you really want to delete " + selectedPerson.name() + "?",
                 "Delete",
                 "Cancel",
                 () -> {
@@ -105,22 +115,22 @@ public class PeopleOverview extends EntityOverview {
     }
 
     private void spawnEditPersonDialog() {
-        FromDb<Person> selectedPerson = table.getSelectionModel().getSelectedItem();
+        PersonSummary selectedPerson = table.getSelectionModel().getSelectedItem();
         Dialogs.showTextDialog(
                 "Edit Person",
                 "Enter the new name of the person",
-                selectedPerson.model().name(),
+                selectedPerson.name(),
                 "Rename",
                 "Cancel",
                 s -> updateName(selectedPerson, s));
     }
 
-    private void updateName(FromDb<Person> person, String newName) {
-        if (newName.equals(person.model().name())) {
+    private void updateName(PersonSummary person, String newName) {
+        if (newName.equals(person.name())) {
             return;
         }
         Person newPerson = new Person(newName);
-        Database.getInstance().updatePerson(person.with(newPerson));
+        Database.getInstance().updatePerson(new FromDb<>(person.id(), newPerson));
         updateTable();
     }
 }

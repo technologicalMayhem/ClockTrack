@@ -12,15 +12,17 @@ import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Script;
+import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
 import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
+import org.jspecify.annotations.Nullable;
 
 public class ScriptsOverview extends EntityOverview {
     private final HBox root;
-    private final TableView<FromDb<Script>> table;
+    private final TableView<ScriptSummary> table;
 
     public ScriptsOverview(ScreenHost screenHost) {
         super(screenHost);
@@ -55,14 +57,25 @@ public class ScriptsOverview extends EntityOverview {
 
         TableHelper.buildTableColumns(
                 table,
-                new ColumnDef<>("Id", session -> String.valueOf(session.id())),
-                new ColumnDef<>("Name", session -> session.model().name()));
+                new ColumnDef<>("Name", ScriptSummary::name),
+                new ColumnDef<>("Times played", ScriptSummary::timesPlayed),
+                new ColumnDef<>("First played", ScriptSummary::firstPlayed),
+                new ColumnDef<>("Last played", ScriptSummary::lastPlayed),
+                new ColumnDef<>("Good winrate", ScriptsOverview::calculateWinrate, ScriptsOverview::formatWinrate));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
         root.setPadding(new Insets(10));
         root.setSpacing(5);
         root.getChildren().addAll(table, buttonColumn);
+    }
+
+    private static @Nullable Double calculateWinrate(ScriptSummary summary) {
+        return summary.timesPlayed() == 0 ? null : (double) summary.goodWins() / summary.timesPlayed();
+    }
+
+    private static String formatWinrate(@Nullable Double winrate) {
+        return winrate == null ? "-" : String.format("%.1f%%", winrate * 100.0);
     }
 
     @Override
@@ -81,7 +94,7 @@ public class ScriptsOverview extends EntityOverview {
     }
 
     private void updateTable() {
-        List<FromDb<Script>> allScripts = Database.getInstance().getAllScripts();
+        List<ScriptSummary> allScripts = Database.getInstance().getScriptSummaries();
         table.setItems(FXCollections.observableArrayList(allScripts));
     }
 
@@ -90,23 +103,24 @@ public class ScriptsOverview extends EntityOverview {
     }
 
     private void viewScript() {
-        FromDb<Script> selectedItem = table.getSelectionModel().getSelectedItem();
-        ScriptView sessionView = new ScriptView(selectedItem.model());
+        ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
+        FromDb<Script> script = Database.getInstance().getScript(selectedItem.id());
+        ScriptView sessionView = new ScriptView(script.model());
         screenHost.open(sessionView);
     }
 
     private void editScript() {
-        FromDb<Script> selectedItem = table.getSelectionModel().getSelectedItem();
-        ScriptEditor sessionEdit = new ScriptEditor(selectedItem);
+        ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
+        FromDb<Script> script = Database.getInstance().getScript(selectedItem.id());
+        ScriptEditor sessionEdit = new ScriptEditor(script);
         screenHost.open(sessionEdit);
     }
 
     private void deleteScript() {
-        FromDb<Script> selectedItem = table.getSelectionModel().getSelectedItem();
+        ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
         Dialogs.showConfirmDialog(
                 "Delete script",
-                "Do you really want to delete the script '"
-                        + selectedItem.model().name() + "'?",
+                "Do you really want to delete the script '" + selectedItem.name() + "'?",
                 "Delete script",
                 "Cancel",
                 () -> {

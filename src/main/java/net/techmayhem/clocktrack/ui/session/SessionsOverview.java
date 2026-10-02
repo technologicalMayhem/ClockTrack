@@ -13,6 +13,7 @@ import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.PersonSession;
 import net.techmayhem.clocktrack.model.Session;
+import net.techmayhem.clocktrack.projections.SessionSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
 import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
@@ -21,7 +22,7 @@ import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 
 public class SessionsOverview extends EntityOverview {
     private final HBox root;
-    private final TableView<FromDb<Session>> table;
+    private final TableView<SessionSummary> table;
 
     public SessionsOverview(ScreenHost screenHost) {
         super(screenHost);
@@ -56,21 +57,11 @@ public class SessionsOverview extends EntityOverview {
 
         TableHelper.buildTableColumns(
                 table,
-                new ColumnDef<>("Id", session -> String.valueOf(session.id())),
-                new ColumnDef<>("Date", session -> session.model().date().toString()),
-                new ColumnDef<>(
-                        "Storyteller",
-                        session -> Database.getInstance()
-                                .getPerson(session.model().storytellerId())
-                                .model()
-                                .name()),
-                new ColumnDef<>("Winner", session -> session.model().goodWon() ? "Good" : "Evil"),
-                new ColumnDef<>(
-                        "Script",
-                        session -> Database.getInstance()
-                                .getScript(session.model().scriptId())
-                                .model()
-                                .name()));
+                new ColumnDef<>("Date", session -> session.date().toString()),
+                new ColumnDef<>("Script", SessionSummary::scriptName),
+                new ColumnDef<>("Storyteller", SessionSummary::storyteller),
+                new ColumnDef<>("Winner", session -> session.goodWon() ? "Good" : "Evil"),
+                new ColumnDef<>("Player count", session -> Integer.toString(session.playerCount())));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
@@ -95,7 +86,7 @@ public class SessionsOverview extends EntityOverview {
     }
 
     private void updateTable() {
-        List<FromDb<Session>> allSessions = Database.getInstance().getAllSessions();
+        List<SessionSummary> allSessions = Database.getInstance().getSessionSummaries();
         table.setItems(FXCollections.observableArrayList(allSessions));
     }
 
@@ -104,25 +95,26 @@ public class SessionsOverview extends EntityOverview {
     }
 
     private void viewSession() {
-        FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
-        SessionView sessionView = new SessionView(selectedItem.model());
+        SessionSummary selectedItem = table.getSelectionModel().getSelectedItem();
+        FromDb<Session> session = Database.getInstance().getSession(selectedItem.id());
+        SessionView sessionView = new SessionView(session.model());
         screenHost.open(sessionView);
     }
 
     private void editSession() {
-        FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
+        SessionSummary selectedItem = table.getSelectionModel().getSelectedItem();
+        FromDb<Session> session = Database.getInstance().getSession(selectedItem.id());
         List<FromDb<PersonSession>> personSessions =
-                Database.getInstance().getAllPersonSessionsForSession(selectedItem.id());
-        SessionEditor sessionEditor = new SessionEditor(selectedItem, personSessions);
+                Database.getInstance().getAllPersonSessionsForSession(session.id());
+        SessionEditor sessionEditor = new SessionEditor(session, personSessions);
         screenHost.open(sessionEditor);
     }
 
     private void deleteSession() {
-        FromDb<Session> selectedItem = table.getSelectionModel().getSelectedItem();
+        SessionSummary selectedItem = table.getSelectionModel().getSelectedItem();
         Dialogs.showConfirmDialog(
                 "Delete session",
-                "Do you really want to delete the session from"
-                        + selectedItem.model().date() + "?",
+                "Do you really want to delete the session from" + selectedItem.date() + "?",
                 "Delete session",
                 "Cancel",
                 () -> {

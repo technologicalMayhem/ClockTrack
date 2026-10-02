@@ -4,6 +4,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import net.techmayhem.clocktrack.model.*;
+import net.techmayhem.clocktrack.projections.PersonSummary;
+import net.techmayhem.clocktrack.projections.ScriptSummary;
+import net.techmayhem.clocktrack.projections.SessionSummary;
 import org.jspecify.annotations.Nullable;
 
 public class Database implements AutoCloseable {
@@ -127,6 +130,24 @@ public class Database implements AutoCloseable {
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.executeUpdate();
+        }
+    }
+
+    public FromDb<Session> getSession(int id) {
+        return runTransaction(conn -> getSession(conn, id));
+    }
+
+    private static FromDb<Session> getSession(Connection conn, int id) throws SQLException {
+        String sql = "SELECT * FROM session WHERE session.id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return RowMappers.fromDb(rs, RowMappers::session);
+                } else {
+                    throw new DatabaseException("No session with id " + id, null, true);
+                }
+            }
         }
     }
 
@@ -345,6 +366,94 @@ public class Database implements AutoCloseable {
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.executeUpdate();
+        }
+    }
+
+    public List<PersonSummary> getPersonSummaries() {
+        return runTransaction(Database::getPersonSummaries);
+    }
+
+    private static List<PersonSummary> getPersonSummaries(Connection conn) throws SQLException {
+        String sql = """
+                WITH appearances AS (
+                    SELECT ps.person_id AS person_id, s.date AS date
+                    FROM person_session ps
+                    JOIN session s ON s.id = ps.session_id
+                    UNION ALL
+                    SELECT storyteller_id, date FROM session
+                )
+                SELECT p.id,
+                       p.name,
+                       (SELECT MIN(date) FROM appearances a WHERE a.person_id = p.id) AS first_game,
+                       (SELECT MAX(date) FROM appearances a WHERE a.person_id = p.id) AS last_game,
+                       (SELECT COUNT(*) FROM person_session ps WHERE ps.person_id = p.id) AS games_played,
+                       (SELECT COUNT(*) FROM session s WHERE s.storyteller_id = p.id) AS games_storytold
+                FROM person p
+                ORDER BY p.name
+                """;
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            ResultSet rs = statement.executeQuery();
+            ArrayList<PersonSummary> result = new ArrayList<>();
+            while (rs.next()) {
+                result.add(RowMappers.personSummary(rs));
+            }
+            return result;
+        }
+    }
+
+    public List<ScriptSummary> getScriptSummaries() {
+        return runTransaction(Database::getScriptSummaries);
+    }
+
+    private static List<ScriptSummary> getScriptSummaries(Connection conn) throws SQLException {
+        String sql = """
+                SELECT
+                	script.id,
+                	script.name,
+                	MIN(session.date) as first_played,
+                	MAX(session.date) as last_played,
+                	COUNT(session.id) as times_played,
+                	COUNT(CASE WHEN session.good_won = true THEN 1 END) as good_wins
+                FROM script
+                LEFT JOIN session ON session.script_id = script.id
+                GROUP BY script.id
+                """;
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            ResultSet rs = statement.executeQuery();
+            ArrayList<ScriptSummary> result = new ArrayList<>();
+            while (rs.next()) {
+                result.add(RowMappers.scriptSummary(rs));
+            }
+            return result;
+        }
+    }
+
+    public List<SessionSummary> getSessionSummaries() {
+        return runTransaction(Database::getSessionSummaries);
+    }
+
+    private static List<SessionSummary> getSessionSummaries(Connection conn) throws SQLException {
+        String sql = """
+                SELECT
+                	s.id,
+                	s.date,
+                	s.good_won,
+                	person.name as storyteller,
+                	script.name as script_name,
+                	COUNT(ps.id) as player_count
+                FROM session s
+                LEFT JOIN person ON person.id = s.storyteller_id
+                LEFT JOIN script ON script.id = s.script_id
+                LEFT JOIN person_session ps on ps.session_id = s.id
+                GROUP BY s.id
+                """;
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            ResultSet rs = statement.executeQuery();
+            ArrayList<SessionSummary> result = new ArrayList<>();
+            while (rs.next()) {
+                result.add(RowMappers.sessionSummary(rs));
+            }
+            return result;
         }
     }
 
