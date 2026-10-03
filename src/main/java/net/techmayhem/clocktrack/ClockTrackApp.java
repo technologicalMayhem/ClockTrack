@@ -15,7 +15,6 @@ import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import net.techmayhem.clocktrack.ui.person.PeopleOverview;
 import net.techmayhem.clocktrack.ui.script.ScriptsOverview;
 import net.techmayhem.clocktrack.ui.session.SessionsOverview;
-import org.tinylog.Logger;
 
 public class ClockTrackApp extends Application {
     @Override
@@ -54,7 +53,7 @@ public class ClockTrackApp extends Application {
     }
 
     private static void handleUncaughtException(Thread thread, Throwable throwable) {
-        Logger.error(throwable, "Unhandled exception on {}", thread.getName());
+        throwable.printStackTrace();
 
         Runnable showDialog = () -> {
             if (throwable instanceof DatabaseException dbEx) {
