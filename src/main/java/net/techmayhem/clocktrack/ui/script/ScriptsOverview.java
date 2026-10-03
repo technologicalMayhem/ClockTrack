@@ -1,6 +1,5 @@
 package net.techmayhem.clocktrack.ui.script;
 
-import java.time.LocalDate;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
