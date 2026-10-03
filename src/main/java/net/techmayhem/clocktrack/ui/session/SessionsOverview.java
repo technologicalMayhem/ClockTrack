@@ -114,7 +114,7 @@ public class SessionsOverview extends EntityOverview {
         SessionSummary selectedItem = table.getSelectionModel().getSelectedItem();
         Dialogs.showConfirmDialog(
                 "Delete session",
-                "Do you really want to delete the session from" + selectedItem.date() + "?",
+                "Do you really want to delete the session from " + selectedItem.date() + "?",
                 "Delete session",
                 "Cancel",
                 () -> {
