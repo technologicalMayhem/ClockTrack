@@ -49,12 +49,7 @@ public class Dialogs {
         HBox buttonsRow = new HBox();
         Button acceptButton = new Button(accept);
         acceptButton.setDefaultButton(true);
-        acceptButton.setOnAction(_ -> {
-            callback.accept(textInput.getText());
-            stage.close();
-        });
-        acceptButton.setDisable(true);
-        textInput.setOnKeyTyped(_ -> acceptButton.setDisable(textInput.getText().isEmpty()));
+        acceptButton.disableProperty().bind(textInput.textProperty().isEmpty());
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Button cancelButton = new Button(cancel);
