@@ -416,7 +416,8 @@ public class Database implements AutoCloseable {
                 	COUNT(CASE WHEN session.good_won = true THEN 1 END) as good_wins
                 FROM script
                 LEFT JOIN session ON session.script_id = script.id
-                GROUP BY script.id
+                GROUP BY script.id, script.name
+                ORDER BY script.name
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             ResultSet rs = statement.executeQuery();
@@ -440,12 +441,11 @@ public class Database implements AutoCloseable {
                 	s.good_won,
                 	person.name as storyteller,
                 	script.name as script_name,
-                	COUNT(ps.id) as player_count
+                	(SELECT COUNT(*) FROM person_session ps WHERE ps.session_id = s.id) AS player_count
                 FROM session s
-                LEFT JOIN person ON person.id = s.storyteller_id
-                LEFT JOIN script ON script.id = s.script_id
-                LEFT JOIN person_session ps on ps.session_id = s.id
-                GROUP BY s.id
+                JOIN person ON person.id = s.storyteller_id
+                JOIN script ON script.id = s.script_id
+                ORDER BY s.date DESC
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             ResultSet rs = statement.executeQuery();
