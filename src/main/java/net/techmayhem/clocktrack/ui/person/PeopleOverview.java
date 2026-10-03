@@ -1,6 +1,5 @@
 package net.techmayhem.clocktrack.ui.person;
 
-import java.time.LocalDate;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -19,7 +18,6 @@ import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
-import org.jspecify.annotations.Nullable;
 
 public class PeopleOverview extends EntityOverview {
     private final HBox root;
@@ -61,19 +59,15 @@ public class PeopleOverview extends EntityOverview {
         TableHelper.buildTableColumns(
                 table,
                 new ColumnDef<>("Name", PersonSummary::name),
-                new ColumnDef<>("First game", po -> formatDate(po.firstGame())),
-                new ColumnDef<>("Latest game", po -> formatDate(po.lastGame())),
-                new ColumnDef<>("Games played", po -> Integer.toString(po.games_played())),
-                new ColumnDef<>("Games storytold", po -> Integer.toString(po.games_storytold())));
+                new ColumnDef<>("First game", PersonSummary::firstGame),
+                new ColumnDef<>("Latest game", PersonSummary::lastGame),
+                new ColumnDef<>("Games played", PersonSummary::games_played),
+                new ColumnDef<>("Games storytold", PersonSummary::games_storytold));
         HBox.setHgrow(table, Priority.ALWAYS);
 
         root.setPadding(new Insets(10));
         root.setSpacing(5);
         root.getChildren().addAll(table, buttonColumn);
-    }
-
-    private static String formatDate(@Nullable LocalDate po) {
-        return po == null ? "Never played" : po.toString();
     }
 
     @Override

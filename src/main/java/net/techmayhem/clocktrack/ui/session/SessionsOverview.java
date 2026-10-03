@@ -57,11 +57,11 @@ public class SessionsOverview extends EntityOverview {
 
         TableHelper.buildTableColumns(
                 table,
-                new ColumnDef<>("Date", session -> session.date().toString()),
+                new ColumnDef<>("Date", SessionSummary::date),
                 new ColumnDef<>("Script", SessionSummary::scriptName),
                 new ColumnDef<>("Storyteller", SessionSummary::storyteller),
-                new ColumnDef<>("Winner", session -> session.goodWon() ? "Good" : "Evil"),
-                new ColumnDef<>("Player count", session -> Integer.toString(session.playerCount())));
+                new ColumnDef<>("Winner", SessionSummary::goodWon, goodWon -> goodWon ? "Good" : "Evil"),
+                new ColumnDef<>("Player count", SessionSummary::playerCount));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
