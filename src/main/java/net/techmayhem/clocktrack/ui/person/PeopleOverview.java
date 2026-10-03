@@ -61,8 +61,8 @@ public class PeopleOverview extends EntityOverview {
                 new ColumnDef<>("Name", PersonSummary::name),
                 new ColumnDef<>("First game", PersonSummary::firstGame),
                 new ColumnDef<>("Latest game", PersonSummary::lastGame),
-                new ColumnDef<>("Games played", PersonSummary::games_played),
-                new ColumnDef<>("Games storytold", PersonSummary::games_storytold));
+                new ColumnDef<>("Games played", PersonSummary::gamesPlayed),
+                new ColumnDef<>("Games storytold", PersonSummary::gamesStorytold));
         HBox.setHgrow(table, Priority.ALWAYS);
 
         root.setPadding(new Insets(10));

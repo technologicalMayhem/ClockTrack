@@ -8,5 +8,5 @@ public record PersonSummary(
         String name,
         @Nullable LocalDate firstGame,
         @Nullable LocalDate lastGame,
-        int games_played,
-        int games_storytold) {}
+        int gamesPlayed,
+        int gamesStorytold) {}
