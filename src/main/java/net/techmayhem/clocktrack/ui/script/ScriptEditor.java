@@ -1,6 +1,7 @@
 package net.techmayhem.clocktrack.ui.script;
 
-import javafx.beans.binding.Bindings;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -14,6 +15,7 @@ import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Script;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Screen;
+import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import org.jspecify.annotations.Nullable;
 
 public class ScriptEditor extends Screen {
@@ -23,6 +25,7 @@ public class ScriptEditor extends Screen {
     private final VBox root;
     private final TextField scriptName;
     private final TextArea scriptJson;
+    private final ErrorSummary errorSummary;
 
     public ScriptEditor(@Nullable FromDb<Script> script) {
         scriptFromDb = script;
@@ -36,16 +39,16 @@ public class ScriptEditor extends Screen {
         scriptJson = new TextArea();
         VBox.setVgrow(scriptJson, Priority.ALWAYS);
 
+        errorSummary = new ErrorSummary(this::validate, scriptName.textProperty());
+
         Button submitButton = new Button("Submit");
         submitButton.setDefaultButton(true);
         submitButton.setOnAction(_ -> submit());
-        submitButton
-                .disableProperty()
-                .bind(Bindings.createBooleanBinding(this::cannotSubmit, scriptName.textProperty()));
+        submitButton.disableProperty().bind(errorSummary.hasErrors());
 
         VBox nameRow = new VBox(new Label("Name"), scriptName);
 
-        root = new VBox(Layout.SPACING, nameRow, new Label("JSON"), scriptJson, submitButton);
+        root = new VBox(Layout.SPACING, nameRow, new Label("JSON"), scriptJson, errorSummary, submitButton);
         root.setPadding(new Insets(Layout.PADDING));
 
         if (script != null) {
@@ -55,12 +58,18 @@ public class ScriptEditor extends Screen {
         }
     }
 
-    private boolean cannotSubmit() {
-        return scriptName.getText().isBlank();
+    private List<String> validate() {
+        List<String> errors = new ArrayList<>();
+
+        if (scriptName.getText().isBlank()) {
+            errors.add("Name is required");
+        }
+
+        return errors;
     }
 
     private void submit() {
-        if (cannotSubmit()) return;
+        if (errorSummary.hasErrors().get()) return;
         Database db = Database.getInstance();
         String json = scriptJson.getText();
         Script model = new Script(scriptName.getText(), json.isBlank() ? null : json);

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
@@ -15,6 +14,7 @@ import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Screen;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.DisplayConverter;
+import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 import org.jspecify.annotations.Nullable;
 
@@ -33,6 +33,7 @@ public class SessionEditor extends Screen {
     private final ChoiceBox<FromDb<Script>> script;
     private final TextArea note;
     private final TableView<PersonSession> personSessionTable;
+    private final ErrorSummary errorSummary;
 
     public SessionEditor(@Nullable FromDb<Session> session, @Nullable List<FromDb<PersonSession>> personSessions) {
         root = new VBox(Layout.SPACING);
@@ -120,19 +121,20 @@ public class SessionEditor extends Screen {
         grid.addRow(row++, new Label("Winner"), new HBox(Layout.SPACING, goodWon, evilWon));
         grid.addRow(row, new Label("Script"), script);
 
+        errorSummary = new ErrorSummary(
+                this::validate,
+                datePicker.valueProperty(),
+                storytellerChoice.valueProperty(),
+                winnerGroup.selectedToggleProperty(),
+                script.valueProperty(),
+                personSessionTable.getItems());
+
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(_ -> submit());
-        submitButton
-                .disableProperty()
-                .bind(Bindings.createBooleanBinding(
-                        this::cannotSubmit,
-                        datePicker.valueProperty(),
-                        storytellerChoice.valueProperty(),
-                        winnerGroup.selectedToggleProperty(),
-                        script.valueProperty(),
-                        personSessionTable.getItems()));
+        submitButton.disableProperty().bind(errorSummary.hasErrors());
 
-        root.getChildren().addAll(grid, aboveTable, personSessionTable, new Label("Notes"), note, submitButton);
+        root.getChildren()
+                .addAll(grid, aboveTable, personSessionTable, new Label("Notes"), note, errorSummary, submitButton);
 
         if (session != null) {
             Session model = session.model();
@@ -205,13 +207,29 @@ public class SessionEditor extends Screen {
         return "Editing " + session.model().date();
     }
 
-    private boolean cannotSubmit() {
-        return datePicker.getValue() == null
-                || storytellerChoice.getSelectionModel().isEmpty()
-                || (!goodWon.isSelected() && !evilWon.isSelected())
-                || script.getSelectionModel().isEmpty()
-                || duplicatePlayer()
-                || storytellerIsPlayer();
+    private List<String> validate() {
+        List<String> errors = new ArrayList<>();
+
+        if (datePicker.getValue() == null) {
+            errors.add("Date is required");
+        }
+        if (storytellerChoice.getSelectionModel().isEmpty()) {
+            errors.add("Storyteller is required");
+        }
+        if (!goodWon.isSelected() && !evilWon.isSelected()) {
+            errors.add("Winner is required");
+        }
+        if (script.getSelectionModel().isEmpty()) {
+            errors.add("Script is required");
+        }
+        if (duplicatePlayer()) {
+            errors.add("A person cannot be in a game more than once");
+        }
+        if (storytellerIsPlayer()) {
+            errors.add("The storyteller cannot also be a player");
+        }
+
+        return errors;
     }
 
     private boolean duplicatePlayer() {
@@ -230,7 +248,7 @@ public class SessionEditor extends Screen {
     }
 
     private void submit() {
-        if (cannotSubmit()) return;
+        if (errorSummary.hasErrors().get()) return;
         Database db = Database.getInstance();
         String text = note.getText();
         Session newSession = new Session(

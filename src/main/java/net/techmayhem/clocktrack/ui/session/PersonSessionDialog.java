@@ -1,8 +1,8 @@
 package net.techmayhem.clocktrack.ui.session;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -15,6 +15,7 @@ import net.techmayhem.clocktrack.model.Person;
 import net.techmayhem.clocktrack.model.PersonSession;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.component.DisplayConverter;
+import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
 
@@ -33,6 +34,7 @@ class PersonSessionDialog {
 
     private final Stage stage;
     private final List<FromDb<Person>> unavailablePeople;
+    private final ErrorSummary errorSummary;
 
     private boolean shouldSubmit = false;
 
@@ -80,21 +82,21 @@ class PersonSessionDialog {
 
         noteText = new TextArea();
 
+        errorSummary = new ErrorSummary(
+                this::validate,
+                personChoice.valueProperty(),
+                roleField.textProperty(),
+                died.selectedProperty(),
+                deathOnDaySpinner.valueProperty(),
+                causeOfDeathField.textProperty(),
+                alignmentGroup.selectedToggleProperty());
+
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(_ -> {
             shouldSubmit = true;
             stage.close();
         });
-        submitButton
-                .disableProperty()
-                .bind(Bindings.createBooleanBinding(
-                        this::cannotSubmit,
-                        personChoice.valueProperty(),
-                        roleField.textProperty(),
-                        died.selectedProperty(),
-                        deathOnDaySpinner.valueProperty(),
-                        causeOfDeathField.textProperty(),
-                        alignmentGroup.selectedToggleProperty()));
+        submitButton.disableProperty().bind(errorSummary.hasErrors());
 
         int row = 0;
         GridPane grid = new GridPane(Layout.SPACING, Layout.SPACING);
@@ -104,7 +106,7 @@ class PersonSessionDialog {
         grid.addRow(row, new Label("Alignment"), new HBox(Layout.SPACING, goodRadio, evilRadio));
 
         VBox vBox = Dialogs.createVBox();
-        vBox.getChildren().addAll(grid, new Label("Notes"), noteText, submitButton);
+        vBox.getChildren().addAll(grid, new Label("Notes"), noteText, errorSummary, submitButton);
 
         if (personSession != null) {
             personChoice.getItems().stream()
@@ -131,7 +133,7 @@ class PersonSessionDialog {
 
     public @Nullable PersonSession showAndWait() {
         stage.showAndWait();
-        if (!shouldSubmit || cannotSubmit()) return null;
+        if (!shouldSubmit || errorSummary.hasErrors().get()) return null;
 
         int personId = personChoice.getSelectionModel().getSelectedItem().id();
         String role = roleField.getText();
@@ -143,12 +145,26 @@ class PersonSessionDialog {
         return new PersonSession(NO_ID, personId, role, deathOnDay, causeOfDeath, good, note);
     }
 
-    private boolean cannotSubmit() {
-        return personChoice.getSelectionModel().isEmpty()
-                || isSelectedPersonUnavailable()
-                || roleField.getText().isBlank()
-                || (died.isSelected() && causeOfDeathField.getText().isBlank())
-                || (!goodRadio.isSelected() && !evilRadio.isSelected());
+    private List<String> validate() {
+        List<String> errors = new ArrayList<>();
+
+        if (personChoice.getSelectionModel().isEmpty()) {
+            errors.add("Person is required");
+        }
+        if (isSelectedPersonUnavailable()) {
+            errors.add("The selected person is already in this game");
+        }
+        if (roleField.getText().isBlank()) {
+            errors.add("Role is required");
+        }
+        if (died.isSelected() && causeOfDeathField.getText().isBlank()) {
+            errors.add("Cause of death is required");
+        }
+        if (!goodRadio.isSelected() && !evilRadio.isSelected()) {
+            errors.add("Alignment is required");
+        }
+
+        return errors;
     }
 
     private boolean isSelectedPersonUnavailable() {
