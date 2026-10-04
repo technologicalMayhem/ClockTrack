@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Script;
+import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Screen;
 import org.jspecify.annotations.Nullable;
 
@@ -44,8 +45,8 @@ public class ScriptEditor extends Screen {
 
         VBox nameRow = new VBox(new Label("Name"), scriptName);
 
-        root = new VBox(5.0, nameRow, new Label("JSON"), scriptJson, submitButton);
-        root.setPadding(new Insets(10));
+        root = new VBox(Layout.SPACING, nameRow, new Label("JSON"), scriptJson, submitButton);
+        root.setPadding(new Insets(Layout.PADDING));
 
         if (script != null) {
             Script model = script.model();

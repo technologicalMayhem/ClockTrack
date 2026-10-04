@@ -14,6 +14,7 @@ import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Person;
 import net.techmayhem.clocktrack.projections.PersonSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
+import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
@@ -53,7 +54,7 @@ public class PeopleOverview extends EntityOverview {
             button.setMaxWidth(Double.MAX_VALUE);
         }
         VBox buttonColumn = new VBox();
-        buttonColumn.setSpacing(5);
+        buttonColumn.setSpacing(Layout.SPACING);
         buttonColumn.getChildren().addAll(buttons);
 
         TableHelper.buildTableColumns(
@@ -65,8 +66,8 @@ public class PeopleOverview extends EntityOverview {
                 new ColumnDef<>("Games storytold", PersonSummary::gamesStorytold));
         HBox.setHgrow(table, Priority.ALWAYS);
 
-        root.setPadding(new Insets(10));
-        root.setSpacing(5);
+        root.setPadding(new Insets(Layout.PADDING));
+        root.setSpacing(Layout.SPACING);
         root.getChildren().addAll(table, buttonColumn);
     }
 

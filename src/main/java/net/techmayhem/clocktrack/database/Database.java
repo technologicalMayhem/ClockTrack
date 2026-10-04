@@ -10,6 +10,8 @@ import net.techmayhem.clocktrack.projections.SessionSummary;
 import org.jspecify.annotations.Nullable;
 
 public class Database implements AutoCloseable {
+    private static final int EXPECTED_ROWS_AFFECTED_BY_UPDATE = 1;
+
     private final Connection connection;
 
     @Nullable private static Database instance;
@@ -458,7 +460,9 @@ public class Database implements AutoCloseable {
     }
 
     private static void ensureUpdated(int rowCount) {
-        if (rowCount != 1) throw new DatabaseException("Update changed " + rowCount + " rows instead of 1", null, true);
+        if (rowCount != EXPECTED_ROWS_AFFECTED_BY_UPDATE)
+            throw new DatabaseException(
+                    "Update changed " + rowCount + " rows instead of " + EXPECTED_ROWS_AFFECTED_BY_UPDATE, null, true);
     }
 
     @FunctionalInterface

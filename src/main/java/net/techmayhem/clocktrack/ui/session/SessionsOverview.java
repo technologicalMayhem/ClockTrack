@@ -15,6 +15,7 @@ import net.techmayhem.clocktrack.model.PersonSession;
 import net.techmayhem.clocktrack.model.Session;
 import net.techmayhem.clocktrack.projections.SessionSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
+import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
@@ -52,7 +53,7 @@ public class SessionsOverview extends EntityOverview {
             button.setMaxWidth(Double.MAX_VALUE);
         }
         VBox buttonColumn = new VBox();
-        buttonColumn.setSpacing(5);
+        buttonColumn.setSpacing(Layout.SPACING);
         buttonColumn.getChildren().addAll(buttons);
 
         TableHelper.buildTableColumns(
@@ -65,8 +66,8 @@ public class SessionsOverview extends EntityOverview {
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
-        root.setPadding(new Insets(10));
-        root.setSpacing(5);
+        root.setPadding(new Insets(Layout.PADDING));
+        root.setSpacing(Layout.SPACING);
         root.getChildren().addAll(table, buttonColumn);
     }
 

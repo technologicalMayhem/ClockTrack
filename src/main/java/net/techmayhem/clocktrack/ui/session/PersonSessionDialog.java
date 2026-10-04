@@ -13,11 +13,15 @@ import javafx.stage.Stage;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Person;
 import net.techmayhem.clocktrack.model.PersonSession;
+import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.component.DisplayConverter;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
 
 class PersonSessionDialog {
+    private static final int FIRST_DAY = 1;
+    private static final int NO_ID = -1;
+
     private final ComboBox<FromDb<Person>> personChoice;
     private final TextField roleField;
     private final CheckBox died;
@@ -61,7 +65,7 @@ class PersonSessionDialog {
         roleField = new TextField();
 
         died = new CheckBox("Died?");
-        deathOnDaySpinner = new Spinner<>(1, Integer.MAX_VALUE, 1);
+        deathOnDaySpinner = new Spinner<>(FIRST_DAY, Integer.MAX_VALUE, FIRST_DAY);
         deathOnDaySpinner.setEditable(true);
         causeOfDeathField = new TextField();
         BooleanBinding diedProperty = died.selectedProperty().not();
@@ -92,11 +96,12 @@ class PersonSessionDialog {
                         causeOfDeathField.textProperty(),
                         alignmentGroup.selectedToggleProperty()));
 
-        GridPane grid = new GridPane(5.0, 5.0);
-        grid.addRow(0, new Label("Person"), personChoice);
-        grid.addRow(1, new Label("Role"), roleField);
-        grid.addRow(2, new Label("Death"), new HBox(5.0, died, deathOnDaySpinner, causeOfDeathField));
-        grid.addRow(3, new Label("Alignment"), new HBox(5.0, goodRadio, evilRadio));
+        int row = 0;
+        GridPane grid = new GridPane(Layout.SPACING, Layout.SPACING);
+        grid.addRow(row++, new Label("Person"), personChoice);
+        grid.addRow(row++, new Label("Role"), roleField);
+        grid.addRow(row++, new Label("Death"), new HBox(Layout.SPACING, died, deathOnDaySpinner, causeOfDeathField));
+        grid.addRow(row, new Label("Alignment"), new HBox(Layout.SPACING, goodRadio, evilRadio));
 
         VBox vBox = Dialogs.createVBox();
         vBox.getChildren().addAll(grid, new Label("Notes"), noteText, submitButton);
@@ -135,7 +140,7 @@ class PersonSessionDialog {
         boolean good = goodRadio.isSelected();
         String note = noteText.getText();
 
-        return new PersonSession(-1, personId, role, deathOnDay, causeOfDeath, good, note);
+        return new PersonSession(NO_ID, personId, role, deathOnDay, causeOfDeath, good, note);
     }
 
     private boolean cannotSubmit() {
@@ -152,19 +157,22 @@ class PersonSessionDialog {
     }
 
     private class PersonChoiceCell extends ListCell<FromDb<Person>> {
+        private static final double OPACITY_NORMAL = 1.0;
+        private static final double OPACITY_UNAVAILABLE = 0.4;
+
         @Override
         protected void updateItem(FromDb<Person> person, boolean empty) {
             super.updateItem(person, empty);
             if (empty) {
                 setText(null);
                 setDisable(false);
-                setOpacity(1.0);
+                setOpacity(OPACITY_NORMAL);
                 return;
             }
             boolean unavailable = unavailablePeople.contains(person);
             setText(person.model().name());
             setDisable(unavailable);
-            setOpacity(unavailable ? 0.4 : 1.0);
+            setOpacity(unavailable ? OPACITY_UNAVAILABLE : OPACITY_NORMAL);
         }
     }
 }

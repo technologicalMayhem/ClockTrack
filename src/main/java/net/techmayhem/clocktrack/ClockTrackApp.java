@@ -17,6 +17,9 @@ import net.techmayhem.clocktrack.ui.script.ScriptsOverview;
 import net.techmayhem.clocktrack.ui.session.SessionsOverview;
 
 public class ClockTrackApp extends Application {
+    private static final int WINDOW_WIDTH = 1000;
+    private static final int WINDOW_HEIGHT = 750;
+
     @Override
     public void start(Stage stage) throws FileNotFoundException {
         Dialogs.setPrimaryStage(stage);
@@ -26,9 +29,7 @@ public class ClockTrackApp extends Application {
         stage.setTitle("ClockTrack");
 
         TabPane tabPane = new TabPane();
-        double ratio = 3.0 / 4.0;
-        int width = 1000;
-        Scene scene = new Scene(tabPane, width, width * ratio);
+        Scene scene = new Scene(tabPane, WINDOW_WIDTH, WINDOW_HEIGHT);
         stage.setScene(scene);
         stage.show();
 
