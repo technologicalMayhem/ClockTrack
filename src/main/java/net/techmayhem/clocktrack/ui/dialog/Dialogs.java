@@ -54,6 +54,10 @@ public class Dialogs {
         Button acceptButton = new Button(accept);
         acceptButton.setDefaultButton(true);
         acceptButton.disableProperty().bind(textInput.textProperty().isEmpty());
+        acceptButton.setOnAction(_ -> {
+            callback.accept(textInput.getText());
+            stage.close();
+        });
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Button cancelButton = new Button(cancel);
