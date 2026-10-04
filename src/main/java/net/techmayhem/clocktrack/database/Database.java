@@ -57,7 +57,7 @@ public class Database implements AutoCloseable {
     }
 
     private static FromDb<Player> insertPlayer(Connection conn, Player player) throws SQLException {
-        String sql = "INSERT INTO person(name) VALUES (?)";
+        String sql = "INSERT INTO player(name) VALUES (?)";
         try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, player.name());
             statement.executeUpdate();
@@ -73,7 +73,7 @@ public class Database implements AutoCloseable {
     }
 
     private static FromDb<Player> getPlayer(Connection conn, int id) throws SQLException {
-        String sql = "SELECT * FROM person WHERE id = ?";
+        String sql = "SELECT * FROM player WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, id);
             try (ResultSet rs = statement.executeQuery()) {
@@ -91,7 +91,7 @@ public class Database implements AutoCloseable {
     }
 
     private static List<FromDb<Player>> getAllPlayers(Connection conn) throws SQLException {
-        String sql = "SELECT * FROM person";
+        String sql = "SELECT * FROM player";
         ArrayList<FromDb<Player>> result = new ArrayList<>();
         try (Statement statement = conn.createStatement()) {
             statement.execute(sql);
@@ -112,7 +112,7 @@ public class Database implements AutoCloseable {
     }
 
     private static void updatePlayer(Connection conn, FromDb<Player> player) throws SQLException {
-        String sql = "UPDATE person SET name = ? WHERE id = ?";
+        String sql = "UPDATE player SET name = ? WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setString(1, player.model().name());
             statement.setInt(2, player.id());
@@ -128,7 +128,7 @@ public class Database implements AutoCloseable {
     }
 
     private static void deletePlayer(Connection conn, int id) throws SQLException {
-        String sql = "DELETE FROM person WHERE id = ?";
+        String sql = "DELETE FROM player WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.executeUpdate();
@@ -241,7 +241,7 @@ public class Database implements AutoCloseable {
 
     private static void insertPlayerSession(Connection conn, PlayerSession playerSession) throws SQLException {
         String sql =
-                "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                "INSERT INTO player_session(session_id, player_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, playerSession.sessionId());
             statement.setInt(2, playerSession.playerId());
@@ -264,7 +264,7 @@ public class Database implements AutoCloseable {
 
     private static List<FromDb<PlayerSession>> getAllPlayerSessionsForSession(Connection conn, int session_id)
             throws SQLException {
-        String sql = "SELECT * FROM person_session WHERE session_id = ?";
+        String sql = "SELECT * FROM player_session WHERE session_id = ?";
         ArrayList<FromDb<PlayerSession>> result = new ArrayList<>();
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, session_id);
@@ -278,7 +278,7 @@ public class Database implements AutoCloseable {
     }
 
     private static void deleteAllPlayerSessionsForSession(Connection conn, int sessionId) throws SQLException {
-        String sql = "DELETE FROM person_session WHERE session_id = ?";
+        String sql = "DELETE FROM player_session WHERE session_id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, sessionId);
             statement.executeUpdate();
@@ -378,19 +378,19 @@ public class Database implements AutoCloseable {
     private static List<PlayerSummary> getPlayerSummaries(Connection conn) throws SQLException {
         String sql = """
                 WITH appearances AS (
-                    SELECT ps.person_id AS person_id, s.date AS date
-                    FROM person_session ps
+                    SELECT ps.player_id AS player_id, s.date AS date
+                    FROM player_session ps
                     JOIN session s ON s.id = ps.session_id
                     UNION ALL
                     SELECT storyteller_id, date FROM session
                 )
                 SELECT p.id,
                        p.name,
-                       (SELECT MIN(date) FROM appearances a WHERE a.person_id = p.id) AS first_game,
-                       (SELECT MAX(date) FROM appearances a WHERE a.person_id = p.id) AS last_game,
-                       (SELECT COUNT(*) FROM person_session ps WHERE ps.person_id = p.id) AS games_played,
+                       (SELECT MIN(date) FROM appearances a WHERE a.player_id = p.id) AS first_game,
+                       (SELECT MAX(date) FROM appearances a WHERE a.player_id = p.id) AS last_game,
+                       (SELECT COUNT(*) FROM player_session ps WHERE ps.player_id = p.id) AS games_played,
                        (SELECT COUNT(*) FROM session s WHERE s.storyteller_id = p.id) AS games_storytold
-                FROM person p
+                FROM player p
                 ORDER BY p.name
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -441,11 +441,11 @@ public class Database implements AutoCloseable {
                 	s.id,
                 	s.date,
                 	s.good_won,
-                	person.name as storyteller,
+                	player.name as storyteller,
                 	script.name as script_name,
-                	(SELECT COUNT(*) FROM person_session ps WHERE ps.session_id = s.id) AS player_count
+                	(SELECT COUNT(*) FROM player_session ps WHERE ps.session_id = s.id) AS player_count
                 FROM session s
-                JOIN person ON person.id = s.storyteller_id
+                JOIN player ON player.id = s.storyteller_id
                 JOIN script ON script.id = s.script_id
                 ORDER BY s.date DESC
                 """;

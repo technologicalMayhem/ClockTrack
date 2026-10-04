@@ -11,7 +11,7 @@ class Schema {
     static void createSchema(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
             statement.execute("""
-                    CREATE TABLE person(
+                    CREATE TABLE player(
                         id INTEGER PRIMARY KEY,
                         name TEXT NOT NULL
                     );
@@ -31,23 +31,23 @@ class Schema {
                         good_won BOOLEAN NOT NULL,
                         script_id INTEGER NOT NULL,
                         note TEXT,
-                        FOREIGN KEY(storyteller_id) REFERENCES person(id),
+                        FOREIGN KEY(storyteller_id) REFERENCES player(id),
                         FOREIGN KEY(script_id) REFERENCES script(id)
                     );
                     """);
             statement.execute("""
-                    CREATE TABLE person_session(
+                    CREATE TABLE player_session(
                         id INTEGER PRIMARY KEY,
                         session_id INTEGER NOT NULL,
-                        person_id INTEGER NOT NULL,
+                        player_id INTEGER NOT NULL,
                         role TEXT NOT NULL,
                         death_on_day INTEGER,
                         cause_of_death TEXT,
                         good BOOLEAN NOT NULL,
                         note TEXT,
                         FOREIGN KEY(session_id) REFERENCES session(id),
-                        FOREIGN KEY(person_id) REFERENCES person(id),
-                        UNIQUE(session_id, person_id)
+                        FOREIGN KEY(player_id) REFERENCES player(id),
+                        UNIQUE(session_id, player_id)
                     );
                     """);
         }
@@ -65,7 +65,7 @@ class Schema {
             }
         }
 
-        HashSet<String> expectedTables = new HashSet<>(List.of("person", "script", "session", "person_session"));
+        HashSet<String> expectedTables = new HashSet<>(List.of("player", "script", "session", "player_session"));
         if (foundTables.isEmpty()) {
             return false;
         }

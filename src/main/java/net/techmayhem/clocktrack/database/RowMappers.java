@@ -25,7 +25,7 @@ class RowMappers {
 
         return new PlayerSession(
                 rs.getInt("session_id"),
-                rs.getInt("person_id"),
+                rs.getInt("player_id"),
                 rs.getString("role"),
                 deathOnDay,
                 rs.getString("cause_of_death"),
