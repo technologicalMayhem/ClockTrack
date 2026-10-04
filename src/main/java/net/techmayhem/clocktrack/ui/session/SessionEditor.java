@@ -11,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.*;
+import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Screen;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.DisplayConverter;
@@ -34,8 +35,8 @@ public class SessionEditor extends Screen {
     private final TableView<PersonSession> personSessionTable;
 
     public SessionEditor(@Nullable FromDb<Session> session, @Nullable List<FromDb<PersonSession>> personSessions) {
-        root = new VBox(5.0);
-        root.setPadding(new Insets(10));
+        root = new VBox(Layout.SPACING);
+        root.setPadding(new Insets(Layout.PADDING));
         this.session = session;
         if (personSessions != null) {
             this.personSessions =
@@ -80,10 +81,10 @@ public class SessionEditor extends Screen {
         for (Button button : buttons) {
             button.setMaxWidth(Double.MAX_VALUE);
         }
-        HBox buttonRow = new HBox(5);
+        HBox buttonRow = new HBox(Layout.SPACING);
         buttonRow.getChildren().addAll(buttons);
 
-        HBox aboveTable = new HBox(5);
+        HBox aboveTable = new HBox(Layout.SPACING);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         aboveTable.getChildren().addAll(new Label("People"), spacer, buttonRow);
@@ -112,11 +113,12 @@ public class SessionEditor extends Screen {
 
         note = new TextArea();
 
-        GridPane grid = new GridPane(5.0, 5.0);
-        grid.addRow(0, new Label("Date"), datePicker);
-        grid.addRow(1, new Label("Storyteller"), storytellerChoice);
-        grid.addRow(2, new Label("Winner"), new HBox(5.0, goodWon, evilWon));
-        grid.addRow(3, new Label("Script"), script);
+        int row = 0;
+        GridPane grid = new GridPane(Layout.SPACING, Layout.SPACING);
+        grid.addRow(row++, new Label("Date"), datePicker);
+        grid.addRow(row++, new Label("Storyteller"), storytellerChoice);
+        grid.addRow(row++, new Label("Winner"), new HBox(Layout.SPACING, goodWon, evilWon));
+        grid.addRow(row, new Label("Script"), script);
 
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(_ -> submit());

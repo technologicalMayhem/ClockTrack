@@ -14,9 +14,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import net.techmayhem.clocktrack.ui.Layout;
 import org.jspecify.annotations.Nullable;
 
 public class Dialogs {
+    private static final int STACK_TRACE_ROWS = 15;
+    private static final int EXIT_CODE_FATAL = 1;
+
     @Nullable private static Stage primaryStage;
 
     public static void setPrimaryStage(Stage stage) {
@@ -35,8 +39,8 @@ public class Dialogs {
     }
 
     public static VBox createVBox() {
-        VBox vBox = new VBox(5);
-        vBox.setPadding(new Insets(10));
+        VBox vBox = new VBox(Layout.SPACING);
+        vBox.setPadding(new Insets(Layout.PADDING));
         return vBox;
     }
 
@@ -104,7 +108,7 @@ public class Dialogs {
         TextArea stackTraceArea = new TextArea(sw.toString());
         stackTraceArea.setEditable(false);
         stackTraceArea.setWrapText(false);
-        stackTraceArea.setPrefRowCount(15);
+        stackTraceArea.setPrefRowCount(STACK_TRACE_ROWS);
 
         TitledPane collapseStackTrack = new TitledPane("Stack trace", stackTraceArea);
         collapseStackTrack.setExpanded(false);
@@ -114,7 +118,7 @@ public class Dialogs {
         Button button = new Button("Ok");
         button.setDefaultButton(true);
         button.setOnAction(_ -> {
-            if (isFatal) System.exit(1);
+            if (isFatal) System.exit(EXIT_CODE_FATAL);
             stage.close();
         });
 
