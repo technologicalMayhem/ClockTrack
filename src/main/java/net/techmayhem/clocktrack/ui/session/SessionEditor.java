@@ -23,36 +23,36 @@ public class SessionEditor extends Screen {
 
     @Nullable private final FromDb<Session> session;
 
-    private final List<PersonSession> personSessions;
-    private final List<FromDb<Person>> people;
+    private final List<PlayerSession> playerSessions;
+    private final List<FromDb<Player>> players;
 
     private final DatePicker datePicker;
-    private final ChoiceBox<FromDb<Person>> storytellerChoice;
+    private final ChoiceBox<FromDb<Player>> storytellerChoice;
     private final RadioButton goodWon;
     private final RadioButton evilWon;
     private final ChoiceBox<FromDb<Script>> script;
     private final TextArea note;
-    private final TableView<PersonSession> personSessionTable;
+    private final TableView<PlayerSession> playerSessionTable;
     private final ErrorSummary errorSummary;
 
-    public SessionEditor(@Nullable FromDb<Session> session, @Nullable List<FromDb<PersonSession>> personSessions) {
+    public SessionEditor(@Nullable FromDb<Session> session, @Nullable List<FromDb<PlayerSession>> playerSessions) {
         root = new VBox(Layout.SPACING);
         root.setPadding(new Insets(Layout.PADDING));
         this.session = session;
-        if (personSessions != null) {
-            this.personSessions =
-                    personSessions.stream().map(FromDb::model).collect(Collectors.toCollection(ArrayList::new));
+        if (playerSessions != null) {
+            this.playerSessions =
+                    playerSessions.stream().map(FromDb::model).collect(Collectors.toCollection(ArrayList::new));
         } else {
-            this.personSessions = new ArrayList<>();
+            this.playerSessions = new ArrayList<>();
         }
 
         Database db = Database.getInstance();
 
         datePicker = new DatePicker();
 
-        people = db.getAllPersons();
+        players = db.getAllPlayers();
         storytellerChoice = new ChoiceBox<>();
-        storytellerChoice.getItems().addAll(people);
+        storytellerChoice.getItems().addAll(players);
         storytellerChoice.setConverter(new DisplayConverter<>(p -> p.model().name()));
 
         ToggleGroup winnerGroup = new ToggleGroup();
@@ -72,9 +72,9 @@ public class SessionEditor extends Screen {
         addButton.setOnAction(_ -> addPlayer());
         editButton.setOnAction(_ -> editPlayer());
         removeButton.setOnAction(_ -> removePlayer());
-        personSessionTable = new TableView<>();
+        playerSessionTable = new TableView<>();
         var noSelection =
-                personSessionTable.getSelectionModel().selectedItemProperty().isNull();
+                playerSessionTable.getSelectionModel().selectedItemProperty().isNull();
         editButton.disableProperty().bind(noSelection);
         removeButton.disableProperty().bind(noSelection);
 
@@ -88,17 +88,17 @@ public class SessionEditor extends Screen {
         HBox aboveTable = new HBox(Layout.SPACING);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        aboveTable.getChildren().addAll(new Label("People"), spacer, buttonRow);
+        aboveTable.getChildren().addAll(new Label("Players"), spacer, buttonRow);
 
         TableHelper.buildTableColumns(
-                personSessionTable,
+                playerSessionTable,
                 new ColumnDef<>(
                         "Player",
                         ps -> Database.getInstance()
-                                .getPerson(ps.personId())
+                                .getPlayer(ps.playerId())
                                 .model()
                                 .name()),
-                new ColumnDef<>("Role", PersonSession::role),
+                new ColumnDef<>("Role", PlayerSession::role),
                 new ColumnDef<>("Alignment", ps -> ps.good() ? "Good" : "Evil"),
                 new ColumnDef<>("Died on day", ps -> {
                     Integer day = ps.deathOnDay();
@@ -109,8 +109,8 @@ public class SessionEditor extends Screen {
                     return cause == null ? "" : cause;
                 }),
                 new ColumnDef<>("Note", ps -> ps.note() == null ? "" : ps.note()));
-        personSessionTable.getItems().setAll(this.personSessions);
-        personSessionTable.refresh();
+        playerSessionTable.getItems().setAll(this.playerSessions);
+        playerSessionTable.refresh();
 
         note = new TextArea();
 
@@ -127,19 +127,19 @@ public class SessionEditor extends Screen {
                 storytellerChoice.valueProperty(),
                 winnerGroup.selectedToggleProperty(),
                 script.valueProperty(),
-                personSessionTable.getItems());
+                playerSessionTable.getItems());
 
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(_ -> submit());
         submitButton.disableProperty().bind(errorSummary.hasErrors());
 
         root.getChildren()
-                .addAll(grid, aboveTable, personSessionTable, new Label("Notes"), note, errorSummary, submitButton);
+                .addAll(grid, aboveTable, playerSessionTable, new Label("Notes"), note, errorSummary, submitButton);
 
         if (session != null) {
             Session model = session.model();
             datePicker.setValue(model.date());
-            storytellerChoice.setValue(db.getPerson(model.storytellerId()));
+            storytellerChoice.setValue(db.getPlayer(model.storytellerId()));
             if (model.goodWon()) {
                 goodWon.setSelected(true);
             } else {
@@ -151,47 +151,47 @@ public class SessionEditor extends Screen {
     }
 
     private void addPlayer() {
-        PersonSession newPersonSession =
-                new PersonSessionDialog(null, availablePeople(null), unavailablePeople(null)).showAndWait();
-        if (newPersonSession == null) return;
-        personSessions.add(newPersonSession);
+        PlayerSession newPlayerSession =
+                new PlayerSessionDialog(null, availablePlayers(null), unavailablePlayers(null)).showAndWait();
+        if (newPlayerSession == null) return;
+        playerSessions.add(newPlayerSession);
         updateTable();
     }
 
     private void editPlayer() {
-        PersonSession selected = personSessionTable.getSelectionModel().getSelectedItem();
-        // Look the row up by value. The table can be sorted, so its selection index is not the index in personSessions.
-        int index = personSessions.indexOf(selected);
-        PersonSession edited =
-                new PersonSessionDialog(selected, availablePeople(selected), unavailablePeople(selected)).showAndWait();
+        PlayerSession selected = playerSessionTable.getSelectionModel().getSelectedItem();
+        int index = playerSessions.indexOf(selected);
+        PlayerSession edited = new PlayerSessionDialog(
+                        selected, availablePlayers(selected), unavailablePlayers(selected))
+                .showAndWait();
         if (edited == null) return;
-        personSessions.set(index, edited);
+        playerSessions.set(index, edited);
         updateTable();
     }
 
-    private boolean isUnavailable(FromDb<Person> p, @Nullable PersonSession editing) {
-        if (editing != null && editing.personId() == p.id()) return false;
+    private boolean isUnavailable(FromDb<Player> p, @Nullable PlayerSession editing) {
+        if (editing != null && editing.playerId() == p.id()) return false;
         boolean hasStoryteller = !storytellerChoice.getSelectionModel().isEmpty();
         if (hasStoryteller && storytellerChoice.getValue().id() == p.id()) return true;
-        return personSessions.stream().anyMatch(ps -> ps != editing && ps.personId() == p.id());
+        return playerSessions.stream().anyMatch(ps -> ps != editing && ps.playerId() == p.id());
     }
 
-    private List<FromDb<Person>> availablePeople(@Nullable PersonSession editing) {
-        return people.stream().filter(p -> !isUnavailable(p, editing)).toList();
+    private List<FromDb<Player>> availablePlayers(@Nullable PlayerSession editing) {
+        return players.stream().filter(p -> !isUnavailable(p, editing)).toList();
     }
 
-    private List<FromDb<Person>> unavailablePeople(@Nullable PersonSession editing) {
-        return people.stream().filter(p -> isUnavailable(p, editing)).toList();
+    private List<FromDb<Player>> unavailablePlayers(@Nullable PlayerSession editing) {
+        return players.stream().filter(p -> isUnavailable(p, editing)).toList();
     }
 
     private void removePlayer() {
-        PersonSession sessionFromDb = personSessionTable.getSelectionModel().getSelectedItem();
-        this.personSessions.remove(sessionFromDb);
+        PlayerSession sessionFromDb = playerSessionTable.getSelectionModel().getSelectedItem();
+        this.playerSessions.remove(sessionFromDb);
         updateTable();
     }
 
     private void updateTable() {
-        personSessionTable.getItems().setAll(personSessions);
+        playerSessionTable.getItems().setAll(playerSessions);
     }
 
     @Override
@@ -223,7 +223,7 @@ public class SessionEditor extends Screen {
             errors.add("Script is required");
         }
         if (duplicatePlayer()) {
-            errors.add("A person cannot be in a game more than once");
+            errors.add("A player cannot be in a game more than once");
         }
         if (storytellerIsPlayer()) {
             errors.add("The storyteller cannot also be a player");
@@ -234,17 +234,17 @@ public class SessionEditor extends Screen {
 
     private boolean duplicatePlayer() {
         HashSet<Integer> names = new HashSet<>();
-        for (PersonSession personSession : personSessions) {
-            if (names.contains(personSession.personId())) return true;
-            else names.add(personSession.personId());
+        for (PlayerSession playerSession : playerSessions) {
+            if (names.contains(playerSession.playerId())) return true;
+            else names.add(playerSession.playerId());
         }
         return false;
     }
 
     private boolean storytellerIsPlayer() {
         if (storytellerChoice.getSelectionModel().isEmpty()) return false;
-        FromDb<Person> currentStoryteller = storytellerChoice.getValue();
-        return personSessions.stream().anyMatch(personSession -> personSession.personId() == currentStoryteller.id());
+        FromDb<Player> currentStoryteller = storytellerChoice.getValue();
+        return playerSessions.stream().anyMatch(playerSession -> playerSession.playerId() == currentStoryteller.id());
     }
 
     private void submit() {
@@ -258,9 +258,9 @@ public class SessionEditor extends Screen {
                 script.getValue().id(),
                 text.isEmpty() ? null : text);
         if (session == null) {
-            db.saveSession(MaybeFromDb.of(newSession), personSessions);
+            db.saveSession(MaybeFromDb.of(newSession), playerSessions);
         } else {
-            db.saveSession(MaybeFromDb.of(session.with(newSession)), personSessions);
+            db.saveSession(MaybeFromDb.of(session.with(newSession)), playerSessions);
         }
         closeTab();
     }

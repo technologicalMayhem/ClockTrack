@@ -11,19 +11,19 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import net.techmayhem.clocktrack.model.FromDb;
-import net.techmayhem.clocktrack.model.Person;
-import net.techmayhem.clocktrack.model.PersonSession;
+import net.techmayhem.clocktrack.model.Player;
+import net.techmayhem.clocktrack.model.PlayerSession;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.component.DisplayConverter;
 import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
 
-class PersonSessionDialog {
+class PlayerSessionDialog {
     private static final int FIRST_DAY = 1;
     private static final int NO_ID = -1;
 
-    private final ComboBox<FromDb<Person>> personChoice;
+    private final ComboBox<FromDb<Player>> playerChoice;
     private final TextField roleField;
     private final CheckBox died;
     private final Spinner<Integer> deathOnDaySpinner;
@@ -33,36 +33,36 @@ class PersonSessionDialog {
     private final TextArea noteText;
 
     private final Stage stage;
-    private final List<FromDb<Person>> unavailablePeople;
+    private final List<FromDb<Player>> unavailablePlayers;
     private final ErrorSummary errorSummary;
 
     private boolean shouldSubmit = false;
 
-    public PersonSessionDialog(
-            @Nullable PersonSession personSession,
-            List<FromDb<Person>> availablePeople,
-            List<FromDb<Person>> unavailablePeople) {
-        this.unavailablePeople = unavailablePeople;
-        List<FromDb<Person>> allPeople = Stream.concat(availablePeople.stream(), this.unavailablePeople.stream())
+    public PlayerSessionDialog(
+            @Nullable PlayerSession playerSession,
+            List<FromDb<Player>> availablePlayers,
+            List<FromDb<Player>> unavailablePlayers) {
+        this.unavailablePlayers = unavailablePlayers;
+        List<FromDb<Player>> allPlayers = Stream.concat(availablePlayers.stream(), this.unavailablePlayers.stream())
                 .toList();
         String title;
-        if (personSession != null) {
-            String name = allPeople.stream()
-                    .filter(person -> person.id() == personSession.personId())
+        if (playerSession != null) {
+            String name = allPlayers.stream()
+                    .filter(player -> player.id() == playerSession.playerId())
                     .findFirst()
-                    .map(person -> person.model().name())
+                    .map(player -> player.model().name())
                     .orElse("player");
             title = "Editing Session for " + name;
         } else {
-            title = "Creating a new session person entry";
+            title = "Creating a new session player entry";
         }
         stage = Dialogs.createStage(title);
 
-        personChoice = new ComboBox<>();
-        personChoice.getItems().addAll(allPeople);
-        personChoice.setConverter(
-                new DisplayConverter<>(personFromDb -> personFromDb.model().name()));
-        personChoice.setCellFactory(_ -> new PersonChoiceCell());
+        playerChoice = new ComboBox<>();
+        playerChoice.getItems().addAll(allPlayers);
+        playerChoice.setConverter(
+                new DisplayConverter<>(playerFromDb -> playerFromDb.model().name()));
+        playerChoice.setCellFactory(_ -> new PlayerChoiceCell());
 
         roleField = new TextField();
 
@@ -84,7 +84,7 @@ class PersonSessionDialog {
 
         errorSummary = new ErrorSummary(
                 this::validate,
-                personChoice.valueProperty(),
+                playerChoice.valueProperty(),
                 roleField.textProperty(),
                 died.selectedProperty(),
                 deathOnDaySpinner.valueProperty(),
@@ -100,7 +100,7 @@ class PersonSessionDialog {
 
         int row = 0;
         GridPane grid = new GridPane(Layout.SPACING, Layout.SPACING);
-        grid.addRow(row++, new Label("Person"), personChoice);
+        grid.addRow(row++, new Label("Player"), playerChoice);
         grid.addRow(row++, new Label("Role"), roleField);
         grid.addRow(row++, new Label("Death"), new HBox(Layout.SPACING, died, deathOnDaySpinner, causeOfDeathField));
         grid.addRow(row, new Label("Alignment"), new HBox(Layout.SPACING, goodRadio, evilRadio));
@@ -108,51 +108,51 @@ class PersonSessionDialog {
         VBox vBox = Dialogs.createVBox();
         vBox.getChildren().addAll(grid, new Label("Notes"), noteText, errorSummary, submitButton);
 
-        if (personSession != null) {
-            personChoice.getItems().stream()
-                    .filter(tablePerson -> tablePerson.id() == personSession.personId())
+        if (playerSession != null) {
+            playerChoice.getItems().stream()
+                    .filter(player -> player.id() == playerSession.playerId())
                     .findFirst()
-                    .ifPresent(personChoice::setValue);
-            roleField.setText(personSession.role());
-            if (personSession.deathOnDay() != null && personSession.causeOfDeath() != null) {
+                    .ifPresent(playerChoice::setValue);
+            roleField.setText(playerSession.role());
+            if (playerSession.deathOnDay() != null && playerSession.causeOfDeath() != null) {
                 died.setSelected(true);
-                deathOnDaySpinner.getValueFactory().setValue(personSession.deathOnDay());
-                causeOfDeathField.setText(personSession.causeOfDeath());
+                deathOnDaySpinner.getValueFactory().setValue(playerSession.deathOnDay());
+                causeOfDeathField.setText(playerSession.causeOfDeath());
             }
-            if (personSession.good()) {
+            if (playerSession.good()) {
                 goodRadio.setSelected(true);
             } else {
                 evilRadio.setSelected(true);
             }
-            noteText.setText(personSession.note());
+            noteText.setText(playerSession.note());
         }
 
         Scene dialogScene = new Scene(vBox);
         stage.setScene(dialogScene);
     }
 
-    public @Nullable PersonSession showAndWait() {
+    public @Nullable PlayerSession showAndWait() {
         stage.showAndWait();
         if (!shouldSubmit || errorSummary.hasErrors().get()) return null;
 
-        int personId = personChoice.getSelectionModel().getSelectedItem().id();
+        int playerId = playerChoice.getSelectionModel().getSelectedItem().id();
         String role = roleField.getText();
         Integer deathOnDay = died.isSelected() ? deathOnDaySpinner.getValue() : null;
         String causeOfDeath = died.isSelected() ? causeOfDeathField.getText() : null;
         boolean good = goodRadio.isSelected();
         String note = noteText.getText();
 
-        return new PersonSession(NO_ID, personId, role, deathOnDay, causeOfDeath, good, note);
+        return new PlayerSession(NO_ID, playerId, role, deathOnDay, causeOfDeath, good, note);
     }
 
     private List<String> validate() {
         List<String> errors = new ArrayList<>();
 
-        if (personChoice.getSelectionModel().isEmpty()) {
-            errors.add("Person is required");
+        if (playerChoice.getSelectionModel().isEmpty()) {
+            errors.add("Player is required");
         }
-        if (isSelectedPersonUnavailable()) {
-            errors.add("The selected person is already in this game");
+        if (isSelectedPlayerUnavailable()) {
+            errors.add("The selected player is already in this game");
         }
         if (roleField.getText().isBlank()) {
             errors.add("Role is required");
@@ -167,26 +167,26 @@ class PersonSessionDialog {
         return errors;
     }
 
-    private boolean isSelectedPersonUnavailable() {
-        FromDb<Person> selected = personChoice.getValue();
-        return unavailablePeople.contains(selected);
+    private boolean isSelectedPlayerUnavailable() {
+        FromDb<Player> selected = playerChoice.getValue();
+        return unavailablePlayers.contains(selected);
     }
 
-    private class PersonChoiceCell extends ListCell<FromDb<Person>> {
+    private class PlayerChoiceCell extends ListCell<FromDb<Player>> {
         private static final double OPACITY_NORMAL = 1.0;
         private static final double OPACITY_UNAVAILABLE = 0.4;
 
         @Override
-        protected void updateItem(FromDb<Person> person, boolean empty) {
-            super.updateItem(person, empty);
+        protected void updateItem(FromDb<Player> player, boolean empty) {
+            super.updateItem(player, empty);
             if (empty) {
                 setText(null);
                 setDisable(false);
                 setOpacity(OPACITY_NORMAL);
                 return;
             }
-            boolean unavailable = unavailablePeople.contains(person);
-            setText(person.model().name());
+            boolean unavailable = unavailablePlayers.contains(player);
+            setText(player.model().name());
             setDisable(unavailable);
             setOpacity(unavailable ? OPACITY_UNAVAILABLE : OPACITY_NORMAL);
         }

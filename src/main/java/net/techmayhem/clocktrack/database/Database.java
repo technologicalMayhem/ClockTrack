@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import net.techmayhem.clocktrack.model.*;
-import net.techmayhem.clocktrack.projections.PersonSummary;
+import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.projections.SessionSummary;
 import org.jspecify.annotations.Nullable;
@@ -52,82 +52,82 @@ public class Database implements AutoCloseable {
         });
     }
 
-    public void insertPerson(Person person) {
-        runTransaction(conn -> insertPerson(conn, person));
+    public void insertPlayer(Player player) {
+        runTransaction(conn -> insertPlayer(conn, player));
     }
 
-    private static FromDb<Person> insertPerson(Connection conn, Person person) throws SQLException {
+    private static FromDb<Player> insertPlayer(Connection conn, Player player) throws SQLException {
         String sql = "INSERT INTO person(name) VALUES (?)";
         try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, person.name());
+            statement.setString(1, player.name());
             statement.executeUpdate();
             try (ResultSet keys = statement.getGeneratedKeys()) {
                 keys.next();
-                return new FromDb<>(keys.getInt(1), person);
+                return new FromDb<>(keys.getInt(1), player);
             }
         }
     }
 
-    public FromDb<Person> getPerson(int id) {
-        return runTransaction(conn -> getPerson(conn, id));
+    public FromDb<Player> getPlayer(int id) {
+        return runTransaction(conn -> getPlayer(conn, id));
     }
 
-    private static FromDb<Person> getPerson(Connection conn, int id) throws SQLException {
+    private static FromDb<Player> getPlayer(Connection conn, int id) throws SQLException {
         String sql = "SELECT * FROM person WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, id);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
-                    return RowMappers.fromDb(rs, RowMappers::person);
+                    return RowMappers.fromDb(rs, RowMappers::player);
                 } else {
-                    throw new DatabaseException("No person with id " + id, null, true);
+                    throw new DatabaseException("No player with id " + id, null, true);
                 }
             }
         }
     }
 
-    public List<FromDb<Person>> getAllPersons() {
-        return runTransaction(Database::getAllPersons);
+    public List<FromDb<Player>> getAllPlayers() {
+        return runTransaction(Database::getAllPlayers);
     }
 
-    private static List<FromDb<Person>> getAllPersons(Connection conn) throws SQLException {
+    private static List<FromDb<Player>> getAllPlayers(Connection conn) throws SQLException {
         String sql = "SELECT * FROM person";
-        ArrayList<FromDb<Person>> result = new ArrayList<>();
+        ArrayList<FromDb<Player>> result = new ArrayList<>();
         try (Statement statement = conn.createStatement()) {
             statement.execute(sql);
             try (ResultSet rs = statement.getResultSet()) {
                 while (rs.next()) {
-                    result.add(RowMappers.fromDb(rs, RowMappers::person));
+                    result.add(RowMappers.fromDb(rs, RowMappers::player));
                 }
             }
         }
         return result;
     }
 
-    public void updatePerson(FromDb<Person> person) {
+    public void updatePlayer(FromDb<Player> player) {
         runTransaction(conn -> {
-            updatePerson(conn, person);
+            updatePlayer(conn, player);
             return null;
         });
     }
 
-    private static void updatePerson(Connection conn, FromDb<Person> person) throws SQLException {
+    private static void updatePlayer(Connection conn, FromDb<Player> player) throws SQLException {
         String sql = "UPDATE person SET name = ? WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            statement.setString(1, person.model().name());
-            statement.setInt(2, person.id());
+            statement.setString(1, player.model().name());
+            statement.setInt(2, player.id());
             ensureUpdated(statement.executeUpdate());
         }
     }
 
-    public void deletePerson(int id) {
+    public void deletePlayer(int id) {
         runTransaction(conn -> {
-            deletePerson(conn, id);
+            deletePlayer(conn, id);
             return null;
         });
     }
 
-    private static void deletePerson(Connection conn, int id) throws SQLException {
+    private static void deletePlayer(Connection conn, int id) throws SQLException {
         String sql = "DELETE FROM person WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, id);
@@ -153,7 +153,7 @@ public class Database implements AutoCloseable {
         }
     }
 
-    public void saveSession(MaybeFromDb<Session> session, List<PersonSession> personSessions) {
+    public void saveSession(MaybeFromDb<Session> session, List<PlayerSession> playerSessions) {
         runTransaction(conn -> {
             int sessionId;
             switch (session) {
@@ -166,9 +166,9 @@ public class Database implements AutoCloseable {
                     sessionId = insertSession(conn, v.raw()).id();
             }
 
-            deleteAllPersonSessionsForSession(conn, sessionId);
-            for (PersonSession personSession : personSessions) {
-                insertPersonSession(conn, personSession.withSessionId(sessionId));
+            deleteAllPlayerSessionsForSession(conn, sessionId);
+            for (PlayerSession playerSession : playerSessions) {
+                insertPlayerSession(conn, playerSession.withSessionId(sessionId));
             }
             return null;
         });
@@ -225,7 +225,7 @@ public class Database implements AutoCloseable {
 
     public void deleteSession(int id) {
         runTransaction(conn -> {
-            deleteAllPersonSessionsForSession(conn, id);
+            deleteAllPlayerSessionsForSession(conn, id);
             deleteSession(conn, id);
             return null;
         });
@@ -239,45 +239,45 @@ public class Database implements AutoCloseable {
         }
     }
 
-    private static void insertPersonSession(Connection conn, PersonSession personSession) throws SQLException {
+    private static void insertPlayerSession(Connection conn, PlayerSession playerSession) throws SQLException {
         String sql =
                 "INSERT INTO person_session(session_id, person_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            statement.setInt(1, personSession.sessionId());
-            statement.setInt(2, personSession.personId());
-            statement.setString(3, personSession.role());
-            if (personSession.deathOnDay() == null) {
+            statement.setInt(1, playerSession.sessionId());
+            statement.setInt(2, playerSession.playerId());
+            statement.setString(3, playerSession.role());
+            if (playerSession.deathOnDay() == null) {
                 statement.setNull(4, Types.INTEGER);
             } else {
-                statement.setInt(4, personSession.deathOnDay());
+                statement.setInt(4, playerSession.deathOnDay());
             }
-            statement.setString(5, personSession.causeOfDeath());
-            statement.setBoolean(6, personSession.good());
-            statement.setString(7, personSession.note());
+            statement.setString(5, playerSession.causeOfDeath());
+            statement.setBoolean(6, playerSession.good());
+            statement.setString(7, playerSession.note());
             statement.executeUpdate();
         }
     }
 
-    public List<FromDb<PersonSession>> getAllPersonSessionsForSession(int session_id) {
-        return runTransaction(conn -> getAllPersonSessionsForSession(conn, session_id));
+    public List<FromDb<PlayerSession>> getAllPlayerSessionsForSession(int session_id) {
+        return runTransaction(conn -> getAllPlayerSessionsForSession(conn, session_id));
     }
 
-    private static List<FromDb<PersonSession>> getAllPersonSessionsForSession(Connection conn, int session_id)
+    private static List<FromDb<PlayerSession>> getAllPlayerSessionsForSession(Connection conn, int session_id)
             throws SQLException {
         String sql = "SELECT * FROM person_session WHERE session_id = ?";
-        ArrayList<FromDb<PersonSession>> result = new ArrayList<>();
+        ArrayList<FromDb<PlayerSession>> result = new ArrayList<>();
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, session_id);
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
-                    result.add(RowMappers.fromDb(rs, RowMappers::personSession));
+                    result.add(RowMappers.fromDb(rs, RowMappers::playerSession));
                 }
             }
         }
         return result;
     }
 
-    private static void deleteAllPersonSessionsForSession(Connection conn, int sessionId) throws SQLException {
+    private static void deleteAllPlayerSessionsForSession(Connection conn, int sessionId) throws SQLException {
         String sql = "DELETE FROM person_session WHERE session_id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, sessionId);
@@ -371,11 +371,11 @@ public class Database implements AutoCloseable {
         }
     }
 
-    public List<PersonSummary> getPersonSummaries() {
-        return runTransaction(Database::getPersonSummaries);
+    public List<PlayerSummary> getPlayerSummaries() {
+        return runTransaction(Database::getPlayerSummaries);
     }
 
-    private static List<PersonSummary> getPersonSummaries(Connection conn) throws SQLException {
+    private static List<PlayerSummary> getPlayerSummaries(Connection conn) throws SQLException {
         String sql = """
                 WITH appearances AS (
                     SELECT ps.person_id AS person_id, s.date AS date
@@ -395,9 +395,9 @@ public class Database implements AutoCloseable {
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             ResultSet rs = statement.executeQuery();
-            ArrayList<PersonSummary> result = new ArrayList<>();
+            ArrayList<PlayerSummary> result = new ArrayList<>();
             while (rs.next()) {
-                result.add(RowMappers.personSummary(rs));
+                result.add(RowMappers.playerSummary(rs));
             }
             return result;
         }

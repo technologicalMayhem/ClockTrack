@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.function.Function;
 import net.techmayhem.clocktrack.model.*;
-import net.techmayhem.clocktrack.projections.PersonSummary;
+import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.projections.SessionSummary;
 import org.jspecify.annotations.Nullable;
@@ -15,15 +15,15 @@ class RowMappers {
         return new FromDb<>(rs.getInt("id"), mapper.map(rs));
     }
 
-    static Person person(ResultSet rs) throws SQLException {
-        return new Person(rs.getString("name"));
+    static Player player(ResultSet rs) throws SQLException {
+        return new Player(rs.getString("name"));
     }
 
-    static PersonSession personSession(ResultSet rs) throws SQLException {
+    static PlayerSession playerSession(ResultSet rs) throws SQLException {
         int day = rs.getInt("death_on_day");
         Integer deathOnDay = rs.wasNull() ? null : day;
 
-        return new PersonSession(
+        return new PlayerSession(
                 rs.getInt("session_id"),
                 rs.getInt("person_id"),
                 rs.getString("role"),
@@ -46,8 +46,8 @@ class RowMappers {
                 rs.getString("note"));
     }
 
-    static PersonSummary personSummary(ResultSet rs) throws SQLException {
-        return new PersonSummary(
+    static PlayerSummary playerSummary(ResultSet rs) throws SQLException {
+        return new PlayerSummary(
                 rs.getInt("id"),
                 rs.getString("name"),
                 mapIfNotNull(rs.getString("first_game"), LocalDate::parse),

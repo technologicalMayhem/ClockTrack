@@ -3,7 +3,7 @@ package net.techmayhem.clocktrack.projections;
 import java.time.LocalDate;
 import org.jspecify.annotations.Nullable;
 
-public record PersonSummary(
+public record PlayerSummary(
         int id,
         String name,
         @Nullable LocalDate firstGame,

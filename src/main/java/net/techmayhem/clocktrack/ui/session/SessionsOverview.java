@@ -11,7 +11,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
-import net.techmayhem.clocktrack.model.PersonSession;
+import net.techmayhem.clocktrack.model.PlayerSession;
 import net.techmayhem.clocktrack.model.Session;
 import net.techmayhem.clocktrack.projections.SessionSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
@@ -105,9 +105,9 @@ public class SessionsOverview extends EntityOverview {
     private void editSession() {
         SessionSummary selectedItem = table.getSelectionModel().getSelectedItem();
         FromDb<Session> session = Database.getInstance().getSession(selectedItem.id());
-        List<FromDb<PersonSession>> personSessions =
-                Database.getInstance().getAllPersonSessionsForSession(session.id());
-        SessionEditor sessionEditor = new SessionEditor(session, personSessions);
+        List<FromDb<PlayerSession>> playerSessions =
+                Database.getInstance().getAllPlayerSessionsForSession(session.id());
+        SessionEditor sessionEditor = new SessionEditor(session, playerSessions);
         screenHost.open(sessionEditor);
     }
 

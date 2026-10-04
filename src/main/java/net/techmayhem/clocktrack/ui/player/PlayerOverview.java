@@ -1,4 +1,4 @@
-package net.techmayhem.clocktrack.ui.person;
+package net.techmayhem.clocktrack.ui.player;
 
 import java.util.List;
 import javafx.collections.FXCollections;
@@ -11,8 +11,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
-import net.techmayhem.clocktrack.model.Person;
-import net.techmayhem.clocktrack.projections.PersonSummary;
+import net.techmayhem.clocktrack.model.Player;
+import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.ScreenHost;
@@ -20,11 +20,11 @@ import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 
-public class PeopleOverview extends EntityOverview {
+public class PlayerOverview extends EntityOverview {
     private final HBox root;
-    private final TableView<PersonSummary> table;
+    private final TableView<PlayerSummary> table;
 
-    public PeopleOverview(ScreenHost screenHost) {
+    public PlayerOverview(ScreenHost screenHost) {
         super(screenHost);
         table = new TableView<>();
         root = new HBox();
@@ -34,17 +34,17 @@ public class PeopleOverview extends EntityOverview {
 
     @Override
     protected String getSectionName() {
-        return "People";
+        return "Players";
     }
 
     private void buildUi() {
-        Button createButton = new Button("Add person");
-        Button editButton = new Button("Edit person");
-        Button deleteButton = new Button("Delete person");
+        Button createButton = new Button("Add player");
+        Button editButton = new Button("Edit player");
+        Button deleteButton = new Button("Delete player");
 
-        createButton.setOnAction(_ -> spawnNewPersonDialog());
-        editButton.setOnAction(_ -> spawnEditPersonDialog());
-        deleteButton.setOnAction(_ -> deleteSelectedPerson());
+        createButton.setOnAction(_ -> spawnNewPlayerDialog());
+        editButton.setOnAction(_ -> spawnEditPlayerDialog());
+        deleteButton.setOnAction(_ -> deleteSelectedPlayer());
         var noSelection = table.getSelectionModel().selectedItemProperty().isNull();
         editButton.disableProperty().bind(noSelection);
         deleteButton.disableProperty().bind(noSelection);
@@ -59,11 +59,11 @@ public class PeopleOverview extends EntityOverview {
 
         TableHelper.buildTableColumns(
                 table,
-                new ColumnDef<>("Name", PersonSummary::name),
-                new ColumnDef<>("First game", PersonSummary::firstGame),
-                new ColumnDef<>("Latest game", PersonSummary::lastGame),
-                new ColumnDef<>("Games played", PersonSummary::gamesPlayed),
-                new ColumnDef<>("Games storytold", PersonSummary::gamesStorytold));
+                new ColumnDef<>("Name", PlayerSummary::name),
+                new ColumnDef<>("First game", PlayerSummary::firstGame),
+                new ColumnDef<>("Latest game", PlayerSummary::lastGame),
+                new ColumnDef<>("Games played", PlayerSummary::gamesPlayed),
+                new ColumnDef<>("Games storytold", PlayerSummary::gamesStorytold));
         HBox.setHgrow(table, Priority.ALWAYS);
 
         root.setPadding(new Insets(Layout.PADDING));
@@ -77,29 +77,29 @@ public class PeopleOverview extends EntityOverview {
     }
 
     private void updateTable() {
-        List<PersonSummary> allPersons = Database.getInstance().getPersonSummaries();
-        table.setItems(FXCollections.observableArrayList(allPersons));
+        List<PlayerSummary> allPlayers = Database.getInstance().getPlayerSummaries();
+        table.setItems(FXCollections.observableArrayList(allPlayers));
     }
 
-    private void spawnNewPersonDialog() {
+    private void spawnNewPlayerDialog() {
         Dialogs.showTextDialog(
-                "Add Person", "Enter the name of the person to add", "", "Add", "Cancel", this::createPerson);
+                "Add player", "Enter the name of the player to add", "", "Add", "Cancel", this::createPlayer);
     }
 
-    private void createPerson(String name) {
-        Database.getInstance().insertPerson(new Person(name));
+    private void createPlayer(String name) {
+        Database.getInstance().insertPlayer(new Player(name));
         updateTable();
     }
 
-    private void deleteSelectedPerson() {
-        PersonSummary selectedPerson = table.getSelectionModel().getSelectedItem();
+    private void deleteSelectedPlayer() {
+        PlayerSummary selectedPlayer = table.getSelectionModel().getSelectedItem();
         Dialogs.showConfirmDialog(
                 "Confirm deletion",
-                "Do you really want to delete " + selectedPerson.name() + "?",
+                "Do you really want to delete " + selectedPlayer.name() + "?",
                 "Delete",
                 "Cancel",
                 () -> {
-                    Database.getInstance().deletePerson(selectedPerson.id());
+                    Database.getInstance().deletePlayer(selectedPlayer.id());
                     updateTable();
                 });
     }
@@ -109,23 +109,23 @@ public class PeopleOverview extends EntityOverview {
         return root;
     }
 
-    private void spawnEditPersonDialog() {
-        PersonSummary selectedPerson = table.getSelectionModel().getSelectedItem();
+    private void spawnEditPlayerDialog() {
+        PlayerSummary selectedPlayer = table.getSelectionModel().getSelectedItem();
         Dialogs.showTextDialog(
-                "Edit Person",
-                "Enter the new name of the person",
-                selectedPerson.name(),
+                "Edit player",
+                "Enter the new name of the player",
+                selectedPlayer.name(),
                 "Rename",
                 "Cancel",
-                s -> updateName(selectedPerson, s));
+                s -> updateName(selectedPlayer, s));
     }
 
-    private void updateName(PersonSummary person, String newName) {
-        if (newName.equals(person.name())) {
+    private void updateName(PlayerSummary player, String newName) {
+        if (newName.equals(player.name())) {
             return;
         }
-        Person newPerson = new Person(newName);
-        Database.getInstance().updatePerson(new FromDb<>(person.id(), newPerson));
+        Player newPlayer = new Player(newName);
+        Database.getInstance().updatePlayer(new FromDb<>(player.id(), newPlayer));
         updateTable();
     }
 }

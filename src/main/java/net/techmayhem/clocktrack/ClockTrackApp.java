@@ -12,7 +12,7 @@ import javafx.stage.Stage;
 import net.techmayhem.clocktrack.database.DatabaseException;
 import net.techmayhem.clocktrack.ui.EntitySection;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
-import net.techmayhem.clocktrack.ui.person.PeopleOverview;
+import net.techmayhem.clocktrack.ui.player.PlayerOverview;
 import net.techmayhem.clocktrack.ui.script.ScriptsOverview;
 import net.techmayhem.clocktrack.ui.session.SessionsOverview;
 
@@ -35,12 +35,12 @@ public class ClockTrackApp extends Application {
 
         try {
             Tab sessions = new EntitySection(SessionsOverview::new).getTab();
-            Tab people = new EntitySection(PeopleOverview::new).getTab();
+            Tab players = new EntitySection(PlayerOverview::new).getTab();
             Tab scripts = new EntitySection(ScriptsOverview::new).getTab();
             sessions.setClosable(false);
-            people.setClosable(false);
+            players.setClosable(false);
             scripts.setClosable(false);
-            tabPane.getTabs().addAll(sessions, people, scripts);
+            tabPane.getTabs().addAll(sessions, players, scripts);
         } catch (DatabaseException e) {
             handleUncaughtException(Thread.currentThread(), e);
         }

@@ -1,3 +1,3 @@
 package net.techmayhem.clocktrack.model;
 
-public record Person(String name) {}
+public record Player(String name) {}
