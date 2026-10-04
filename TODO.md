@@ -19,4 +19,4 @@
   notes)
 - [ ] Write a project documentation
 - [ ] Get rid of any remaining magic numbers. Like UI sizing constants.
-- [ ] Fix the text dialogs accept button. It only listens to key-typed events, so pasting does not update it, and a whitespace-only name passes the empty check. Bind it to the text property and use isBlank().
+- [X] Fix the text dialogs accept button. It only listens to key-typed events, so pasting does not update it, and a whitespace-only name passes the empty check. Bind it to the text property and use isBlank().
