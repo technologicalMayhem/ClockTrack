@@ -59,7 +59,7 @@ public class Database implements AutoCloseable {
     private static FromDb<Player> insertPlayer(Connection conn, Player player) throws SQLException {
         String sql = "INSERT INTO player(name, notes) VALUES (?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, player.name().toColumn());
+            statement.setString(1, player.name());
             statement.setString(2, player.notes());
             statement.executeUpdate();
             try (ResultSet keys = statement.getGeneratedKeys()) {
@@ -115,7 +115,7 @@ public class Database implements AutoCloseable {
     private static void updatePlayer(Connection conn, FromDb<Player> player) throws SQLException {
         String sql = "UPDATE player SET name = ?, notes = ? WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            statement.setString(1, player.model().name().toColumn());
+            statement.setString(1, player.model().name());
             statement.setString(2, player.model().notes());
             statement.setInt(3, player.id());
             ensureUpdated(statement.executeUpdate());
@@ -124,11 +124,7 @@ public class Database implements AutoCloseable {
 
     public void deletePlayer(int id) {
         runTransaction(conn -> {
-            if (isPlayerReferenced(conn, id)) {
-                updatePlayer(conn, new FromDb<>(id, new Player(new PlayerName.Anonymized(id), null)));
-            } else {
-                deletePlayer(conn, id);
-            }
+            deletePlayer(conn, id);
             return null;
         });
     }
@@ -203,7 +199,7 @@ public class Database implements AutoCloseable {
         String sql = "INSERT INTO session(date, storyteller_id, good_won, script_id, note) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, session.date().toString());
-            statement.setInt(2, session.storytellerId());
+            statement.setObject(2, session.storytellerId());
             statement.setBoolean(3, session.goodWon());
             statement.setInt(4, session.scriptId());
             statement.setString(5, session.note());
@@ -239,7 +235,7 @@ public class Database implements AutoCloseable {
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             Session model = session.model();
             statement.setString(1, model.date().toString());
-            statement.setInt(2, model.storytellerId());
+            statement.setObject(2, model.storytellerId());
             statement.setBoolean(3, model.goodWon());
             statement.setInt(4, model.scriptId());
             statement.setString(5, model.note());
@@ -269,13 +265,9 @@ public class Database implements AutoCloseable {
                 "INSERT INTO player_session(session_id, player_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, playerSession.sessionId());
-            statement.setInt(2, playerSession.playerId());
+            statement.setObject(2, playerSession.playerId());
             statement.setString(3, playerSession.role());
-            if (playerSession.deathOnDay() == null) {
-                statement.setNull(4, Types.INTEGER);
-            } else {
-                statement.setInt(4, playerSession.deathOnDay());
-            }
+            statement.setObject(4, playerSession.deathOnDay());
             statement.setString(5, playerSession.causeOfDeath());
             statement.setBoolean(6, playerSession.good());
             statement.setString(7, playerSession.note());
@@ -415,7 +407,7 @@ public class Database implements AutoCloseable {
                        (SELECT MAX(date) FROM appearances a WHERE a.player_id = p.id) AS last_game,
                        (SELECT COUNT(*) FROM player_session ps WHERE ps.player_id = p.id) AS games_played,
                        (SELECT COUNT(*) FROM session s WHERE s.storyteller_id = p.id) AS games_storytold
-                FROM player p WHERE p.name IS NOT NULL
+                FROM player p
                 ORDER BY p.name
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -466,12 +458,11 @@ public class Database implements AutoCloseable {
                 	s.id,
                 	s.date,
                 	s.good_won,
-                	player.name as storyteller_name,
-                	player.id as storyteller_id,
+                	player.name as storyteller,
                 	script.name as script_name,
                 	(SELECT COUNT(*) FROM player_session ps WHERE ps.session_id = s.id) AS player_count
                 FROM session s
-                JOIN player ON player.id = s.storyteller_id
+                LEFT JOIN player ON player.id = s.storyteller_id
                 JOIN script ON script.id = s.script_id
                 ORDER BY s.date DESC
                 """;

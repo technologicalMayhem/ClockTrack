@@ -60,7 +60,7 @@ public class SessionsOverview extends EntityOverview {
                 table,
                 new ColumnDef<>("Date", SessionSummary::date),
                 new ColumnDef<>("Script", SessionSummary::scriptName),
-                new ColumnDef<>("Storyteller", SessionSummary::storyteller),
+                new ColumnDef<>("Storyteller", s -> s.storyteller() == null ? "Unknown" : s.storyteller()),
                 new ColumnDef<>("Winner", SessionSummary::goodWon, goodWon -> goodWon ? "Good" : "Evil"),
                 new ColumnDef<>("Player count", SessionSummary::playerCount));
 

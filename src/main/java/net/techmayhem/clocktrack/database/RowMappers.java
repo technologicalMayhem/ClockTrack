@@ -16,18 +16,15 @@ class RowMappers {
     }
 
     static Player player(ResultSet rs) throws SQLException {
-        return new Player(PlayerName.fromColumn(rs.getInt("id"), rs.getString("name")), rs.getString("notes"));
+        return new Player(rs.getString("name"), rs.getString("notes"));
     }
 
     static PlayerSession playerSession(ResultSet rs) throws SQLException {
-        int day = rs.getInt("death_on_day");
-        Integer deathOnDay = rs.wasNull() ? null : day;
-
         return new PlayerSession(
                 rs.getInt("session_id"),
-                rs.getInt("player_id"),
+                getInteger(rs, "player_id"),
                 rs.getString("role"),
-                deathOnDay,
+                getInteger(rs, "death_on_day"),
                 rs.getString("cause_of_death"),
                 rs.getBoolean("good"),
                 rs.getString("note"));
@@ -40,7 +37,7 @@ class RowMappers {
     static Session session(ResultSet rs) throws SQLException {
         return new Session(
                 LocalDate.parse(rs.getString("date")),
-                rs.getInt("storyteller_id"),
+                getInteger(rs, "storyteller_id"),
                 rs.getBoolean("good_won"),
                 rs.getInt("script_id"),
                 rs.getString("note"));
@@ -67,22 +64,18 @@ class RowMappers {
     }
 
     static SessionSummary sessionSummary(ResultSet rs) throws SQLException {
-        String storytellerName = rs.getString("storyteller_name");
-        PlayerName storyteller;
-        if (storytellerName != null) {
-            storyteller = new PlayerName.Named(storytellerName);
-        } else {
-            int id = rs.getInt("storyteller_id");
-            storyteller = new PlayerName.Anonymized(id);
-        }
-
         return new SessionSummary(
                 rs.getInt("id"),
                 LocalDate.parse(rs.getString("date")),
                 rs.getBoolean("good_won"),
-                storyteller,
+                rs.getString("storyteller"),
                 rs.getString("script_name"),
                 rs.getInt("player_count"));
+    }
+
+    private static @Nullable Integer getInteger(ResultSet rs, String columnLabel) throws SQLException {
+        int i = rs.getInt(columnLabel);
+        return rs.wasNull() ? null : i;
     }
 
     private static <In, Out> @Nullable Out mapIfNotNull(@Nullable In in, Function<In, Out> map) {

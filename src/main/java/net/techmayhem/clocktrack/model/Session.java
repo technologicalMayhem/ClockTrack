@@ -5,7 +5,7 @@ import org.jspecify.annotations.Nullable;
 
 public record Session(
         LocalDate date,
-        int storytellerId,
+        @Nullable Integer storytellerId,
         boolean goodWon,
         int scriptId,
         @Nullable String note) {}

@@ -4,7 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 public record PlayerSession(
         int sessionId,
-        int playerId,
+        @Nullable Integer playerId,
         String role,
         @Nullable Integer deathOnDay,
         @Nullable String causeOfDeath,

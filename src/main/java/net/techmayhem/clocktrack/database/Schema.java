@@ -13,7 +13,7 @@ class Schema {
             statement.execute("""
                     CREATE TABLE player(
                         id INTEGER PRIMARY KEY,
-                        name TEXT,
+                        name TEXT NOT NULL,
                         notes TEXT
                     );
                     """);
@@ -28,11 +28,11 @@ class Schema {
                     CREATE TABLE session(
                         id INTEGER PRIMARY KEY,
                         date DATE NOT NULL,
-                        storyteller_id INTEGER NOT NULL,
+                        storyteller_id INTEGER,
                         good_won BOOLEAN NOT NULL,
                         script_id INTEGER NOT NULL,
                         note TEXT,
-                        FOREIGN KEY(storyteller_id) REFERENCES player(id),
+                        FOREIGN KEY(storyteller_id) REFERENCES player(id) ON DELETE SET NULL,
                         FOREIGN KEY(script_id) REFERENCES script(id)
                     );
                     """);
@@ -40,14 +40,14 @@ class Schema {
                     CREATE TABLE player_session(
                         id INTEGER PRIMARY KEY,
                         session_id INTEGER NOT NULL,
-                        player_id INTEGER NOT NULL,
+                        player_id INTEGER,
                         role TEXT NOT NULL,
                         death_on_day INTEGER,
                         cause_of_death TEXT,
                         good BOOLEAN NOT NULL,
                         note TEXT,
                         FOREIGN KEY(session_id) REFERENCES session(id),
-                        FOREIGN KEY(player_id) REFERENCES player(id),
+                        FOREIGN KEY(player_id) REFERENCES player(id) ON DELETE SET NULL,
                         UNIQUE(session_id, player_id)
                     );
                     """);

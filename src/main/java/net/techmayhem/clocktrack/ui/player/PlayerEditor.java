@@ -13,7 +13,6 @@ import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Player;
-import net.techmayhem.clocktrack.model.PlayerName;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Screen;
 import net.techmayhem.clocktrack.ui.component.ErrorSummary;
@@ -29,11 +28,9 @@ public class PlayerEditor extends Screen {
     private final ErrorSummary errorSummary;
 
     public PlayerEditor(@Nullable FromDb<Player> player) {
-        if (player != null && player.model().name().isAnonymized())
-            throw new IllegalArgumentException("An anonymized player may not be edited");
         playerFromDb = player;
         if (player != null) {
-            name = player.model().name().toString();
+            name = player.model().name();
         } else {
             name = "New Player";
         }
@@ -75,7 +72,7 @@ public class PlayerEditor extends Screen {
         if (errorSummary.hasErrors().get()) return;
         Database db = Database.getInstance();
         String notes = notesArea.getText();
-        Player model = new Player(new PlayerName.Named(nameField.getText().strip()), notes.isBlank() ? null : notes);
+        Player model = new Player(nameField.getText().strip(), notes.isBlank() ? null : notes);
         if (playerFromDb != null) {
             db.updatePlayer(playerFromDb.with(model));
         } else {

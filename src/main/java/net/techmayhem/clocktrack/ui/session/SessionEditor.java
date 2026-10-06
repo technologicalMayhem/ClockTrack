@@ -1,10 +1,8 @@
 package net.techmayhem.clocktrack.ui.session;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
@@ -26,9 +24,10 @@ public class SessionEditor extends Screen {
 
     private final List<PlayerSession> playerSessions;
     private final List<FromDb<Player>> players;
+    final List<Optional<Integer>> selectablePlayers;
 
     private final DatePicker datePicker;
-    private final ChoiceBox<FromDb<Player>> storytellerChoice;
+    private final ChoiceBox<Optional<Integer>> storytellerChoice;
     private final RadioButton goodWon;
     private final RadioButton evilWon;
     private final ChoiceBox<FromDb<Script>> script;
@@ -51,28 +50,15 @@ public class SessionEditor extends Screen {
 
         datePicker = new DatePicker();
 
-        players = new ArrayList<>(db.getAllPlayers());
-        Set<Integer> playerIds = players.stream().map(FromDb::id).collect(Collectors.toSet());
-        Set<Integer> idsInSession = new HashSet<>();
-
-        if (session != null) {
-            idsInSession.add(session.model().storytellerId());
-        }
-        if (playerSessions != null) {
-            playerSessions.stream()
-                    .map(FromDb::model)
-                    .map(PlayerSession::playerId)
-                    .forEach(idsInSession::add);
-        }
-        idsInSession.removeAll(playerIds);
-        for (Integer i : idsInSession) {
-            players.add(new FromDb<>(i, new Player(new PlayerName.Anonymized(i), null)));
-        }
+        players = db.getAllPlayers();
+        selectablePlayers = Stream.concat(
+                        Stream.of(Optional.<Integer>empty()),
+                        players.stream().map(FromDb::id).map(Optional::of))
+                .toList();
 
         storytellerChoice = new ChoiceBox<>();
-        storytellerChoice.getItems().addAll(players);
-        storytellerChoice.setConverter(
-                new DisplayConverter<>(p -> p.model().name().toString()));
+        storytellerChoice.getItems().addAll(selectablePlayers);
+        storytellerChoice.setConverter(new DisplayConverter<>(p -> playerNameForId(p.orElse(null))));
 
         ToggleGroup winnerGroup = new ToggleGroup();
         goodWon = new RadioButton("Good");
@@ -111,12 +97,7 @@ public class SessionEditor extends Screen {
 
         TableHelper.buildTableColumns(
                 playerSessionTable,
-                new ColumnDef<>(
-                        "Player",
-                        ps -> Database.getInstance()
-                                .getPlayer(ps.playerId())
-                                .model()
-                                .name()),
+                new ColumnDef<>("Player", ps -> playerNameForId(ps.playerId())),
                 new ColumnDef<>("Role", PlayerSession::role),
                 new ColumnDef<>("Alignment", ps -> ps.good() ? "Good" : "Evil"),
                 new ColumnDef<>("Died on day", ps -> {
@@ -158,7 +139,7 @@ public class SessionEditor extends Screen {
         if (session != null) {
             Session model = session.model();
             datePicker.setValue(model.date());
-            storytellerChoice.setValue(db.getPlayer(model.storytellerId()));
+            storytellerChoice.setValue(Optional.ofNullable(session.model().storytellerId()));
             if (model.goodWon()) {
                 goodWon.setSelected(true);
             } else {
@@ -169,9 +150,23 @@ public class SessionEditor extends Screen {
         }
     }
 
+    String playerNameForId(@Nullable Integer playerId) {
+        return playerId == null
+                ? "Unknown"
+                : players.stream()
+                        .filter(player -> player.id() == playerId)
+                        .findFirst()
+                        .orElseThrow()
+                        .model()
+                        .name();
+    }
+
+    boolean isPlayerInUse(int playerId) {
+        return playerSessions.stream().anyMatch(ps -> Objects.equals(ps.playerId(), playerId));
+    }
+
     private void addPlayer() {
-        PlayerSession newPlayerSession =
-                new PlayerSessionDialog(null, availablePlayers(null), unavailablePlayers(null)).showAndWait();
+        PlayerSession newPlayerSession = new PlayerSessionDialog(null, this).showAndWait();
         if (newPlayerSession == null) return;
         playerSessions.add(newPlayerSession);
         updateTable();
@@ -180,27 +175,10 @@ public class SessionEditor extends Screen {
     private void editPlayer() {
         PlayerSession selected = playerSessionTable.getSelectionModel().getSelectedItem();
         int index = playerSessions.indexOf(selected);
-        PlayerSession edited = new PlayerSessionDialog(
-                        selected, availablePlayers(selected), unavailablePlayers(selected))
-                .showAndWait();
+        PlayerSession edited = new PlayerSessionDialog(selected, this).showAndWait();
         if (edited == null) return;
         playerSessions.set(index, edited);
         updateTable();
-    }
-
-    private boolean isUnavailable(FromDb<Player> p, @Nullable PlayerSession editing) {
-        if (editing != null && editing.playerId() == p.id()) return false;
-        boolean hasStoryteller = !storytellerChoice.getSelectionModel().isEmpty();
-        if (hasStoryteller && storytellerChoice.getValue().id() == p.id()) return true;
-        return playerSessions.stream().anyMatch(ps -> ps != editing && ps.playerId() == p.id());
-    }
-
-    private List<FromDb<Player>> availablePlayers(@Nullable PlayerSession editing) {
-        return players.stream().filter(p -> !isUnavailable(p, editing)).toList();
-    }
-
-    private List<FromDb<Player>> unavailablePlayers(@Nullable PlayerSession editing) {
-        return players.stream().filter(p -> isUnavailable(p, editing)).toList();
     }
 
     private void removePlayer() {
@@ -254,16 +232,22 @@ public class SessionEditor extends Screen {
     private boolean duplicatePlayer() {
         HashSet<Integer> names = new HashSet<>();
         for (PlayerSession playerSession : playerSessions) {
-            if (names.contains(playerSession.playerId())) return true;
-            else names.add(playerSession.playerId());
+            if (names.contains(playerSession.playerId())) {
+                return true;
+            } else if (playerSession.playerId() != null) {
+                names.add(playerSession.playerId());
+            }
         }
         return false;
     }
 
     private boolean storytellerIsPlayer() {
         if (storytellerChoice.getSelectionModel().isEmpty()) return false;
-        FromDb<Player> currentStoryteller = storytellerChoice.getValue();
-        return playerSessions.stream().anyMatch(playerSession -> playerSession.playerId() == currentStoryteller.id());
+        Integer storytellerId = storytellerChoice.getValue().orElse(null);
+        if (storytellerId == null) return false;
+        return playerSessions.stream()
+                .anyMatch(playerSession -> playerSession.playerId() != null
+                        && playerSession.playerId().equals(storytellerId));
     }
 
     private void submit() {
@@ -272,7 +256,7 @@ public class SessionEditor extends Screen {
         String text = note.getText();
         Session newSession = new Session(
                 datePicker.getValue(),
-                storytellerChoice.getValue().id(),
+                storytellerChoice.getValue().orElse(null),
                 goodWon.isSelected(),
                 script.getValue().id(),
                 text.isEmpty() ? null : text);
