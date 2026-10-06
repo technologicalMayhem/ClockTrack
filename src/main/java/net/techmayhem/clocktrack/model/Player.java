@@ -1,3 +1,5 @@
 package net.techmayhem.clocktrack.model;
 
-public record Player(String name) {}
+import org.jspecify.annotations.Nullable;
+
+public record Player(PlayerName name, @Nullable String notes) {}

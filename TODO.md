@@ -1,7 +1,7 @@
 # Project Completion
 
 - [X] Fix the per-cell database lookups through projections and to extend overviews
-- [ ] Implement messages and decide behavior when trying to delete a person that appears in games
+- [X] Implement messages and decide behavior when trying to delete a person that appears in games
 - [ ] Implement player and game statistics
 - [ ] Implement game filtering (by character appearance, specific player + character combo etc.)
 - [ ] Implement localization
@@ -13,7 +13,7 @@
   though. Maybe a single "fat jar" might be better? The deployment should be sensible for the project and simple to get
   running from just a repository state. It should also be relatively easy to share a copy of the app once compiled.
 - [X] Think about tinylog. Does it have a place in the project or should it be removed?
-- [ ] Think about Person. Should it perhaps be renamed to player? I often refer it to that anyway so the name has become
+- [X] Think about Person. Should it perhaps be renamed to player? I often refer it to that anyway so the name has become
   awkward. Furthermore, it currently has no real editor whilst being the most likely target for the 'live extension'
   part of the project. It should have a proper editor dialog like the others and perhaps a couple more fields (email,
   notes)

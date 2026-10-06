@@ -50,7 +50,7 @@ class PlayerSessionDialog {
             String name = allPlayers.stream()
                     .filter(player -> player.id() == playerSession.playerId())
                     .findFirst()
-                    .map(player -> player.model().name())
+                    .map(player -> player.model().name().toString())
                     .orElse("player");
             title = "Editing Session for " + name;
         } else {
@@ -60,8 +60,8 @@ class PlayerSessionDialog {
 
         playerChoice = new ComboBox<>();
         playerChoice.getItems().addAll(allPlayers);
-        playerChoice.setConverter(
-                new DisplayConverter<>(playerFromDb -> playerFromDb.model().name()));
+        playerChoice.setConverter(new DisplayConverter<>(
+                playerFromDb -> playerFromDb.model().name().toString()));
         playerChoice.setCellFactory(_ -> new PlayerChoiceCell());
 
         roleField = new TextField();
@@ -186,7 +186,7 @@ class PlayerSessionDialog {
                 return;
             }
             boolean unavailable = unavailablePlayers.contains(player);
-            setText(player.model().name());
+            setText(player.model().name().toString());
             setDisable(unavailable);
             setOpacity(unavailable ? OPACITY_UNAVAILABLE : OPACITY_NORMAL);
         }

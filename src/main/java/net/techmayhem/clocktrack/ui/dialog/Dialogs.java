@@ -2,7 +2,6 @@ package net.techmayhem.clocktrack.ui.dialog;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -42,35 +41,6 @@ public class Dialogs {
         VBox vBox = new VBox(Layout.SPACING);
         vBox.setPadding(new Insets(Layout.PADDING));
         return vBox;
-    }
-
-    public static void showTextDialog(
-            String title, String prompt, String defaultValue, String accept, String cancel, Consumer<String> callback) {
-        Stage stage = createStage(title);
-
-        Label label = new Label(prompt);
-        TextField textInput = new TextField(defaultValue);
-        HBox buttonsRow = new HBox();
-        Button acceptButton = new Button(accept);
-        acceptButton.setDefaultButton(true);
-        acceptButton.disableProperty().bind(textInput.textProperty().isEmpty());
-        acceptButton.setOnAction(_ -> {
-            callback.accept(textInput.getText());
-            stage.close();
-        });
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Button cancelButton = new Button(cancel);
-        cancelButton.setCancelButton(true);
-        cancelButton.setOnAction(_ -> stage.close());
-        buttonsRow.getChildren().addAll(acceptButton, spacer, cancelButton);
-
-        VBox vBox = createVBox();
-        vBox.getChildren().addAll(label, textInput, buttonsRow);
-
-        Scene dialogScene = new Scene(vBox);
-        stage.setScene(dialogScene);
-        stage.show();
     }
 
     public static void showConfirmDialog(String title, String prompt, String accept, String cancel, Runnable callback) {

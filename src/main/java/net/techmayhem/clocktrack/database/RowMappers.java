@@ -16,7 +16,7 @@ class RowMappers {
     }
 
     static Player player(ResultSet rs) throws SQLException {
-        return new Player(rs.getString("name"));
+        return new Player(PlayerName.fromColumn(rs.getInt("id"), rs.getString("name")), rs.getString("notes"));
     }
 
     static PlayerSession playerSession(ResultSet rs) throws SQLException {
@@ -67,11 +67,20 @@ class RowMappers {
     }
 
     static SessionSummary sessionSummary(ResultSet rs) throws SQLException {
+        String storytellerName = rs.getString("storyteller_name");
+        PlayerName storyteller;
+        if (storytellerName != null) {
+            storyteller = new PlayerName.Named(storytellerName);
+        } else {
+            int id = rs.getInt("storyteller_id");
+            storyteller = new PlayerName.Anonymized(id);
+        }
+
         return new SessionSummary(
                 rs.getInt("id"),
                 LocalDate.parse(rs.getString("date")),
                 rs.getBoolean("good_won"),
-                rs.getString("storyteller"),
+                storyteller,
                 rs.getString("script_name"),
                 rs.getInt("player_count"));
     }

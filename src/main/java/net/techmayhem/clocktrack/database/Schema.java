@@ -13,7 +13,8 @@ class Schema {
             statement.execute("""
                     CREATE TABLE player(
                         id INTEGER PRIMARY KEY,
-                        name TEXT NOT NULL
+                        name TEXT,
+                        notes TEXT
                     );
                     """);
             statement.execute("""

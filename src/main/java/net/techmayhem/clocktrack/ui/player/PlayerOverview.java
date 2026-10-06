@@ -42,8 +42,8 @@ public class PlayerOverview extends EntityOverview {
         Button editButton = new Button("Edit player");
         Button deleteButton = new Button("Delete player");
 
-        createButton.setOnAction(_ -> spawnNewPlayerDialog());
-        editButton.setOnAction(_ -> spawnEditPlayerDialog());
+        createButton.setOnAction(_ -> createNewPlayer());
+        editButton.setOnAction(_ -> editPlayer());
         deleteButton.setOnAction(_ -> deleteSelectedPlayer());
         var noSelection = table.getSelectionModel().selectedItemProperty().isNull();
         editButton.disableProperty().bind(noSelection);
@@ -81,51 +81,32 @@ public class PlayerOverview extends EntityOverview {
         table.setItems(FXCollections.observableArrayList(allPlayers));
     }
 
-    private void spawnNewPlayerDialog() {
-        Dialogs.showTextDialog(
-                "Add player", "Enter the name of the player to add", "", "Add", "Cancel", this::createPlayer);
+    private void createNewPlayer() {
+        screenHost.open(new PlayerEditor(null));
     }
 
-    private void createPlayer(String name) {
-        Database.getInstance().insertPlayer(new Player(name));
-        updateTable();
+    private void editPlayer() {
+        PlayerSummary selectedItem = table.getSelectionModel().getSelectedItem();
+        FromDb<Player> player = Database.getInstance().getPlayer(selectedItem.id());
+        PlayerEditor playerEditor = new PlayerEditor(player);
+        screenHost.open(playerEditor);
     }
 
     private void deleteSelectedPlayer() {
         PlayerSummary selectedPlayer = table.getSelectionModel().getSelectedItem();
-        Dialogs.showConfirmDialog(
-                "Confirm deletion",
-                "Do you really want to delete " + selectedPlayer.name() + "?",
-                "Delete",
-                "Cancel",
-                () -> {
-                    Database.getInstance().deletePlayer(selectedPlayer.id());
-                    updateTable();
-                });
+        boolean isReferenced = Database.getInstance().isPlayerReferenced(selectedPlayer.id());
+        String prompt = isReferenced
+                ? selectedPlayer.name()
+                        + " cannot be deleted as they show up in one or more sessions. Selecting delete will anonymize them instead. Do you want to proceed?"
+                : "Do you really want to delete " + selectedPlayer.name() + "?";
+        Dialogs.showConfirmDialog("Confirm deletion", prompt + "\nThis cannot be undone!", "Proceed", "Cancel", () -> {
+            Database.getInstance().deletePlayer(selectedPlayer.id());
+            updateTable();
+        });
     }
 
     @Override
     protected Parent getView() {
         return root;
-    }
-
-    private void spawnEditPlayerDialog() {
-        PlayerSummary selectedPlayer = table.getSelectionModel().getSelectedItem();
-        Dialogs.showTextDialog(
-                "Edit player",
-                "Enter the new name of the player",
-                selectedPlayer.name(),
-                "Rename",
-                "Cancel",
-                s -> updateName(selectedPlayer, s));
-    }
-
-    private void updateName(PlayerSummary player, String newName) {
-        if (newName.equals(player.name())) {
-            return;
-        }
-        Player newPlayer = new Player(newName);
-        Database.getInstance().updatePlayer(new FromDb<>(player.id(), newPlayer));
-        updateTable();
     }
 }

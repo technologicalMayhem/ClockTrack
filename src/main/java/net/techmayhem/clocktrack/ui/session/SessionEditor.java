@@ -3,6 +3,7 @@ package net.techmayhem.clocktrack.ui.session;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -50,10 +51,28 @@ public class SessionEditor extends Screen {
 
         datePicker = new DatePicker();
 
-        players = db.getAllPlayers();
+        players = new ArrayList<>(db.getAllPlayers());
+        Set<Integer> playerIds = players.stream().map(FromDb::id).collect(Collectors.toSet());
+        Set<Integer> idsInSession = new HashSet<>();
+
+        if (session != null) {
+            idsInSession.add(session.model().storytellerId());
+        }
+        if (playerSessions != null) {
+            playerSessions.stream()
+                    .map(FromDb::model)
+                    .map(PlayerSession::playerId)
+                    .forEach(idsInSession::add);
+        }
+        idsInSession.removeAll(playerIds);
+        for (Integer i : idsInSession) {
+            players.add(new FromDb<>(i, new Player(new PlayerName.Anonymized(i), null)));
+        }
+
         storytellerChoice = new ChoiceBox<>();
         storytellerChoice.getItems().addAll(players);
-        storytellerChoice.setConverter(new DisplayConverter<>(p -> p.model().name()));
+        storytellerChoice.setConverter(
+                new DisplayConverter<>(p -> p.model().name().toString()));
 
         ToggleGroup winnerGroup = new ToggleGroup();
         goodWon = new RadioButton("Good");
