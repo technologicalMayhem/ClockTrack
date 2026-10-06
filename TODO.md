@@ -23,3 +23,4 @@
 - [ ] Spinner field in player session editor crashed the app when non-numeric input is given. oops
 - [ ] Spaces are valid player names. They probably shouldn't be.
 - [ ] Trying to delete data that would violate foreign key constraints leads to exceptions instead of a sensible error message
+- [ ] "Death on day" need to be reworked to a death being able to use night. So N1, D1, N2, D2 and so on
