@@ -20,3 +20,6 @@
 - [ ] Write a project documentation
 - [X] Get rid of any remaining magic numbers. Like UI sizing constants.
 - [X] Fix the text dialogs accept button. It only listens to key-typed events, so pasting does not update it, and a whitespace-only name passes the empty check. Bind it to the text property and use isBlank().
+- [ ] Spinner field in player session editor crashed the app when non-numeric input is given. oops
+- [ ] Spaces are valid player names. They probably shouldn't be.
+- [ ] Trying to delete data that would violate foreign key constraints leads to exceptions instead of a sensible error message
