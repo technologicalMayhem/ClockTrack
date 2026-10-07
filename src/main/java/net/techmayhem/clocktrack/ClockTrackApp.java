@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.techmayhem.clocktrack.database.DatabaseException;
 import net.techmayhem.clocktrack.ui.EntitySection;
+import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import net.techmayhem.clocktrack.ui.player.PlayerOverview;
 import net.techmayhem.clocktrack.ui.script.ScriptsOverview;
@@ -25,8 +26,10 @@ public class ClockTrackApp extends Application {
         Dialogs.setPrimaryStage(stage);
         Thread.setDefaultUncaughtExceptionHandler(ClockTrackApp::handleUncaughtException);
 
+        I18n.loadLocale();
+
         stage.getIcons().add(new Image(getIcon()));
-        stage.setTitle("ClockTrack");
+        stage.setTitle(I18n.t("appTitle"));
 
         TabPane tabPane = new TabPane();
         Scene scene = new Scene(tabPane, WINDOW_WIDTH, WINDOW_HEIGHT);

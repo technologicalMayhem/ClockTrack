@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.session;
 
+import static net.techmayhem.clocktrack.ui.I18n.t;
+
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -34,10 +36,10 @@ public class SessionsOverview extends EntityOverview {
     }
 
     private void buildUi() {
-        Button createButton = new Button("New session");
-        Button viewButton = new Button("View session");
-        Button editButton = new Button("Edit session");
-        Button deleteButton = new Button("Delete session");
+        Button createButton = new Button(t("overview.session.new"));
+        Button viewButton = new Button(t("overview.session.view"));
+        Button editButton = new Button(t("overview.session.edit"));
+        Button deleteButton = new Button(t("overview.session.delete"));
 
         createButton.setOnAction(_ -> createNewSession());
         viewButton.setOnAction(_ -> viewSession());
@@ -73,7 +75,7 @@ public class SessionsOverview extends EntityOverview {
 
     @Override
     protected String getSectionName() {
-        return "Sessions";
+        return t("overview.session.viewName");
     }
 
     @Override
@@ -114,10 +116,10 @@ public class SessionsOverview extends EntityOverview {
     private void deleteSession() {
         SessionSummary selectedItem = table.getSelectionModel().getSelectedItem();
         Dialogs.showConfirmDialog(
-                "Delete session",
-                "Do you really want to delete the session from " + selectedItem.date() + "?",
-                "Delete session",
-                "Cancel",
+                t("overview.session.dialog.delete.title"),
+                t("overview.session.dialog.delete.message", selectedItem.date()),
+                t("overview.session.dialog.delete.confirm"),
+                t("generic.cancel"),
                 () -> {
                     Database.getInstance().deleteSession(selectedItem.id());
                     updateTable();
