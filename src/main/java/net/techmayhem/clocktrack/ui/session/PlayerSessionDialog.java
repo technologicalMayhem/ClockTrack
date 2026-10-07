@@ -2,8 +2,8 @@ package net.techmayhem.clocktrack.ui.session;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import javafx.beans.binding.BooleanBinding;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -11,9 +11,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import net.techmayhem.clocktrack.model.FromDb;
+import net.techmayhem.clocktrack.model.Player;
 import net.techmayhem.clocktrack.model.PlayerSession;
 import net.techmayhem.clocktrack.ui.Layout;
-import net.techmayhem.clocktrack.ui.component.DisplayConverter;
 import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
@@ -22,7 +23,8 @@ class PlayerSessionDialog {
     private static final int FIRST_DAY = 1;
     private static final int NO_ID = -1;
 
-    private final ComboBox<Optional<Integer>> playerChoice;
+    private final PlayerChoices playerChoices;
+    private final ComboBox<Optional<FromDb<Player>>> playerChoice;
     private final TextField roleField;
     private final CheckBox died;
     private final Spinner<Integer> deathOnDaySpinner;
@@ -33,26 +35,25 @@ class PlayerSessionDialog {
 
     private final Stage stage;
     private final ErrorSummary errorSummary;
-    private final SessionEditor sessionEditor;
-    private final @Nullable Integer previousId;
+    private final Set<Integer> takenPlayerIds;
 
     private boolean shouldSubmit = false;
 
-    public PlayerSessionDialog(@Nullable PlayerSession playerSession, SessionEditor sessionEditor) {
-        this.sessionEditor = sessionEditor;
-        previousId = playerSession == null ? null : playerSession.playerId();
+    public PlayerSessionDialog(
+            @Nullable PlayerSession playerSession, List<FromDb<Player>> players, Set<Integer> takenPlayerIds) {
+        this.takenPlayerIds = takenPlayerIds;
+        playerChoices = new PlayerChoices(players);
         String title;
         if (playerSession != null) {
-            title = "Editing Session for " + sessionEditor.playerNameForId(playerSession.playerId());
+            title = "Editing Session for " + playerChoices.nameFor(playerSession.playerId());
         } else {
             title = "Creating a new session player entry";
         }
         stage = Dialogs.createStage(title);
 
         playerChoice = new ComboBox<>();
-        playerChoice.getItems().addAll(sessionEditor.selectablePlayers);
-        playerChoice.setConverter(
-                new DisplayConverter<>(playerFromDb -> sessionEditor.playerNameForId(playerFromDb.orElse(null))));
+        playerChoice.getItems().addAll(playerChoices.items());
+        playerChoice.setConverter(playerChoices.converter());
         playerChoice.setCellFactory(_ -> new PlayerChoiceCell());
 
         roleField = new TextField();
@@ -100,10 +101,7 @@ class PlayerSessionDialog {
         vBox.getChildren().addAll(grid, new Label("Notes"), noteText, errorSummary, submitButton);
 
         if (playerSession != null) {
-            playerChoice.getItems().stream()
-                    .filter(player -> Objects.equals(player.orElse(null), playerSession.playerId()))
-                    .findFirst()
-                    .ifPresent(playerChoice::setValue);
+            playerChoice.setValue(playerChoices.itemFor(playerSession.playerId()));
             roleField.setText(playerSession.role());
             if (playerSession.deathOnDay() != null && playerSession.causeOfDeath() != null) {
                 died.setSelected(true);
@@ -126,7 +124,11 @@ class PlayerSessionDialog {
         stage.showAndWait();
         if (!shouldSubmit || errorSummary.hasErrors().get()) return null;
 
-        Integer playerId = playerChoice.getSelectionModel().getSelectedItem().orElse(null);
+        Integer playerId = playerChoice
+                .getSelectionModel()
+                .getSelectedItem()
+                .map(FromDb::id)
+                .orElse(null);
         String role = roleField.getText();
         Integer deathOnDay = died.isSelected() ? deathOnDaySpinner.getValue() : null;
         String causeOfDeath = died.isSelected() ? causeOfDeathField.getText() : null;
@@ -144,7 +146,7 @@ class PlayerSessionDialog {
         } else if (playerChoice
                 .getSelectionModel()
                 .getSelectedItem()
-                .map(this::isAlreadyInUse)
+                .map(this::isTaken)
                 .orElse(false)) {
             errors.add("The selected player is already in this game");
         }
@@ -161,26 +163,25 @@ class PlayerSessionDialog {
         return errors;
     }
 
-    private boolean isAlreadyInUse(Integer i) {
-        return !i.equals(previousId) && sessionEditor.isPlayerInUse(i);
+    private boolean isTaken(FromDb<Player> player) {
+        return takenPlayerIds.contains(player.id());
     }
 
-    private class PlayerChoiceCell extends ListCell<Optional<Integer>> {
+    private class PlayerChoiceCell extends ListCell<Optional<FromDb<Player>>> {
         private static final double OPACITY_NORMAL = 1.0;
         private static final double OPACITY_UNAVAILABLE = 0.4;
 
         @Override
-        protected void updateItem(Optional<Integer> playerId, boolean empty) {
-            super.updateItem(playerId, empty);
+        protected void updateItem(Optional<FromDb<Player>> choice, boolean empty) {
+            super.updateItem(choice, empty);
             if (empty) {
                 setText(null);
                 setDisable(false);
                 setOpacity(OPACITY_NORMAL);
                 return;
             }
-            boolean unavailable =
-                    playerId.map(PlayerSessionDialog.this::isAlreadyInUse).orElse(false);
-            setText(sessionEditor.playerNameForId(playerId.orElse(null)));
+            boolean unavailable = choice.map(PlayerSessionDialog.this::isTaken).orElse(false);
+            setText(playerChoices.converter().toString(choice));
             setDisable(unavailable);
             setOpacity(unavailable ? OPACITY_UNAVAILABLE : OPACITY_NORMAL);
         }

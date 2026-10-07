@@ -2,7 +2,6 @@ package net.techmayhem.clocktrack.ui.session;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
@@ -24,10 +23,10 @@ public class SessionEditor extends Screen {
 
     private final List<PlayerSession> playerSessions;
     private final List<FromDb<Player>> players;
-    final List<Optional<Integer>> selectablePlayers;
+    private final PlayerChoices playerChoices;
 
     private final DatePicker datePicker;
-    private final ChoiceBox<Optional<Integer>> storytellerChoice;
+    private final ChoiceBox<Optional<FromDb<Player>>> storytellerChoice;
     private final RadioButton goodWon;
     private final RadioButton evilWon;
     private final ChoiceBox<FromDb<Script>> script;
@@ -51,14 +50,11 @@ public class SessionEditor extends Screen {
         datePicker = new DatePicker();
 
         players = db.getAllPlayers();
-        selectablePlayers = Stream.concat(
-                        Stream.of(Optional.<Integer>empty()),
-                        players.stream().map(FromDb::id).map(Optional::of))
-                .toList();
+        playerChoices = new PlayerChoices(players);
 
         storytellerChoice = new ChoiceBox<>();
-        storytellerChoice.getItems().addAll(selectablePlayers);
-        storytellerChoice.setConverter(new DisplayConverter<>(p -> playerNameForId(p.orElse(null))));
+        storytellerChoice.getItems().addAll(playerChoices.items());
+        storytellerChoice.setConverter(playerChoices.converter());
 
         ToggleGroup winnerGroup = new ToggleGroup();
         goodWon = new RadioButton("Good");
@@ -97,7 +93,7 @@ public class SessionEditor extends Screen {
 
         TableHelper.buildTableColumns(
                 playerSessionTable,
-                new ColumnDef<>("Player", ps -> playerNameForId(ps.playerId())),
+                new ColumnDef<>("Player", ps -> playerChoices.nameFor(ps.playerId())),
                 new ColumnDef<>("Role", PlayerSession::role),
                 new ColumnDef<>("Alignment", ps -> ps.good() ? "Good" : "Evil"),
                 new ColumnDef<>("Died on day", ps -> {
@@ -139,7 +135,7 @@ public class SessionEditor extends Screen {
         if (session != null) {
             Session model = session.model();
             datePicker.setValue(model.date());
-            storytellerChoice.setValue(Optional.ofNullable(session.model().storytellerId()));
+            storytellerChoice.setValue(playerChoices.itemFor(model.storytellerId()));
             if (model.goodWon()) {
                 goodWon.setSelected(true);
             } else {
@@ -150,23 +146,17 @@ public class SessionEditor extends Screen {
         }
     }
 
-    String playerNameForId(@Nullable Integer playerId) {
-        return playerId == null
-                ? "Unknown"
-                : players.stream()
-                        .filter(player -> player.id() == playerId)
-                        .findFirst()
-                        .orElseThrow()
-                        .model()
-                        .name();
-    }
-
-    boolean isPlayerInUse(int playerId) {
-        return playerSessions.stream().anyMatch(ps -> Objects.equals(ps.playerId(), playerId));
+    /** Returns the ids of the players in the game, ignoring the given entry. */
+    private Set<Integer> takenPlayerIds(@Nullable PlayerSession ignored) {
+        return playerSessions.stream()
+                .filter(ps -> ps != ignored)
+                .map(PlayerSession::playerId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     private void addPlayer() {
-        PlayerSession newPlayerSession = new PlayerSessionDialog(null, this).showAndWait();
+        PlayerSession newPlayerSession = new PlayerSessionDialog(null, players, takenPlayerIds(null)).showAndWait();
         if (newPlayerSession == null) return;
         playerSessions.add(newPlayerSession);
         updateTable();
@@ -175,7 +165,7 @@ public class SessionEditor extends Screen {
     private void editPlayer() {
         PlayerSession selected = playerSessionTable.getSelectionModel().getSelectedItem();
         int index = playerSessions.indexOf(selected);
-        PlayerSession edited = new PlayerSessionDialog(selected, this).showAndWait();
+        PlayerSession edited = new PlayerSessionDialog(selected, players, takenPlayerIds(selected)).showAndWait();
         if (edited == null) return;
         playerSessions.set(index, edited);
         updateTable();
@@ -243,7 +233,7 @@ public class SessionEditor extends Screen {
 
     private boolean storytellerIsPlayer() {
         if (storytellerChoice.getSelectionModel().isEmpty()) return false;
-        Integer storytellerId = storytellerChoice.getValue().orElse(null);
+        Integer storytellerId = storytellerChoice.getValue().map(FromDb::id).orElse(null);
         if (storytellerId == null) return false;
         return playerSessions.stream()
                 .anyMatch(playerSession -> playerSession.playerId() != null
@@ -256,7 +246,7 @@ public class SessionEditor extends Screen {
         String text = note.getText();
         Session newSession = new Session(
                 datePicker.getValue(),
-                storytellerChoice.getValue().orElse(null),
+                storytellerChoice.getValue().map(FromDb::id).orElse(null),
                 goodWon.isSelected(),
                 script.getValue().id(),
                 text.isEmpty() ? null : text);
