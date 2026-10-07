@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.player;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;
@@ -32,7 +34,7 @@ public class PlayerEditor extends Screen {
         if (player != null) {
             name = player.model().name();
         } else {
-            name = "New Player";
+            name = localize("playerEditor.title.new");
         }
 
         nameField = new TextField();
@@ -41,19 +43,25 @@ public class PlayerEditor extends Screen {
 
         errorSummary = new ErrorSummary(this::validate, nameField.textProperty());
 
-        Button submitButton = new Button("Submit");
+        Button submitButton = new Button(localize("generic.submit"));
         submitButton.setDefaultButton(true);
         submitButton.setOnAction(_ -> submit());
         submitButton.disableProperty().bind(errorSummary.hasErrors());
 
-        VBox nameRow = new VBox(new Label("Name"), nameField);
+        VBox nameRow = new VBox(new Label(localize("playerEditor.label.name")), nameField);
 
-        root = new VBox(Layout.SPACING, nameRow, new Label("Notes"), notesArea, errorSummary, submitButton);
+        root = new VBox(
+                Layout.SPACING,
+                nameRow,
+                new Label(localize("playerEditor.label.notes")),
+                notesArea,
+                errorSummary,
+                submitButton);
         root.setPadding(new Insets(Layout.PADDING));
 
         if (player != null) {
             Player model = player.model();
-            nameField.setText(model.name().toString());
+            nameField.setText(model.name());
             if (model.notes() != null) notesArea.setText(model.notes());
         }
     }
@@ -62,7 +70,7 @@ public class PlayerEditor extends Screen {
         List<String> errors = new ArrayList<>();
 
         if (nameField.getText().isBlank()) {
-            errors.add("Name is required");
+            errors.add(localize("playerEditor.inspection.name"));
         }
 
         return errors;

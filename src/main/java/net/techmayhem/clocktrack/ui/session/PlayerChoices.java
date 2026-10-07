@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.session;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -11,8 +13,6 @@ import net.techmayhem.clocktrack.ui.component.DisplayConverter;
 import org.jspecify.annotations.Nullable;
 
 final class PlayerChoices {
-    private static final String UNKNOWN = "Unknown";
-
     private final List<Optional<FromDb<Player>>> items;
 
     PlayerChoices(List<FromDb<Player>> players) {
@@ -42,6 +42,6 @@ final class PlayerChoices {
     }
 
     private String name(@Nullable FromDb<Player> player) {
-        return player == null ? UNKNOWN : player.model().name();
+        return player == null ? localize("generic.unknown") : player.model().name();
     }
 }

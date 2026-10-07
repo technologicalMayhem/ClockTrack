@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.session;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -34,10 +36,10 @@ public class SessionsOverview extends EntityOverview {
     }
 
     private void buildUi() {
-        Button createButton = new Button("New session");
-        Button viewButton = new Button("View session");
-        Button editButton = new Button("Edit session");
-        Button deleteButton = new Button("Delete session");
+        Button createButton = new Button(localize("sessionsOverview.new"));
+        Button viewButton = new Button(localize("sessionsOverview.view"));
+        Button editButton = new Button(localize("sessionsOverview.edit"));
+        Button deleteButton = new Button(localize("sessionsOverview.delete"));
 
         createButton.setOnAction(_ -> createNewSession());
         viewButton.setOnAction(_ -> viewSession());
@@ -58,11 +60,16 @@ public class SessionsOverview extends EntityOverview {
 
         TableHelper.buildTableColumns(
                 table,
-                new ColumnDef<>("Date", SessionSummary::date),
-                new ColumnDef<>("Script", SessionSummary::scriptName),
-                new ColumnDef<>("Storyteller", s -> s.storyteller() == null ? "Unknown" : s.storyteller()),
-                new ColumnDef<>("Winner", SessionSummary::goodWon, goodWon -> goodWon ? "Good" : "Evil"),
-                new ColumnDef<>("Player count", SessionSummary::playerCount));
+                new ColumnDef<>(localize("sessionsOverview.summary.date"), SessionSummary::date),
+                new ColumnDef<>(localize("sessionsOverview.summary.script"), SessionSummary::scriptName),
+                new ColumnDef<>(
+                        localize("sessionsOverview.summary.storyteller"),
+                        s -> s.storyteller() == null ? localize("sessionsOverview.summary.unknown") : s.storyteller()),
+                new ColumnDef<>(
+                        localize("sessionsOverview.summary.winner"),
+                        SessionSummary::goodWon,
+                        goodWon -> goodWon ? localize("generic.good") : localize("generic.evil")),
+                new ColumnDef<>(localize("sessionsOverview.summary.playerCount"), SessionSummary::playerCount));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
@@ -73,7 +80,7 @@ public class SessionsOverview extends EntityOverview {
 
     @Override
     protected String getSectionName() {
-        return "Sessions";
+        return localize("sessionsOverview.title");
     }
 
     @Override
@@ -114,10 +121,10 @@ public class SessionsOverview extends EntityOverview {
     private void deleteSession() {
         SessionSummary selectedItem = table.getSelectionModel().getSelectedItem();
         Dialogs.showConfirmDialog(
-                "Delete session",
-                "Do you really want to delete the session from " + selectedItem.date() + "?",
-                "Delete session",
-                "Cancel",
+                localize("sessionsOverview.dialog.delete.title"),
+                localize("sessionsOverview.dialog.delete.message", selectedItem.date()),
+                localize("sessionsOverview.dialog.delete.confirm"),
+                localize("generic.cancel"),
                 () -> {
                     Database.getInstance().deleteSession(selectedItem.id());
                     updateTable();

@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.session;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,9 +47,9 @@ class PlayerSessionDialog {
         playerChoices = new PlayerChoices(players);
         String title;
         if (playerSession != null) {
-            title = "Editing Session for " + playerChoices.nameFor(playerSession.playerId());
+            title = localize("playerSessionDialog.title.edit", playerChoices.nameFor(playerSession.playerId()));
         } else {
-            title = "Creating a new session player entry";
+            title = localize("playerSessionDialog.title.create");
         }
         stage = Dialogs.createStage(title);
 
@@ -58,7 +60,7 @@ class PlayerSessionDialog {
 
         roleField = new TextField();
 
-        died = new CheckBox("Died?");
+        died = new CheckBox(localize("playerSessionDialog.label.died"));
         deathOnDaySpinner = new Spinner<>(FIRST_DAY, Integer.MAX_VALUE, FIRST_DAY);
         deathOnDaySpinner.setEditable(true);
         causeOfDeathField = new TextField();
@@ -67,9 +69,9 @@ class PlayerSessionDialog {
         causeOfDeathField.disableProperty().bind(diedProperty);
 
         ToggleGroup alignmentGroup = new ToggleGroup();
-        goodRadio = new RadioButton("Good");
+        goodRadio = new RadioButton(localize("generic.good"));
         goodRadio.setToggleGroup(alignmentGroup);
-        evilRadio = new RadioButton("Evil");
+        evilRadio = new RadioButton(localize("generic.evil"));
         evilRadio.setToggleGroup(alignmentGroup);
 
         noteText = new TextArea();
@@ -83,7 +85,7 @@ class PlayerSessionDialog {
                 causeOfDeathField.textProperty(),
                 alignmentGroup.selectedToggleProperty());
 
-        Button submitButton = new Button("Submit");
+        Button submitButton = new Button(localize("generic.submit"));
         submitButton.setOnAction(_ -> {
             shouldSubmit = true;
             stage.close();
@@ -92,13 +94,25 @@ class PlayerSessionDialog {
 
         int row = 0;
         GridPane grid = new GridPane(Layout.SPACING, Layout.SPACING);
-        grid.addRow(row++, new Label("Player"), playerChoice);
-        grid.addRow(row++, new Label("Role"), roleField);
-        grid.addRow(row++, new Label("Death"), new HBox(Layout.SPACING, died, deathOnDaySpinner, causeOfDeathField));
-        grid.addRow(row, new Label("Alignment"), new HBox(Layout.SPACING, goodRadio, evilRadio));
+        grid.addRow(row++, new Label(localize("playerSessionDialog.label.player")), playerChoice);
+        grid.addRow(row++, new Label(localize("playerSessionDialog.label.role")), roleField);
+        grid.addRow(
+                row++,
+                new Label(localize("playerSessionDialog.label.death")),
+                new HBox(Layout.SPACING, died, deathOnDaySpinner, causeOfDeathField));
+        grid.addRow(
+                row,
+                new Label(localize("playerSessionDialog.label.alignment")),
+                new HBox(Layout.SPACING, goodRadio, evilRadio));
 
         VBox vBox = Dialogs.createVBox();
-        vBox.getChildren().addAll(grid, new Label("Notes"), noteText, errorSummary, submitButton);
+        vBox.getChildren()
+                .addAll(
+                        grid,
+                        new Label(localize("playerSessionDialog.label.notes")),
+                        noteText,
+                        errorSummary,
+                        submitButton);
 
         if (playerSession != null) {
             playerChoice.setValue(playerChoices.itemFor(playerSession.playerId()));
@@ -142,22 +156,22 @@ class PlayerSessionDialog {
         List<String> errors = new ArrayList<>();
 
         if (playerChoice.getSelectionModel().isEmpty()) {
-            errors.add("Player is required");
+            errors.add(localize("playerSessionDialog.inspection.player"));
         } else if (playerChoice
                 .getSelectionModel()
                 .getSelectedItem()
                 .map(this::isTaken)
                 .orElse(false)) {
-            errors.add("The selected player is already in this game");
+            errors.add(localize("playerSessionDialog.inspection.alreadyInGame"));
         }
         if (roleField.getText().isBlank()) {
-            errors.add("Role is required");
+            errors.add(localize("playerSessionDialog.inspection.role"));
         }
         if (died.isSelected() && causeOfDeathField.getText().isBlank()) {
-            errors.add("Cause of death is required");
+            errors.add(localize("playerSessionDialog.inspection.causeOfDeath"));
         }
         if (!goodRadio.isSelected() && !evilRadio.isSelected()) {
-            errors.add("Alignment is required");
+            errors.add(localize("playerSessionDialog.inspection.alignment"));
         }
 
         return errors;

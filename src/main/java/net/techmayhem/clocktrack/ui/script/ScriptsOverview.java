@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.script;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.text.NumberFormat;
 import java.util.List;
 import javafx.collections.FXCollections;
@@ -37,10 +39,10 @@ public class ScriptsOverview extends EntityOverview {
     }
 
     private void buildUi() {
-        Button createButton = new Button("New script");
-        Button viewButton = new Button("View script");
-        Button editButton = new Button("Edit script");
-        Button deleteButton = new Button("Delete script");
+        Button createButton = new Button(localize("scriptsOverview.new"));
+        Button viewButton = new Button(localize("scriptsOverview.view"));
+        Button editButton = new Button(localize("scriptsOverview.edit"));
+        Button deleteButton = new Button(localize("scriptsOverview.delete"));
 
         createButton.setOnAction(_ -> createNewScript());
         viewButton.setOnAction(_ -> viewScript());
@@ -61,11 +63,14 @@ public class ScriptsOverview extends EntityOverview {
 
         TableHelper.buildTableColumns(
                 table,
-                new ColumnDef<>("Name", ScriptSummary::name),
-                new ColumnDef<>("Times played", ScriptSummary::timesPlayed),
-                new ColumnDef<>("First played", ScriptSummary::firstPlayed),
-                new ColumnDef<>("Last played", ScriptSummary::lastPlayed),
-                new ColumnDef<>("Good winrate", ScriptsOverview::calculateWinrate, ScriptsOverview::formatWinrate));
+                new ColumnDef<>(localize("scriptsOverview.summary.name"), ScriptSummary::name),
+                new ColumnDef<>(localize("scriptsOverview.summary.timesPlayed"), ScriptSummary::timesPlayed),
+                new ColumnDef<>(localize("scriptsOverview.summary.firstPlayed"), ScriptSummary::firstPlayed),
+                new ColumnDef<>(localize("scriptsOverview.summary.lastPlayed"), ScriptSummary::lastPlayed),
+                new ColumnDef<>(
+                        localize("scriptsOverview.summary.goodWinrate"),
+                        ScriptsOverview::calculateWinrate,
+                        ScriptsOverview::formatWinrate));
 
         HBox.setHgrow(table, Priority.ALWAYS);
 
@@ -91,7 +96,7 @@ public class ScriptsOverview extends EntityOverview {
 
     @Override
     protected String getSectionName() {
-        return "Scripts";
+        return localize("scriptsOverview.title");
     }
 
     @Override
@@ -130,10 +135,10 @@ public class ScriptsOverview extends EntityOverview {
     private void deleteScript() {
         ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
         Dialogs.showConfirmDialog(
-                "Delete script",
-                "Do you really want to delete the script '" + selectedItem.name() + "'?",
-                "Delete script",
-                "Cancel",
+                localize("scriptsOverview.dialog.delete.title"),
+                localize("scriptsOverview.dialog.delete.message", selectedItem.name()),
+                localize("scriptsOverview.dialog.delete.confirm"),
+                localize("generic.cancel"),
                 () -> {
                     Database.getInstance().deleteScript(selectedItem.id());
                     updateTable();

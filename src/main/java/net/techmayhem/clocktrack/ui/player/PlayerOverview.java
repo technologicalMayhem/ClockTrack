@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.player;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -34,13 +36,13 @@ public class PlayerOverview extends EntityOverview {
 
     @Override
     protected String getSectionName() {
-        return "Players";
+        return localize("playerOverview.title");
     }
 
     private void buildUi() {
-        Button createButton = new Button("Add player");
-        Button editButton = new Button("Edit player");
-        Button deleteButton = new Button("Delete player");
+        Button createButton = new Button(localize("playerOverview.add"));
+        Button editButton = new Button(localize("playerOverview.edit"));
+        Button deleteButton = new Button(localize("playerOverview.delete"));
 
         createButton.setOnAction(_ -> createNewPlayer());
         editButton.setOnAction(_ -> editPlayer());
@@ -59,11 +61,11 @@ public class PlayerOverview extends EntityOverview {
 
         TableHelper.buildTableColumns(
                 table,
-                new ColumnDef<>("Name", PlayerSummary::name),
-                new ColumnDef<>("First game", PlayerSummary::firstGame),
-                new ColumnDef<>("Latest game", PlayerSummary::lastGame),
-                new ColumnDef<>("Games played", PlayerSummary::gamesPlayed),
-                new ColumnDef<>("Games storytold", PlayerSummary::gamesStorytold));
+                new ColumnDef<>(localize("playerOverview.summary.name"), PlayerSummary::name),
+                new ColumnDef<>(localize("playerOverview.summary.firstGame"), PlayerSummary::firstGame),
+                new ColumnDef<>(localize("playerOverview.summary.latestGame"), PlayerSummary::lastGame),
+                new ColumnDef<>(localize("playerOverview.summary.gamesPlayed"), PlayerSummary::gamesPlayed),
+                new ColumnDef<>(localize("playerOverview.summary.gamesStorytold"), PlayerSummary::gamesStorytold));
         HBox.setHgrow(table, Priority.ALWAYS);
 
         root.setPadding(new Insets(Layout.PADDING));
@@ -96,13 +98,17 @@ public class PlayerOverview extends EntityOverview {
         PlayerSummary selectedPlayer = table.getSelectionModel().getSelectedItem();
         boolean isReferenced = Database.getInstance().isPlayerReferenced(selectedPlayer.id());
         String prompt = isReferenced
-                ? selectedPlayer.name()
-                        + " cannot be deleted as they show up in one or more sessions. Selecting delete will anonymize them instead. Do you want to proceed?"
-                : "Do you really want to delete " + selectedPlayer.name() + "?";
-        Dialogs.showConfirmDialog("Confirm deletion", prompt + "\nThis cannot be undone!", "Proceed", "Cancel", () -> {
-            Database.getInstance().deletePlayer(selectedPlayer.id());
-            updateTable();
-        });
+                ? localize("playerOverview.dialog.messageReferenced", selectedPlayer.name())
+                : localize("playerOverview.dialog.message", selectedPlayer.name());
+        Dialogs.showConfirmDialog(
+                localize("playerOverview.dialog.title"),
+                prompt,
+                localize("playerOverview.dialog.confirm"),
+                localize("generic.cancel"),
+                () -> {
+                    Database.getInstance().deletePlayer(selectedPlayer.id());
+                    updateTable();
+                });
     }
 
     @Override

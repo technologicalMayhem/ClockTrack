@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.component;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -84,7 +86,7 @@ public class ErrorSummary extends HBox {
             message.setText(list.getFirst() + ". ");
         }
         if (list.size() > 1) {
-            more.setText("And " + (list.size() - 1) + " more");
+            more.setText(localize("errorSummary.more", list.size() - 1));
             String tooltipText = list.stream().skip(1).collect(Collectors.joining("\n"));
             moreTooltip.setText(tooltipText);
         } else {

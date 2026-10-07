@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.session;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import javafx.geometry.Insets;
@@ -57,18 +59,18 @@ public class SessionEditor extends Screen {
         storytellerChoice.setConverter(playerChoices.converter());
 
         ToggleGroup winnerGroup = new ToggleGroup();
-        goodWon = new RadioButton("Good");
+        goodWon = new RadioButton(localize("generic.good"));
         goodWon.setToggleGroup(winnerGroup);
-        evilWon = new RadioButton("Evil");
+        evilWon = new RadioButton(localize("generic.evil"));
         evilWon.setToggleGroup(winnerGroup);
 
         script = new ChoiceBox<>();
         script.getItems().addAll(db.getAllScripts());
         script.setConverter(new DisplayConverter<>(s -> s.model().name()));
 
-        Button addButton = new Button("Add player");
-        Button editButton = new Button("Edit player");
-        Button removeButton = new Button("Remove player");
+        Button addButton = new Button(localize("sessionEditor.addPlayer"));
+        Button editButton = new Button(localize("sessionEditor.editPlayer"));
+        Button removeButton = new Button(localize("sessionEditor.removePlayer"));
 
         addButton.setOnAction(_ -> addPlayer());
         editButton.setOnAction(_ -> editPlayer());
@@ -89,22 +91,22 @@ public class SessionEditor extends Screen {
         HBox aboveTable = new HBox(Layout.SPACING);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        aboveTable.getChildren().addAll(new Label("Players"), spacer, buttonRow);
+        aboveTable.getChildren().addAll(new Label(localize("sessionEditor.labelPlayerTable")), spacer, buttonRow);
 
         TableHelper.buildTableColumns(
                 playerSessionTable,
-                new ColumnDef<>("Player", ps -> playerChoices.nameFor(ps.playerId())),
-                new ColumnDef<>("Role", PlayerSession::role),
-                new ColumnDef<>("Alignment", ps -> ps.good() ? "Good" : "Evil"),
-                new ColumnDef<>("Died on day", ps -> {
+                new ColumnDef<>(localize("sessionEditor.table.player"), ps -> playerChoices.nameFor(ps.playerId())),
+                new ColumnDef<>(localize("sessionEditor.table.role"), PlayerSession::role),
+                new ColumnDef<>(localize("sessionEditor.table.alignment"), ps -> ps.good() ? "Good" : "Evil"),
+                new ColumnDef<>(localize("sessionEditor.table.deathOnDay"), ps -> {
                     Integer day = ps.deathOnDay();
                     return day == null ? "" : String.valueOf(day);
                 }),
-                new ColumnDef<>("Cause of death", ps -> {
+                new ColumnDef<>(localize("sessionEditor.table.causeOfDeath"), ps -> {
                     String cause = ps.causeOfDeath();
                     return cause == null ? "" : cause;
                 }),
-                new ColumnDef<>("Note", ps -> ps.note() == null ? "" : ps.note()));
+                new ColumnDef<>(localize("sessionEditor.table.note"), ps -> ps.note() == null ? "" : ps.note()));
         playerSessionTable.getItems().setAll(this.playerSessions);
         playerSessionTable.refresh();
 
@@ -112,10 +114,11 @@ public class SessionEditor extends Screen {
 
         int row = 0;
         GridPane grid = new GridPane(Layout.SPACING, Layout.SPACING);
-        grid.addRow(row++, new Label("Date"), datePicker);
-        grid.addRow(row++, new Label("Storyteller"), storytellerChoice);
-        grid.addRow(row++, new Label("Winner"), new HBox(Layout.SPACING, goodWon, evilWon));
-        grid.addRow(row, new Label("Script"), script);
+        grid.addRow(row++, new Label(localize("sessionEditor.label.date")), datePicker);
+        grid.addRow(row++, new Label(localize("sessionEditor.label.storyteller")), storytellerChoice);
+        grid.addRow(
+                row++, new Label(localize("sessionEditor.label.winner")), new HBox(Layout.SPACING, goodWon, evilWon));
+        grid.addRow(row, new Label(localize("sessionEditor.label.script")), script);
 
         errorSummary = new ErrorSummary(
                 this::validate,
@@ -125,12 +128,19 @@ public class SessionEditor extends Screen {
                 script.valueProperty(),
                 playerSessionTable.getItems());
 
-        Button submitButton = new Button("Submit");
+        Button submitButton = new Button(localize("generic.submit"));
         submitButton.setOnAction(_ -> submit());
         submitButton.disableProperty().bind(errorSummary.hasErrors());
 
         root.getChildren()
-                .addAll(grid, aboveTable, playerSessionTable, new Label("Notes"), note, errorSummary, submitButton);
+                .addAll(
+                        grid,
+                        aboveTable,
+                        playerSessionTable,
+                        new Label(localize("sessionEditor.label.notes")),
+                        note,
+                        errorSummary,
+                        submitButton);
 
         if (session != null) {
             Session model = session.model();
@@ -189,31 +199,31 @@ public class SessionEditor extends Screen {
     @Override
     protected String getName() {
         if (session == null) {
-            return "Creating Session";
+            return localize("sessionEditor.titleCreateSession");
         }
-        return "Editing " + session.model().date();
+        return localize("sessionEditor.titleEditSession", session.model().date());
     }
 
     private List<String> validate() {
         List<String> errors = new ArrayList<>();
 
         if (datePicker.getValue() == null) {
-            errors.add("Date is required");
+            errors.add(localize("sessionEditor.inspection.date"));
         }
         if (storytellerChoice.getSelectionModel().isEmpty()) {
-            errors.add("Storyteller is required");
+            errors.add(localize("sessionEditor.inspection.storyteller"));
         }
         if (!goodWon.isSelected() && !evilWon.isSelected()) {
-            errors.add("Winner is required");
+            errors.add(localize("sessionEditor.inspection.winner"));
         }
         if (script.getSelectionModel().isEmpty()) {
-            errors.add("Script is required");
+            errors.add(localize("sessionEditor.inspection.script"));
         }
         if (duplicatePlayer()) {
-            errors.add("A player cannot be in a game more than once");
+            errors.add(localize("sessionEditor.inspection.duplicatePlayer"));
         }
         if (storytellerIsPlayer()) {
-            errors.add("The storyteller cannot also be a player");
+            errors.add(localize("sessionEditor.inspection.storytellerIsPlayer"));
         }
 
         return errors;

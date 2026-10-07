@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.script;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;
@@ -32,7 +34,7 @@ public class ScriptEditor extends Screen {
         if (script != null) {
             name = script.model().name();
         } else {
-            name = "New script";
+            name = localize("scriptEditor.title.new");
         }
 
         scriptName = new TextField();
@@ -41,14 +43,20 @@ public class ScriptEditor extends Screen {
 
         errorSummary = new ErrorSummary(this::validate, scriptName.textProperty());
 
-        Button submitButton = new Button("Submit");
+        Button submitButton = new Button(localize("generic.submit"));
         submitButton.setDefaultButton(true);
         submitButton.setOnAction(_ -> submit());
         submitButton.disableProperty().bind(errorSummary.hasErrors());
 
-        VBox nameRow = new VBox(new Label("Name"), scriptName);
+        VBox nameRow = new VBox(new Label(localize("scriptEditor.label.name")), scriptName);
 
-        root = new VBox(Layout.SPACING, nameRow, new Label("JSON"), scriptJson, errorSummary, submitButton);
+        root = new VBox(
+                Layout.SPACING,
+                nameRow,
+                new Label(localize("scriptEditor.label.json")),
+                scriptJson,
+                errorSummary,
+                submitButton);
         root.setPadding(new Insets(Layout.PADDING));
 
         if (script != null) {
@@ -62,7 +70,7 @@ public class ScriptEditor extends Screen {
         List<String> errors = new ArrayList<>();
 
         if (scriptName.getText().isBlank()) {
-            errors.add("Name is required");
+            errors.add(localize("scriptEditor.inspection.name"));
         }
 
         return errors;

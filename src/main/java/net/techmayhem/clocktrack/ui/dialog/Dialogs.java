@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.dialog;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import javafx.application.Platform;
@@ -70,12 +72,11 @@ public class Dialogs {
     }
 
     public static void showErrorDialog(Throwable error, boolean isFatal) {
-        Stage stage = createStage("An error occurred");
+        Stage stage = createStage(localize("dialogs.error.title"));
 
-        Text header = new Text("An error occurred:");
+        Text header = new Text(localize("dialogs.error.header"));
         Text errorText = new Text(error.getMessage());
-        Text footer =
-                new Text(isFatal ? "The application cannot recover from this and will exit." : "Press ok to continue.");
+        Text footer = new Text(isFatal ? localize("dialogs.error.fatal") : localize("dialogs.error.nonFatal"));
 
         StringWriter sw = new StringWriter();
         error.printStackTrace(new PrintWriter(sw));
@@ -84,12 +85,12 @@ public class Dialogs {
         stackTraceArea.setWrapText(false);
         stackTraceArea.setPrefRowCount(STACK_TRACE_ROWS);
 
-        TitledPane collapseStackTrack = new TitledPane("Stack trace", stackTraceArea);
+        TitledPane collapseStackTrack = new TitledPane(localize("dialogs.error.stackTrace"), stackTraceArea);
         collapseStackTrack.setExpanded(false);
         collapseStackTrack.setAnimated(false);
         collapseStackTrack.expandedProperty().addListener((_, _, _) -> Platform.runLater(stage::sizeToScene));
 
-        Button button = new Button("Ok");
+        Button button = new Button(localize("generic.ok"));
         button.setDefaultButton(true);
         button.setOnAction(_ -> {
             if (isFatal) System.exit(EXIT_CODE_FATAL);
