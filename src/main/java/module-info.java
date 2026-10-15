@@ -4,7 +4,7 @@ module net.techmayhem.clocktrack {
     requires javafx.controls;
     requires static org.jspecify;
     requires org.xerial.sqlitejdbc;
-    requires org.jetbrains.annotations;
+    requires static org.jetbrains.annotations;
 
     exports net.techmayhem.clocktrack to
             javafx.graphics;
