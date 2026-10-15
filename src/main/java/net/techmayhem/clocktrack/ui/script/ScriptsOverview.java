@@ -2,7 +2,6 @@ package net.techmayhem.clocktrack.ui.script;
 
 import static net.techmayhem.clocktrack.ui.I18n.localize;
 
-import java.text.NumberFormat;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -26,8 +25,6 @@ import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
 
 public class ScriptsOverview extends EntityOverview {
-    private static final NumberFormat PERCENTAGE_FORMATTER = buildPercentageFormatter();
-    private static final int WINRATE_FRACTION_DIGITS = 1;
     private final HBox root;
     private final TableView<ScriptSummary> table;
 
@@ -87,14 +84,7 @@ public class ScriptsOverview extends EntityOverview {
     }
 
     private static String formatWinrate(@Nullable Double winrate) {
-        return winrate == null ? "-" : PERCENTAGE_FORMATTER.format(winrate);
-    }
-
-    private static NumberFormat buildPercentageFormatter() {
-        NumberFormat formatter = NumberFormat.getPercentInstance();
-        formatter.setMaximumFractionDigits(WINRATE_FRACTION_DIGITS);
-        formatter.setMinimumFractionDigits(WINRATE_FRACTION_DIGITS);
-        return formatter;
+        return winrate == null ? "-" : I18n.formatPercentage(winrate);
     }
 
     @Override

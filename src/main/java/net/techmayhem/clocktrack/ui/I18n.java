@@ -50,4 +50,11 @@ public class I18n {
             return key;
         }
     }
+
+    public static String formatPercentage(double value) {
+        NumberFormat formatter = NumberFormat.getPercentInstance(locale);
+        formatter.setMaximumFractionDigits(FRACTION_DIGITS);
+        formatter.setMinimumFractionDigits(FRACTION_DIGITS);
+        return formatter.format(value);
+    }
 }
