@@ -17,6 +17,7 @@ import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Script;
 import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
+import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
@@ -65,8 +66,10 @@ public class ScriptsOverview extends EntityOverview {
                 table,
                 new ColumnDef<>(localize("scriptsOverview.summary.name"), ScriptSummary::name),
                 new ColumnDef<>(localize("scriptsOverview.summary.timesPlayed"), ScriptSummary::timesPlayed),
-                new ColumnDef<>(localize("scriptsOverview.summary.firstPlayed"), ScriptSummary::firstPlayed),
-                new ColumnDef<>(localize("scriptsOverview.summary.lastPlayed"), ScriptSummary::lastPlayed),
+                new ColumnDef<>(
+                        localize("scriptsOverview.summary.firstPlayed"), ScriptSummary::firstPlayed, I18n::formatDate),
+                new ColumnDef<>(
+                        localize("scriptsOverview.summary.lastPlayed"), ScriptSummary::lastPlayed, I18n::formatDate),
                 new ColumnDef<>(
                         localize("scriptsOverview.summary.goodWinrate"),
                         ScriptsOverview::calculateWinrate,

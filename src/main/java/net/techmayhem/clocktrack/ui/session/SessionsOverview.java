@@ -17,6 +17,7 @@ import net.techmayhem.clocktrack.model.PlayerSession;
 import net.techmayhem.clocktrack.model.Session;
 import net.techmayhem.clocktrack.projections.SessionSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
+import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
@@ -60,7 +61,7 @@ public class SessionsOverview extends EntityOverview {
 
         TableHelper.buildTableColumns(
                 table,
-                new ColumnDef<>(localize("sessionsOverview.summary.date"), SessionSummary::date),
+                new ColumnDef<>(localize("sessionsOverview.summary.date"), SessionSummary::date, I18n::formatDate),
                 new ColumnDef<>(localize("sessionsOverview.summary.script"), SessionSummary::scriptName),
                 new ColumnDef<>(
                         localize("sessionsOverview.summary.storyteller"),

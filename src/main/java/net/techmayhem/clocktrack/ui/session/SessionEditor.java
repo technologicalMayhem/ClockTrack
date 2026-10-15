@@ -2,12 +2,14 @@ package net.techmayhem.clocktrack.ui.session;
 
 import static net.techmayhem.clocktrack.ui.I18n.localize;
 
+import java.time.format.FormatStyle;
 import java.util.*;
 import java.util.stream.Collectors;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.util.converter.LocalDateStringConverter;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.*;
 import net.techmayhem.clocktrack.ui.Layout;
@@ -50,6 +52,7 @@ public class SessionEditor extends Screen {
         Database db = Database.getInstance();
 
         datePicker = new DatePicker();
+        datePicker.setConverter(new LocalDateStringConverter(FormatStyle.MEDIUM));
 
         players = db.getAllPlayers();
         playerChoices = new PlayerChoices(players);

@@ -16,6 +16,7 @@ import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Player;
 import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
+import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.ScreenHost;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
@@ -62,8 +63,10 @@ public class PlayerOverview extends EntityOverview {
         TableHelper.buildTableColumns(
                 table,
                 new ColumnDef<>(localize("playerOverview.summary.name"), PlayerSummary::name),
-                new ColumnDef<>(localize("playerOverview.summary.firstGame"), PlayerSummary::firstGame),
-                new ColumnDef<>(localize("playerOverview.summary.latestGame"), PlayerSummary::lastGame),
+                new ColumnDef<>(
+                        localize("playerOverview.summary.firstGame"), PlayerSummary::firstGame, I18n::formatDate),
+                new ColumnDef<>(
+                        localize("playerOverview.summary.latestGame"), PlayerSummary::lastGame, I18n::formatDate),
                 new ColumnDef<>(localize("playerOverview.summary.gamesPlayed"), PlayerSummary::gamesPlayed),
                 new ColumnDef<>(localize("playerOverview.summary.gamesStorytold"), PlayerSummary::gamesStorytold));
         HBox.setHgrow(table, Priority.ALWAYS);
