@@ -11,7 +11,9 @@ public class I18n {
     private static @Nullable ResourceBundle bundle;
 
     public static void loadLocale() {
-        bundle = ResourceBundle.getBundle(I18n.class.getPackageName(), Locale.ENGLISH);
+        Locale locale = Locale.getDefault();
+        bundle = ResourceBundle.getBundle(I18n.class.getPackageName(), locale);
+        Locale.setDefault(locale);
     }
 
     public static String localize(
