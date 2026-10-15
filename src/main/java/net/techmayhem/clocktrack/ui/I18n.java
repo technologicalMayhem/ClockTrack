@@ -19,6 +19,7 @@ public class I18n {
 
     public static void setLocale(Locale locale) {
         I18n.locale = locale;
+        Locale.setDefault(locale);
         bundle = ResourceBundle.getBundle(I18n.class.getPackageName(), locale);
         dateTimeFormatter = dateTimeFormatter.withLocale(locale);
     }
