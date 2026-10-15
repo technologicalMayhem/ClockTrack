@@ -64,7 +64,7 @@ public class SessionsOverview extends EntityOverview {
                 new ColumnDef<>(localize("sessionsOverview.summary.script"), SessionSummary::scriptName),
                 new ColumnDef<>(
                         localize("sessionsOverview.summary.storyteller"),
-                        s -> s.storyteller() == null ? localize("sessionsOverview.summary.unknown") : s.storyteller()),
+                        s -> s.storyteller() == null ? localize("generic.unknown") : s.storyteller()),
                 new ColumnDef<>(
                         localize("sessionsOverview.summary.winner"),
                         SessionSummary::goodWon,
