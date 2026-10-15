@@ -1,6 +1,7 @@
 package net.techmayhem.clocktrack.ui;
 
 import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -11,13 +12,14 @@ import org.jetbrains.annotations.PropertyKey;
 import org.jspecify.annotations.Nullable;
 
 public class I18n {
+    private static final int FRACTION_DIGITS = 1;
     private static @Nullable ResourceBundle bundle;
+    private static Locale locale = Locale.getDefault();
     private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM);
 
-    public static void loadLocale() {
-        Locale locale = Locale.getDefault();
+    public static void setLocale(Locale locale) {
+        I18n.locale = locale;
         bundle = ResourceBundle.getBundle(I18n.class.getPackageName(), locale);
-        Locale.setDefault(locale);
         dateTimeFormatter = dateTimeFormatter.withLocale(locale);
     }
 
@@ -26,11 +28,11 @@ public class I18n {
         if (bundle == null) return key;
         if (!bundle.containsKey(key)) return errorString(key, args);
         String translationString = bundle.getString(key);
-        Object[] stringArguments = Arrays.stream(args).map(I18n::argumentMapper).toArray();
-        return MessageFormat.format(translationString, stringArguments);
+        Object[] fixedArguments = Arrays.stream(args).map(I18n::fixFormatting).toArray();
+        return new MessageFormat(translationString, locale).format(fixedArguments);
     }
 
-    private static Object argumentMapper(Object o) {
+    private static Object fixFormatting(Object o) {
         if (o instanceof LocalDate localDate) {
             return formatDate(localDate);
         }

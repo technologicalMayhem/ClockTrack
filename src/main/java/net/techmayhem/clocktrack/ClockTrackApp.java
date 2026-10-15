@@ -4,6 +4,7 @@ import static net.techmayhem.clocktrack.ui.I18n.localize;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Locale;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -28,7 +29,7 @@ public class ClockTrackApp extends Application {
         Dialogs.setPrimaryStage(stage);
         Thread.setDefaultUncaughtExceptionHandler(ClockTrackApp::handleUncaughtException);
 
-        I18n.loadLocale();
+        I18n.setLocale(Locale.getDefault());
 
         stage.getIcons().add(new Image(getIcon()));
         stage.setTitle(localize("appTitle"));
