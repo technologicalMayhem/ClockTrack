@@ -4,7 +4,7 @@
 - [X] Implement messages and decide behavior when trying to delete a person that appears in games
 - [ ] Implement player and game statistics
 - [ ] Implement game filtering (by character appearance, specific player + character combo etc.)
-- [ ] Implement localization
+- [X] Implement localization
 - [X] None of the editors right now give any feedback about what is wrong with the entered data beyond not allowing you
   to submit. There should be an indicator showing what is wrong.
 - [ ] Include sample data for the presentation (check for requirements)
