@@ -102,8 +102,8 @@ public class SessionEditor extends Screen {
                 new ColumnDef<>(localize("sessionEditor.table.role"), PlayerSession::role),
                 new ColumnDef<>(localize("sessionEditor.table.alignment"), ps -> ps.good() ? "Good" : "Evil"),
                 new ColumnDef<>(localize("sessionEditor.table.deathOnDay"), ps -> {
-                    Integer day = ps.deathOnDay();
-                    return day == null ? "" : String.valueOf(day);
+                    Integer phase = ps.deathOnDay();
+                    return phase == null ? "" : PhaseFormat.format(phase);
                 }),
                 new ColumnDef<>(localize("sessionEditor.table.causeOfDeath"), ps -> {
                     String cause = ps.causeOfDeath();

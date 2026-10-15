@@ -22,14 +22,13 @@ import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
 
 class PlayerSessionDialog {
-    private static final int FIRST_DAY = 1;
     private static final int NO_ID = -1;
 
     private final PlayerChoices playerChoices;
     private final ComboBox<Optional<FromDb<Player>>> playerChoice;
     private final TextField roleField;
     private final CheckBox died;
-    private final Spinner<Integer> deathOnDaySpinner;
+    private final Spinner<Integer> deathPhase;
     private final TextField causeOfDeathField;
     private final RadioButton goodRadio;
     private final RadioButton evilRadio;
@@ -61,11 +60,27 @@ class PlayerSessionDialog {
         roleField = new TextField();
 
         died = new CheckBox(localize("playerSessionDialog.label.died"));
-        deathOnDaySpinner = new Spinner<>(FIRST_DAY, Integer.MAX_VALUE, FIRST_DAY);
-        deathOnDaySpinner.setEditable(true);
+
+        var phaseFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                PhaseFormat.FIRST_PHASE, PhaseFormat.LAST_PHASE, PhaseFormat.FIRST_PHASE);
+        phaseFactory.setConverter(new PhaseConverter(phaseFactory));
+        deathPhase = new Spinner<>();
+        deathPhase.setValueFactory(phaseFactory);
+        deathPhase.setEditable(true);
+
+        TextField phaseEditor = deathPhase.getEditor();
+        phaseEditor.setTextFormatter(new TextFormatter<String>(
+                change -> PhaseFormat.isTypedInput(change.getControlNewText()) ? change : null));
+        phaseEditor.focusedProperty().addListener((_, _, focused) -> {
+            if (!focused) {
+                deathPhase.commitValue();
+                phaseEditor.setText(phaseFactory.getConverter().toString(phaseFactory.getValue()));
+            }
+        });
+
         causeOfDeathField = new TextField();
         BooleanBinding diedProperty = died.selectedProperty().not();
-        deathOnDaySpinner.disableProperty().bind(diedProperty);
+        deathPhase.disableProperty().bind(diedProperty);
         causeOfDeathField.disableProperty().bind(diedProperty);
 
         ToggleGroup alignmentGroup = new ToggleGroup();
@@ -81,7 +96,7 @@ class PlayerSessionDialog {
                 playerChoice.valueProperty(),
                 roleField.textProperty(),
                 died.selectedProperty(),
-                deathOnDaySpinner.valueProperty(),
+                deathPhase.valueProperty(),
                 causeOfDeathField.textProperty(),
                 alignmentGroup.selectedToggleProperty());
 
@@ -99,7 +114,7 @@ class PlayerSessionDialog {
         grid.addRow(
                 row++,
                 new Label(localize("playerSessionDialog.label.death")),
-                new HBox(Layout.SPACING, died, deathOnDaySpinner, causeOfDeathField));
+                new HBox(Layout.SPACING, died, deathPhase, causeOfDeathField));
         grid.addRow(
                 row,
                 new Label(localize("playerSessionDialog.label.alignment")),
@@ -119,7 +134,7 @@ class PlayerSessionDialog {
             roleField.setText(playerSession.role());
             if (playerSession.deathOnDay() != null && playerSession.causeOfDeath() != null) {
                 died.setSelected(true);
-                deathOnDaySpinner.getValueFactory().setValue(playerSession.deathOnDay());
+                deathPhase.getValueFactory().setValue(playerSession.deathOnDay());
                 causeOfDeathField.setText(playerSession.causeOfDeath());
             }
             if (playerSession.good()) {
@@ -144,7 +159,7 @@ class PlayerSessionDialog {
                 .map(FromDb::id)
                 .orElse(null);
         String role = roleField.getText();
-        Integer deathOnDay = died.isSelected() ? deathOnDaySpinner.getValue() : null;
+        Integer deathOnDay = died.isSelected() ? deathPhase.getValue() : null;
         String causeOfDeath = died.isSelected() ? causeOfDeathField.getText() : null;
         boolean good = goodRadio.isSelected();
         String note = noteText.getText();
