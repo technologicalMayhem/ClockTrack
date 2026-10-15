@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import org.jetbrains.annotations.PropertyKey;
@@ -27,16 +26,15 @@ public class I18n {
         if (bundle == null) return key;
         if (!bundle.containsKey(key)) return errorString(key, args);
         String translationString = bundle.getString(key);
-        List<String> stringArguments =
-                Arrays.stream(args).map(I18n::argumentMapper).toList();
+        Object[] stringArguments = Arrays.stream(args).map(I18n::argumentMapper).toArray();
         return MessageFormat.format(translationString, stringArguments);
     }
 
-    private static String argumentMapper(Object o) {
+    private static Object argumentMapper(Object o) {
         if (o instanceof LocalDate localDate) {
             return formatDate(localDate);
         }
-        return o.toString();
+        return o;
     }
 
     public static String formatDate(LocalDate localDate) {
