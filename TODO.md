@@ -9,7 +9,7 @@
   to submit. There should be an indicator showing what is wrong.
 - [X] Include sample data for the presentation (check for requirements)
 - [ ] Compile real life sample data (do not commit)
-- [ ] Document symbols
+- [X] Document symbols
 - [ ] Think about a proper form of deployment. Right now I am using javafx's jlink. I have no idea how 'proper' this is
   though. Maybe a single "fat jar" might be better? The deployment should be sensible for the project and simple to get
   running from just a repository state. It should also be relatively easy to share a copy of the app once compiled.
