@@ -5,11 +5,18 @@ import javafx.scene.Parent;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
+/// A section of the main window for one kind of entity, like players.
+///
+/// The section is a tab in the main window with tabs of its own. The first one is the overview, which stays open.
+/// Every screen opened from the overview, like an editor, gets another tab that can be closed again.
 public class EntitySection extends Screen {
     private final HashMap<Tab, Screen> screens;
     private final TabPane tabPane;
     private final String name;
 
+    /// Creates a section with the overview created by the given factory.
+    ///
+    /// @param factory The factory that creates the overview
     public EntitySection(OverviewFactory factory) {
         EntityOverview overview = factory.create(screen -> addScreen(screen, true));
         this.screens = new HashMap<>();
