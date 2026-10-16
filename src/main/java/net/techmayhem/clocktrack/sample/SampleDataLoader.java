@@ -16,6 +16,10 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.PropertyKey;
 
+/// Loads a fixed set of sample data into an empty database.
+///
+/// The sample data lets new users try ClockTrack without entering their own games first. It contains players, scripts,
+/// and sessions of Trouble Brewing. All text, like role names and notes, is in the language of the user.
 public final class SampleDataLoader {
     private static final @NonNls String BUNDLE_NAME = "net.techmayhem.clocktrack.sampledata";
 
@@ -29,6 +33,11 @@ public final class SampleDataLoader {
         this.bundle = bundle;
     }
 
+    /// Loads the sample data into the given database.
+    ///
+    /// @param db The database to load the sample data into
+    /// @param locale The locale that determines the language of the sample data
+    /// @throws DatabaseException If the database already contains players, scripts, or sessions
     public static void load(Database db, Locale locale) {
         if (!db.getAllPlayers().isEmpty()
                 || !db.getAllScripts().isEmpty()
