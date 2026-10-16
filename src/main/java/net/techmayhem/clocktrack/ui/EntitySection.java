@@ -42,15 +42,6 @@ public class EntitySection extends Screen {
         return name;
     }
 
-    public boolean isDirty() {
-        for (Screen screen : screens.values()) {
-            if (screen.isDirty()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void addScreen(Screen screen, boolean closeable) {
         Tab tab = screen.getTab();
         screens.put(tab, screen);

@@ -19,10 +19,6 @@ public abstract class Screen {
 
     protected void onHide() {}
 
-    boolean isDirty() {
-        return false;
-    }
-
     public Tab getTab() {
         if (tab == null) {
             tab = new Tab(getName(), getView());
