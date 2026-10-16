@@ -42,7 +42,7 @@ class Schema {
                         session_id INTEGER NOT NULL,
                         player_id INTEGER,
                         role TEXT NOT NULL,
-                        death_on_day INTEGER,
+                        death_in_phase INTEGER,
                         cause_of_death TEXT,
                         good BOOLEAN NOT NULL,
                         note TEXT,

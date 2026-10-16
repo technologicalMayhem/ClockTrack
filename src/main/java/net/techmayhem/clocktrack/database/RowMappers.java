@@ -24,7 +24,7 @@ class RowMappers {
                 rs.getInt("session_id"),
                 getInteger(rs, "player_id"),
                 rs.getString("role"),
-                getInteger(rs, "death_on_day"),
+                getInteger(rs, "death_in_phase"),
                 rs.getString("cause_of_death"),
                 rs.getBoolean("good"),
                 rs.getString("note"));

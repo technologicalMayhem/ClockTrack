@@ -132,9 +132,9 @@ class PlayerSessionDialog {
         if (playerSession != null) {
             playerChoice.setValue(playerChoices.itemFor(playerSession.playerId()));
             roleField.setText(playerSession.role());
-            if (playerSession.deathOnDay() != null && playerSession.causeOfDeath() != null) {
+            if (playerSession.deathInPhase() != null && playerSession.causeOfDeath() != null) {
                 died.setSelected(true);
-                deathPhase.getValueFactory().setValue(playerSession.deathOnDay());
+                deathPhase.getValueFactory().setValue(playerSession.deathInPhase());
                 causeOfDeathField.setText(playerSession.causeOfDeath());
             }
             if (playerSession.good()) {
@@ -159,12 +159,12 @@ class PlayerSessionDialog {
                 .map(FromDb::id)
                 .orElse(null);
         String role = roleField.getText();
-        Integer deathOnDay = died.isSelected() ? deathPhase.getValue() : null;
+        Integer deathInPhase = died.isSelected() ? deathPhase.getValue() : null;
         String causeOfDeath = died.isSelected() ? causeOfDeathField.getText() : null;
         boolean good = goodRadio.isSelected();
         String note = noteText.getText();
 
-        return new PlayerSession(NO_ID, playerId, role, deathOnDay, causeOfDeath, good, note);
+        return new PlayerSession(NO_ID, playerId, role, deathInPhase, causeOfDeath, good, note);
     }
 
     private List<String> validate() {

@@ -262,12 +262,12 @@ public class Database implements AutoCloseable {
 
     private static void insertPlayerSession(Connection conn, PlayerSession playerSession) throws SQLException {
         String sql =
-                "INSERT INTO player_session(session_id, player_id, role, death_on_day, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                "INSERT INTO player_session(session_id, player_id, role, death_in_phase, cause_of_death, good, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, playerSession.sessionId());
             statement.setObject(2, playerSession.playerId());
             statement.setString(3, playerSession.role());
-            statement.setObject(4, playerSession.deathOnDay());
+            statement.setObject(4, playerSession.deathInPhase());
             statement.setString(5, playerSession.causeOfDeath());
             statement.setBoolean(6, playerSession.good());
             statement.setString(7, playerSession.note());
