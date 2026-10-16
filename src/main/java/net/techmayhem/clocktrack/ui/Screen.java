@@ -28,14 +28,6 @@ public abstract class Screen {
     /// Called when the screen is hidden, including when its tab is about to close. Does nothing by default.
     protected void onHide() {}
 
-    boolean isDirty() {
-        return false;
-    }
-
-    /// Returns the tab that shows this screen. The tab is created on the first call, and [#onShow()] and [#onHide()]
-    /// are called when it is selected or deselected.
-    ///
-    /// @return The tab of the screen
     public Tab getTab() {
         if (tab == null) {
             tab = new Tab(getName(), getView());

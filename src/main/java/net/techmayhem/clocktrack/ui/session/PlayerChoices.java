@@ -16,18 +16,13 @@ import org.jspecify.annotations.Nullable;
 ///
 /// The first choice is empty and stands for an unknown player. It also stands in for players who have been removed
 /// from the database, so every stored session can be shown.
-final class PlayerChoices {
-    private final List<Optional<FromDb<Player>>> items;
+record PlayerChoices(List<Optional<FromDb<Player>>> items) {
 
-    PlayerChoices(List<FromDb<Player>> players) {
-        items = Stream.concat(
+    static PlayerChoices of(List<FromDb<Player>> players) {
+        return new PlayerChoices(Stream.concat(
                         Stream.of(Optional.<FromDb<Player>>empty()),
                         players.stream().map(Optional::of))
-                .toList();
-    }
-
-    List<Optional<FromDb<Player>>> items() {
-        return items;
+                .toList());
     }
 
     StringConverter<Optional<FromDb<Player>>> converter() {
