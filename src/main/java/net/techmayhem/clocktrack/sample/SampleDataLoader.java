@@ -23,6 +23,7 @@ import org.jetbrains.annotations.PropertyKey;
 public final class SampleDataLoader {
     private static final @NonNls String BUNDLE_NAME = "net.techmayhem.clocktrack.sampledata";
 
+    /// Placeholder session id. [Database#saveSession] replaces it with the id of the saved session.
     private static final int NEW_SESSION = 0;
 
     private final Database db;
