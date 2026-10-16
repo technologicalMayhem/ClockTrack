@@ -20,6 +20,9 @@ import net.techmayhem.clocktrack.ui.Screen;
 import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import org.jspecify.annotations.Nullable;
 
+/// A screen for creating a new player or editing an existing one.
+///
+/// The name of the player is required, the notes are optional.
 public class PlayerEditor extends Screen {
     @Nullable private final FromDb<Player> playerFromDb;
 
@@ -29,6 +32,9 @@ public class PlayerEditor extends Screen {
     private final TextArea notesArea;
     private final ErrorSummary errorSummary;
 
+    /// Creates a new instance of `PlayerEditor`
+    ///
+    /// @param player The player to edit, or null to create a new one
     public PlayerEditor(@Nullable FromDb<Player> player) {
         playerFromDb = player;
         if (player != null) {

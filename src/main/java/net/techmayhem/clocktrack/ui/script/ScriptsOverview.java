@@ -24,10 +24,17 @@ import net.techmayhem.clocktrack.ui.component.TableHelper;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
 
+/// The overview of all scripts and their statistics.
+///
+/// From here, scripts are added, viewed, edited, and deleted. A script that has been played in a session cannot be
+/// deleted.
 public class ScriptsOverview extends EntityOverview {
     private final HBox root;
     private final TableView<ScriptSummary> table;
 
+    /// Creates a new instance of `ScriptsOverview`
+    ///
+    /// @param screenHost The host for the screens opened from the overview
     public ScriptsOverview(ScreenHost screenHost) {
         super(screenHost);
         table = new TableView<>();

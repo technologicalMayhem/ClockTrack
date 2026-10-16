@@ -15,15 +15,13 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 
-/**
- * A compact summary of what is wrong with a form.
- *
- * <p>Shows the first error as text. If there are more, an underlined "And N more" follows it, and
- * hovering over that shows the rest in a tooltip. Nothing is shown while the form is valid.
- *
- * <p>The same check also drives {@link #hasErrors()}, so a submit button can be bound to it and the
- * button state and the message always agree.
- */
+/// A compact summary of what is wrong with a form.
+///
+/// Shows the first error as text. If there are more, an underlined "And N more" follows it, and hovering over that
+/// shows the rest in a tooltip. Nothing is shown while the form is valid.
+///
+/// The same check also drives [#hasErrors()], so a submit button can be bound to it and the button state and the
+/// message always agree.
 public class ErrorSummary extends HBox {
     private static final Duration TOOLTIP_DELAY = Duration.seconds(0.1);
 
@@ -33,20 +31,17 @@ public class ErrorSummary extends HBox {
     private final Label more;
     private final Tooltip moreTooltip;
 
-    /**
-     * Creates a summary that re-runs {@code validator} whenever one of the {@code dependencies}
-     * changes.
-     *
-     * <p>The validator runs once during construction, so everything it reads must already be
-     * initialized before this constructor is called.
-     *
-     * <p>Every observable the validator reads must be listed in {@code dependencies}. A missing one
-     * leaves the message out of date until another dependency happens to change.
-     *
-     * @param validator    returns the current error messages in the order they should appear, or an
-     *                     empty list if the form is valid
-     * @param dependencies the properties the validator reads
-     */
+    /// Creates a summary that re-runs `validator` whenever one of the `dependencies` changes.
+    ///
+    /// The validator runs once during construction, so everything it reads must already be initialized before this
+    /// constructor is called.
+    ///
+    /// Every observable the validator reads must be listed in `dependencies`. A missing one leaves the message
+    /// out of date until another dependency happens to change.
+    ///
+    /// @param validator Returns the current error messages in the order they should appear, or an empty list if the
+    /// form is valid
+    /// @param dependencies The properties the validator reads
     public ErrorSummary(Callable<List<String>> validator, Observable... dependencies) {
         message = new Label();
         more = new Label();
@@ -65,20 +60,13 @@ public class ErrorSummary extends HBox {
         hasErrors = Bindings.createBooleanBinding(() -> !errors.get().isEmpty(), errors);
     }
 
-    /**
-     * Whether the form currently has at least one error.
-     *
-     * @return a binding that is {@code true} while the validator returns any messages
-     */
+    /// Returns whether the form currently has at least one error.
+    ///
+    /// @return A binding that is true while the validator returns any messages
     public BooleanBinding hasErrors() {
         return hasErrors;
     }
 
-    /**
-     * Updates the labels and tooltip to show the given errors. Called whenever the validator's result changes.
-     *
-     * @param list the list of errors created by the validator
-     */
     private void update(List<String> list) {
         if (list.isEmpty()) {
             message.setText("");

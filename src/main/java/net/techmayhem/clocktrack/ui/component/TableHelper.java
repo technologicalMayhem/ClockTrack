@@ -7,7 +7,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.jspecify.annotations.Nullable;
 
+/// Builds table columns from [ColumnDef]s.
 public class TableHelper {
+    /// Adds a column to the table for each of the given definitions.
+    ///
+    /// @param table The table to add the columns to
+    /// @param columns The definitions of the columns
+    /// @param <T> The type of the table rows
     @SafeVarargs
     public static <T> void buildTableColumns(TableView<T> table, ColumnDef<T, ?>... columns) {
         for (ColumnDef<T, ?> column : columns) {
@@ -22,9 +28,14 @@ public class TableHelper {
         return col;
     }
 
+    /// A table cell that shows its value as formatted text. Empty cells and null values show no text.
+    ///
+    /// @param <T> The type of the table rows
+    /// @param <V> The type of the cell value
     public static class DisplayCell<T, V> extends TableCell<T, @Nullable V> {
         private final Function<V, String> formatter;
 
+        /// @param formatter The function that formats the value
         public DisplayCell(Function<V, String> formatter) {
             this.formatter = formatter;
         }

@@ -18,7 +18,11 @@ import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
 
+/// A dialog for adding a player session to a session or editing one. Players who are already in the session cannot be
+/// chosen.
 class PlayerSessionDialog {
+    /// Placeholder session id. [net.techmayhem.clocktrack.database.Database#saveSession] replaces it with the id of the
+    /// saved session.
     private static final int NO_ID = -1;
 
     private final PlayerChoices playerChoices;
@@ -146,6 +150,9 @@ class PlayerSessionDialog {
         stage.setScene(dialogScene);
     }
 
+    /// Shows the dialog and waits until it is closed.
+    ///
+    /// @return The player session, or null if the dialog was closed without submitting
     public @Nullable PlayerSession showAndWait() {
         stage.showAndWait();
         if (!shouldSubmit || errorSummary.hasErrors().get()) return null;
@@ -193,6 +200,7 @@ class PlayerSessionDialog {
         return takenPlayerIds.contains(player.id());
     }
 
+    /// A cell of the player choice that greys out and disables players who are already in the session.
     private class PlayerChoiceCell extends ListCell<Optional<FromDb<Player>>> {
         private static final double OPACITY_NORMAL = 1.0;
         private static final double OPACITY_UNAVAILABLE = 0.4;

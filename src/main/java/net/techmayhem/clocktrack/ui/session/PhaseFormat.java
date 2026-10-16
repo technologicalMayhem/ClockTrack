@@ -7,6 +7,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NonNls;
 
+/// Formats and parses phases of a game, like "Night 1" or "Day 2".
+///
+/// Phases are numbered from 1 and alternate between night and day: night 1 is phase 1, day 1 is phase 2, night 2 is
+/// phase 3, and so on. Besides the localized words, parsing also accepts the letters N and D.
 final class PhaseFormat {
     static final int FIRST_PHASE = 1;
     static final int MAX_NUMBER = 99;
@@ -27,7 +31,7 @@ final class PhaseFormat {
         return word + " " + number;
     }
 
-    /** Empty unless the text is a complete, in-range phase like "Night 2", "Tag 1", "N2" or "D1". */
+    /// Empty unless the text is a complete, in-range phase like "Night 2", "Tag 1", "N2" or "D1".
     static OptionalInt parse(String text) {
         Matcher matcher = COMPLETE.matcher(text.strip());
         if (!matcher.matches()) return OptionalInt.empty();
@@ -39,7 +43,7 @@ final class PhaseFormat {
         return OptionalInt.of(night ? 2 * number - 1 : 2 * number);
     }
 
-    /** For the input filter: true if the text could still become a valid phase while typing. */
+    /// For the input filter: true if the text could still become a valid phase while typing.
     static boolean isTypedInput(String text) {
         if (text.isEmpty()) return true;
         Matcher matcher = TYPING.matcher(text);

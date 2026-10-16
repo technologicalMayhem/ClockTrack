@@ -24,10 +24,16 @@ import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 
+/// The overview of all sessions, newest first.
+///
+/// From here, sessions are added, viewed, edited, and deleted.
 public class SessionsOverview extends EntityOverview {
     private final HBox root;
     private final TableView<SessionSummary> table;
 
+    /// Creates a new instance of `SessionsOverview`
+    ///
+    /// @param screenHost The host for the screens opened from the overview
     public SessionsOverview(ScreenHost screenHost) {
         super(screenHost);
         table = new TableView<>();

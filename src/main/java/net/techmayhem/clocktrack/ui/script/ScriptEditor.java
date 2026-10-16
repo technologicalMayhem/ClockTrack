@@ -20,6 +20,9 @@ import net.techmayhem.clocktrack.ui.Screen;
 import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import org.jspecify.annotations.Nullable;
 
+/// A screen for creating a new script or editing an existing one.
+///
+/// The name of the script is required. The JSON is optional and is not checked.
 public class ScriptEditor extends Screen {
     @Nullable private final FromDb<Script> scriptFromDb;
 
@@ -29,6 +32,9 @@ public class ScriptEditor extends Screen {
     private final TextArea scriptJson;
     private final ErrorSummary errorSummary;
 
+    /// Creates a new instance of `ScriptEditor`
+    ///
+    /// @param script The script to edit, or null to create a new one
     public ScriptEditor(@Nullable FromDb<Script> script) {
         scriptFromDb = script;
         if (script != null) {

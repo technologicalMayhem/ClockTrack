@@ -6,6 +6,7 @@ import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.model.Script;
 import net.techmayhem.clocktrack.ui.Screen;
 
+/// A screen that shows a script. Currently, it is a placeholder that only shows the name and the JSON of the script.
 public class ScriptView extends Screen {
     private final StackPane root;
     private final String name;

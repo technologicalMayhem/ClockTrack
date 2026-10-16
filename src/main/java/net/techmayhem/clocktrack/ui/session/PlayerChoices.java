@@ -12,6 +12,10 @@ import net.techmayhem.clocktrack.model.Player;
 import net.techmayhem.clocktrack.ui.component.DisplayConverter;
 import org.jspecify.annotations.Nullable;
 
+/// The choices for selecting a player, like the storyteller of a session.
+///
+/// The first choice is empty and stands for an unknown player. It also stands in for players who have been removed
+/// from the database, so every stored session can be shown.
 final class PlayerChoices {
     private final List<Optional<FromDb<Player>>> items;
 

@@ -20,6 +20,10 @@ import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 import org.jspecify.annotations.Nullable;
 
+/// A screen for creating a new session or editing an existing one, together with its player sessions.
+///
+/// Player sessions are added, edited, and removed in the editor first. None of these changes reach the database until
+/// the whole session is submitted.
 public class SessionEditor extends Screen {
     private final VBox root;
 
@@ -38,6 +42,10 @@ public class SessionEditor extends Screen {
     private final TableView<PlayerSession> playerSessionTable;
     private final ErrorSummary errorSummary;
 
+    /// Creates a new instance of `SessionEditor`
+    ///
+    /// @param session The session to edit, or null to create a new one
+    /// @param playerSessions The player sessions of the session, or null to create a new one
     public SessionEditor(@Nullable FromDb<Session> session, @Nullable List<FromDb<PlayerSession>> playerSessions) {
         root = new VBox(Layout.SPACING);
         root.setPadding(new Insets(Layout.PADDING));
@@ -159,7 +167,8 @@ public class SessionEditor extends Screen {
         }
     }
 
-    /** Returns the ids of the players in the game, ignoring the given entry. */
+    /// Returns the ids of the players in the game, ignoring the given entry. That way, the player of an entry that is
+    /// being edited can still be chosen.
     private Set<Integer> takenPlayerIds(@Nullable PlayerSession ignored) {
         return playerSessions.stream()
                 .filter(ps -> ps != ignored)

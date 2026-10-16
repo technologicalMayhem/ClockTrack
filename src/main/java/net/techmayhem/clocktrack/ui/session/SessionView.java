@@ -6,6 +6,7 @@ import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.model.Session;
 import net.techmayhem.clocktrack.ui.Screen;
 
+/// A screen that shows a session. Currently, it is a placeholder that only shows the date of the session.
 public class SessionView extends Screen {
     private final StackPane root;
     private final String name;
