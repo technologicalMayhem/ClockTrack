@@ -55,7 +55,7 @@ public class SessionEditor extends Screen {
         datePicker.setConverter(new LocalDateStringConverter(FormatStyle.MEDIUM));
 
         players = db.getAllPlayers();
-        playerChoices = new PlayerChoices(players);
+        playerChoices = PlayerChoices.of(players);
 
         storytellerChoice = new ChoiceBox<>();
         storytellerChoice.getItems().addAll(playerChoices.items());

@@ -40,7 +40,7 @@ class PlayerSessionDialog {
     public PlayerSessionDialog(
             @Nullable PlayerSession playerSession, List<FromDb<Player>> players, Set<Integer> takenPlayerIds) {
         this.takenPlayerIds = takenPlayerIds;
-        playerChoices = new PlayerChoices(players);
+        playerChoices = PlayerChoices.of(players);
         String title;
         if (playerSession != null) {
             title = localize("playerSessionDialog.title.edit", playerChoices.nameFor(playerSession.playerId()));

@@ -12,18 +12,13 @@ import net.techmayhem.clocktrack.model.Player;
 import net.techmayhem.clocktrack.ui.component.DisplayConverter;
 import org.jspecify.annotations.Nullable;
 
-final class PlayerChoices {
-    private final List<Optional<FromDb<Player>>> items;
+record PlayerChoices(List<Optional<FromDb<Player>>> items) {
 
-    PlayerChoices(List<FromDb<Player>> players) {
-        items = Stream.concat(
+    static PlayerChoices of(List<FromDb<Player>> players) {
+        return new PlayerChoices(Stream.concat(
                         Stream.of(Optional.<FromDb<Player>>empty()),
                         players.stream().map(Optional::of))
-                .toList();
-    }
-
-    List<Optional<FromDb<Player>>> items() {
-        return items;
+                .toList());
     }
 
     StringConverter<Optional<FromDb<Player>>> converter() {
