@@ -1,7 +1,30 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
-    <inspection_tool class="HardCodedStringLiteral" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
+    <option name="scopesOrder">
+      <list>
+        <option value="All Changed Files" />
+        <option value="Open Files" />
+        <option value="Production" />
+        <option value="Project Files" />
+        <option value="Scratches and Consoles" />
+        <option value="Tests" />
+        <option value="UI" />
+      </list>
+    </option>
+    <inspection_tool class="HardCodedStringLiteral" enabled="true" level="WEAK WARNING" enabled_by_default="false" editorAttributes="INFO_ATTRIBUTES">
+      <scope name="UI" level="WARNING" enabled="true" editorAttributes="WARNING_ATTRIBUTES">
+        <option name="ignoreForAssertStatements" value="true" />
+        <option name="ignoreForExceptionConstructors" value="true" />
+        <option name="ignoreForSpecifiedExceptionConstructors" value="" />
+        <option name="ignoreForJUnitAsserts" value="true" />
+        <option name="ignoreForClassReferences" value="true" />
+        <option name="ignoreForPropertyKeyReferences" value="true" />
+        <option name="ignoreForNonAlpha" value="true" />
+        <option name="ignoreAssignedToConstants" value="false" />
+        <option name="ignoreToString" value="false" />
+        <option name="nonNlsCommentPattern" value="NON-NLS" />
+      </scope>
       <option name="ignoreForAssertStatements" value="true" />
       <option name="ignoreForExceptionConstructors" value="true" />
       <option name="ignoreForSpecifiedExceptionConstructors" value="" />
