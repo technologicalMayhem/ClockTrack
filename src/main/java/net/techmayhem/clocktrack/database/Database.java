@@ -156,6 +156,23 @@ public class Database implements AutoCloseable {
         }
     }
 
+    public boolean isScriptReferenced(int id) {
+        return runTransaction(conn -> isScriptReferenced(conn, id));
+    }
+
+    private boolean isScriptReferenced(Connection conn, int id) throws SQLException {
+        String sql = """
+                SELECT EXISTS (SELECT 1 FROM session WHERE script_id = ?)
+                """;
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            try (ResultSet rs = statement.executeQuery()) {
+                rs.next();
+                return rs.getBoolean(1);
+            }
+        }
+    }
+
     public FromDb<Session> getSession(int id) {
         return runTransaction(conn -> getSession(conn, id));
     }

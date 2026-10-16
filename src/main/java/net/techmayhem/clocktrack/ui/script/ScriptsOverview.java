@@ -127,14 +127,23 @@ public class ScriptsOverview extends EntityOverview {
 
     private void deleteScript() {
         ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
-        Dialogs.showConfirmDialog(
-                localize("scriptsOverview.dialog.delete.title"),
-                localize("scriptsOverview.dialog.delete.message", selectedItem.name()),
-                localize("scriptsOverview.dialog.delete.confirm"),
-                localize("generic.cancel"),
-                () -> {
-                    Database.getInstance().deleteScript(selectedItem.id());
-                    updateTable();
-                });
+
+        boolean scriptReferenced = Database.getInstance().isScriptReferenced(selectedItem.id());
+
+        if (scriptReferenced) {
+            Dialogs.showMessageDialog(
+                    localize("scriptsOverview.dialog.failDelete.title"),
+                    localize("scriptsOverview.dialog.failDelete.text", selectedItem.name()));
+        } else {
+            Dialogs.showConfirmDialog(
+                    localize("scriptsOverview.dialog.delete.title"),
+                    localize("scriptsOverview.dialog.delete.message", selectedItem.name()),
+                    localize("scriptsOverview.dialog.delete.confirm"),
+                    localize("generic.cancel"),
+                    () -> {
+                        Database.getInstance().deleteScript(selectedItem.id());
+                        updateTable();
+                    });
+        }
     }
 }

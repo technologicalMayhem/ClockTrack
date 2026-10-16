@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 public class Dialogs {
     private static final int STACK_TRACE_ROWS = 15;
     private static final int EXIT_CODE_FATAL = 1;
+    public static final double DIALOG_MAX_WIDTH = 500.0;
 
     @Nullable private static Stage primaryStage;
 
@@ -32,6 +33,7 @@ public class Dialogs {
         Stage stage = new Stage();
         stage.setTitle(title);
         stage.setResizable(false);
+        stage.setMaxWidth(DIALOG_MAX_WIDTH);
         stage.initModality(Modality.APPLICATION_MODAL);
         if (primaryStage == null) throw new IllegalStateException("Primary stage is not set");
         stage.initOwner(primaryStage);
@@ -48,7 +50,8 @@ public class Dialogs {
     public static void showConfirmDialog(String title, String prompt, String accept, String cancel, Runnable callback) {
         Stage stage = createStage(title);
 
-        Label label = new Label(prompt);
+        Text promptText = new Text(prompt);
+        promptText.setWrappingWidth(DIALOG_MAX_WIDTH - Layout.PADDING * 2);
         HBox buttonsRow = new HBox();
         Button acceptButton = new Button(accept);
         acceptButton.setDefaultButton(true);
@@ -64,11 +67,28 @@ public class Dialogs {
         buttonsRow.getChildren().addAll(acceptButton, spacer, cancelButton);
 
         VBox vBox = createVBox();
-        vBox.getChildren().addAll(label, buttonsRow);
+        vBox.getChildren().addAll(promptText, buttonsRow);
 
         Scene dialogScene = new Scene(vBox);
         stage.setScene(dialogScene);
         stage.show();
+    }
+
+    public static void showMessageDialog(String title, String text) {
+        Stage stage = createStage(title);
+
+        Text textElement = new Text(text);
+        textElement.setWrappingWidth(DIALOG_MAX_WIDTH - Layout.PADDING * 2);
+        Button acceptButton = new Button(localize("generic.ok"));
+        acceptButton.setDefaultButton(true);
+        acceptButton.setOnAction(_ -> stage.close());
+
+        VBox vBox = createVBox();
+        vBox.getChildren().addAll(textElement, acceptButton);
+
+        Scene dialogScene = new Scene(vBox);
+        stage.setScene(dialogScene);
+        stage.showAndWait();
     }
 
     public static void showErrorDialog(Throwable error, boolean isFatal) {
@@ -76,6 +96,7 @@ public class Dialogs {
 
         Text header = new Text(localize("dialogs.error.header"));
         Text errorText = new Text(error.getMessage());
+        errorText.setWrappingWidth(DIALOG_MAX_WIDTH - Layout.PADDING * 2);
         Text footer = new Text(isFatal ? localize("dialogs.error.fatal") : localize("dialogs.error.nonFatal"));
 
         StringWriter sw = new StringWriter();
