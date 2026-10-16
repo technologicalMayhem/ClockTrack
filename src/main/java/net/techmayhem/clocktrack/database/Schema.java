@@ -48,7 +48,8 @@ class Schema {
                         note TEXT,
                         FOREIGN KEY(session_id) REFERENCES session(id),
                         FOREIGN KEY(player_id) REFERENCES player(id) ON DELETE SET NULL,
-                        UNIQUE(session_id, player_id)
+                        UNIQUE(session_id, player_id),
+                        CHECK ((death_in_phase IS NULL) = (cause_of_death IS NULL))
                     );
                     """);
         }
