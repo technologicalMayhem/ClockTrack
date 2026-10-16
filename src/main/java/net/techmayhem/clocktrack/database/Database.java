@@ -1,5 +1,6 @@
 package net.techmayhem.clocktrack.database;
 
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,8 @@ import org.jspecify.annotations.Nullable;
 
 public class Database implements AutoCloseable {
     private static final int EXPECTED_ROWS_AFFECTED_BY_UPDATE = 1;
+    public static final String CLOCK_TRACK_DB = "ClockTrack.db";
+    public static final String CONNECTION_STRING = "jdbc:sqlite:" + CLOCK_TRACK_DB;
 
     private final Connection connection;
 
@@ -19,7 +22,7 @@ public class Database implements AutoCloseable {
     private boolean inTransaction = false;
 
     private Database() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:ClockTrack.db");
+        connection = DriverManager.getConnection(CONNECTION_STRING);
         try (Statement statement = connection.createStatement()) {
             statement.execute("PRAGMA foreign_keys = ON");
         }
@@ -52,8 +55,12 @@ public class Database implements AutoCloseable {
         });
     }
 
-    public void insertPlayer(Player player) {
-        runTransaction(conn -> insertPlayer(conn, player));
+    public static boolean exists() {
+        return new File(CLOCK_TRACK_DB).exists();
+    }
+
+    public FromDb<Player> insertPlayer(Player player) {
+        return runTransaction(conn -> insertPlayer(conn, player));
     }
 
     private static FromDb<Player> insertPlayer(Connection conn, Player player) throws SQLException {
@@ -319,8 +326,8 @@ public class Database implements AutoCloseable {
         }
     }
 
-    public void insertScript(Script script) {
-        runTransaction(conn -> insertScript(conn, script));
+    public FromDb<Script> insertScript(Script script) {
+        return runTransaction(conn -> insertScript(conn, script));
     }
 
     private static FromDb<Script> insertScript(Connection conn, Script script) throws SQLException {

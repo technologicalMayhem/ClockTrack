@@ -7,7 +7,8 @@
 - [X] Implement localization
 - [X] None of the editors right now give any feedback about what is wrong with the entered data beyond not allowing you
   to submit. There should be an indicator showing what is wrong.
-- [ ] Include sample data for the presentation (check for requirements)
+- [X] Include sample data for the presentation (check for requirements)
+- [ ] Compile real life sample data (do not commit)
 - [ ] Document symbols
 - [ ] Think about a proper form of deployment. Right now I am using javafx's jlink. I have no idea how 'proper' this is
   though. Maybe a single "fat jar" might be better? The deployment should be sensible for the project and simple to get

@@ -12,7 +12,9 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.database.DatabaseException;
+import net.techmayhem.clocktrack.sample.SampleDataLoader;
 import net.techmayhem.clocktrack.ui.EntitySection;
 import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
@@ -34,6 +36,8 @@ public class ClockTrackApp extends Application {
         stage.getIcons().add(new Image(getIcon()));
         stage.setTitle(localize("appTitle"));
 
+        if (!Database.exists()) offerSampleData();
+
         TabPane tabPane = new TabPane();
         Scene scene = new Scene(tabPane, WINDOW_WIDTH, WINDOW_HEIGHT);
         stage.setScene(scene);
@@ -50,6 +54,19 @@ public class ClockTrackApp extends Application {
         } catch (DatabaseException e) {
             handleUncaughtException(Thread.currentThread(), e);
         }
+    }
+
+    private static void offerSampleData() {
+        Dialogs.showConfirmDialog(
+                localize("sampleDataDialog.title"),
+                localize("sampleDataDialog.message"),
+                localize("sampleDataDialog.accept"),
+                localize("sampleDataDialog.cancel"),
+                ClockTrackApp::buildSampleData);
+    }
+
+    private static void buildSampleData() {
+        SampleDataLoader.load(Database.getInstance(), Locale.getDefault());
     }
 
     private InputStream getIcon() throws FileNotFoundException {

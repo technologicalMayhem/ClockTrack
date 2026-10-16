@@ -71,7 +71,7 @@ public class Dialogs {
 
         Scene dialogScene = new Scene(vBox);
         stage.setScene(dialogScene);
-        stage.show();
+        stage.showAndWait();
     }
 
     public static void showMessageDialog(String title, String text) {
