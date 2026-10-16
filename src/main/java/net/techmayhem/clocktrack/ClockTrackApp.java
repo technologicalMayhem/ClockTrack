@@ -22,10 +22,18 @@ import net.techmayhem.clocktrack.ui.player.PlayerOverview;
 import net.techmayhem.clocktrack.ui.script.ScriptsOverview;
 import net.techmayhem.clocktrack.ui.session.SessionsOverview;
 
+/// The entry point of ClockTrack. Opens the main window with one tab each for sessions, players, and
+/// scripts.
+///
+/// On the first start, the user is offered sample data to try the app with.
 public class ClockTrackApp extends Application {
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 750;
 
+    /// Sets up the main window and shows it.
+    ///
+    /// @param stage the primary stage provided by JavaFX
+    /// @throws FileNotFoundException if the app icon is missing from the resources
     @Override
     public void start(Stage stage) throws FileNotFoundException {
         Dialogs.setPrimaryStage(stage);
@@ -56,6 +64,7 @@ public class ClockTrackApp extends Application {
         }
     }
 
+    /// Asks the user whether they want sample data loaded into the new database.
     private static void offerSampleData() {
         Dialogs.showConfirmDialog(
                 localize("sampleDataDialog.title"),
@@ -65,10 +74,15 @@ public class ClockTrackApp extends Application {
                 ClockTrackApp::buildSampleData);
     }
 
+    /// Loads the sample data in the language of the locale.
     private static void buildSampleData() {
         SampleDataLoader.load(Database.getInstance(), Locale.getDefault());
     }
 
+    /// Opens the app icon from the resources.
+    ///
+    /// @return a stream of the app icon
+    /// @throws FileNotFoundException if the icon is missing from the resources
     private InputStream getIcon() throws FileNotFoundException {
         String iconPath = "/icons/app-256.png";
         InputStream icon = getClass().getResourceAsStream(iconPath);
@@ -76,6 +90,11 @@ public class ClockTrackApp extends Application {
         return icon;
     }
 
+    /// Shows the error to the user in a dialog. The app closes afterward, unless it is a
+    /// recoverable [DatabaseException]. Can be called from any thread.
+    ///
+    /// @param thread    the thread the error was thrown on
+    /// @param throwable the error to show
     private static void handleUncaughtException(Thread thread, Throwable throwable) {
         throwable.printStackTrace();
 
