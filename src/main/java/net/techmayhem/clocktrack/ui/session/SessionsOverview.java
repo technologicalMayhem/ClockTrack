@@ -31,7 +31,7 @@ public class SessionsOverview extends EntityOverview {
     private final HBox root;
     private final TableView<SessionSummary> table;
 
-    /// Creates a new instance of `SessionsOverview`
+    /// Creates the overview and loads the sessions from the database.
     ///
     /// @param screenHost The host for the screens opened from the overview
     public SessionsOverview(ScreenHost screenHost) {

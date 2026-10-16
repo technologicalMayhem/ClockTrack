@@ -13,8 +13,8 @@ import org.jspecify.annotations.Nullable;
 /// The shared connection to the ClockTrack database. All reads and writes of players, scripts, sessions, and the
 /// players taking part in each session go through it.
 ///
-/// Each public method is a single transaction. On failure, its changes are rolled back and a [DatabaseException] is
-/// thrown.
+/// Each method that reads or writes data runs in a single transaction. On failure, its changes are rolled back and a
+/// [DatabaseException] is thrown.
 ///
 /// The class is not thread-safe.
 public class Database implements AutoCloseable {

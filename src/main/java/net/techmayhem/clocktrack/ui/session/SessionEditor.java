@@ -42,7 +42,8 @@ public class SessionEditor extends Screen {
     private final TableView<PlayerSession> playerSessionTable;
     private final ErrorSummary errorSummary;
 
-    /// Creates a new instance of `SessionEditor`
+    /// Creates an editor for the given session, with its fields filled in. Without a session, the fields start empty.
+    /// All players and scripts are loaded from the database to choose from.
     ///
     /// @param session The session to edit, or null to create a new one
     /// @param playerSessions The player sessions of the session, or null to create a new one

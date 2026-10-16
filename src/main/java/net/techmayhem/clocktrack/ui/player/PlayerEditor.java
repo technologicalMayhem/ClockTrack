@@ -32,7 +32,7 @@ public class PlayerEditor extends Screen {
     private final TextArea notesArea;
     private final ErrorSummary errorSummary;
 
-    /// Creates a new instance of `PlayerEditor`
+    /// Creates an editor for the given player, with its fields filled in. Without a player, the fields start empty.
     ///
     /// @param player The player to edit, or null to create a new one
     public PlayerEditor(@Nullable FromDb<Player> player) {

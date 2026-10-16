@@ -32,6 +32,10 @@ public abstract class Screen {
         return false;
     }
 
+    /// Returns the tab that shows this screen. The tab is created on the first call, and [#onShow()] and [#onHide()]
+    /// are called when it is selected or deselected.
+    ///
+    /// @return The tab of the screen
     public Tab getTab() {
         if (tab == null) {
             tab = new Tab(getName(), getView());

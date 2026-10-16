@@ -32,7 +32,7 @@ public class ScriptsOverview extends EntityOverview {
     private final HBox root;
     private final TableView<ScriptSummary> table;
 
-    /// Creates a new instance of `ScriptsOverview`
+    /// Creates the overview and loads the scripts from the database.
     ///
     /// @param screenHost The host for the screens opened from the overview
     public ScriptsOverview(ScreenHost screenHost) {

@@ -7,6 +7,7 @@ import org.jspecify.annotations.Nullable;
 ///
 /// The following properties are true for any valid `PlayerSession`:
 /// - The combination of [sessionId] and [playerId] is unique among all `PlayerSession`s.
+///   *Note: In SQLite `null != null`*
 /// - A non-null [deathInPhase] requires a non-null [causeOfDeath]. And vice versa.
 ///
 /// The [playerId] may be null. This occurs when a player has been anonymized and removed from the database.
@@ -14,7 +15,9 @@ import org.jspecify.annotations.Nullable;
 /// @param sessionId The id of the session
 /// @param playerId The id of the player, or null if the player has been removed
 /// @param role The role of the player in the session
-/// @param deathInPhase The phase in which the player died, or null if they survived
+/// @param deathInPhase The phase in which the player died, or null if they survived. Phases start at 1 and alternate
+/// between night and day: odd phases are nights and even phases are days, so night 1 is phase 1, day 1 is phase 2,
+/// night 2 is phase 3, and so on
 /// @param causeOfDeath The cause of the player's death, or null if they survived
 /// @param good Whether the player was good
 /// @param note Additional notes about the player's session

@@ -31,7 +31,7 @@ public class PlayerOverview extends EntityOverview {
     private final HBox root;
     private final TableView<PlayerSummary> table;
 
-    /// Creates a new instance of `PlayerOverview`
+    /// Creates the overview and loads the players from the database.
     ///
     /// @param screenHost The host for the editors opened from the overview
     public PlayerOverview(ScreenHost screenHost) {

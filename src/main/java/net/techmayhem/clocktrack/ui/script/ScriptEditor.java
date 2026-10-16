@@ -32,7 +32,7 @@ public class ScriptEditor extends Screen {
     private final TextArea scriptJson;
     private final ErrorSummary errorSummary;
 
-    /// Creates a new instance of `ScriptEditor`
+    /// Creates an editor for the given script, with its fields filled in. Without a script, the fields start empty.
     ///
     /// @param script The script to edit, or null to create a new one
     public ScriptEditor(@Nullable FromDb<Script> script) {
