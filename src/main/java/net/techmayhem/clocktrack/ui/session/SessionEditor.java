@@ -100,7 +100,9 @@ public class SessionEditor extends Screen {
                 playerSessionTable,
                 new ColumnDef<>(localize("sessionEditor.table.player"), ps -> playerChoices.nameFor(ps.playerId())),
                 new ColumnDef<>(localize("sessionEditor.table.role"), PlayerSession::role),
-                new ColumnDef<>(localize("sessionEditor.table.alignment"), ps -> ps.good() ? "Good" : "Evil"),
+                new ColumnDef<>(
+                        localize("sessionEditor.table.alignment"),
+                        ps -> ps.good() ? localize("generic.good") : localize("generic.evil")),
                 new ColumnDef<>(localize("sessionEditor.table.deathInPhase"), ps -> {
                     Integer phase = ps.deathInPhase();
                     return phase == null ? "" : PhaseFormat.format(phase);
