@@ -5,16 +5,18 @@ import static net.techmayhem.clocktrack.ui.I18n.localize;
 import java.util.OptionalInt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NonNls;
 
 final class PhaseFormat {
     static final int FIRST_PHASE = 1;
-    static final int LAST_PHASE = 2 * 99;
+    static final int MAX_NUMBER = 99;
+    static final int LAST_PHASE = 2 * MAX_NUMBER;
 
-    private static final String NIGHT_LETTER = "N";
-    private static final String DAY_LETTER = "D";
+    private static final @NonNls String NIGHT_LETTER = "N";
+    private static final @NonNls String DAY_LETTER = "D";
 
-    private static final Pattern COMPLETE = Pattern.compile("(\\p{L}+)\\s*(\\d+)");
-    private static final Pattern TYPING = Pattern.compile("(\\p{L}*)(\\s?)(\\d*)");
+    private static final Pattern COMPLETE = Pattern.compile("(\\p{L}+)\\s*(\\d{1,2})");
+    private static final Pattern TYPING = Pattern.compile("(\\p{L}*)(\\s?)(\\d{0,2})");
 
     private PhaseFormat() {}
 
@@ -32,14 +34,9 @@ final class PhaseFormat {
         String label = matcher.group(1);
         boolean night = isNight(label);
         if (!night && !isDay(label)) return OptionalInt.empty();
-        try {
-            int number = Integer.parseInt(matcher.group(2));
-            if (number < 1 || number > LAST_PHASE) return OptionalInt.empty(); // also rules out overflow below
-            int phase = night ? 2 * number - 1 : 2 * number;
-            return phase <= LAST_PHASE ? OptionalInt.of(phase) : OptionalInt.empty();
-        } catch (NumberFormatException _) {
-            return OptionalInt.empty(); // digit string too long for an int
-        }
+        int number = Integer.parseInt(matcher.group(2));
+        if (number < 1) return OptionalInt.empty();
+        return OptionalInt.of(night ? 2 * number - 1 : 2 * number);
     }
 
     /** For the input filter: true if the text could still become a valid phase while typing. */
