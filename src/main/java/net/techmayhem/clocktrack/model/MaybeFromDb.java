@@ -20,25 +20,25 @@ public sealed interface MaybeFromDb<T> {
     /// @param <T> The type of the model
     record Unsaved<T>(T raw) implements MaybeFromDb<T> {}
 
-    /// Convenience method to create a new instance of MaybeFromDb from a saved model.
+    /// Creates a [Persisted] from a saved model.
     ///
     /// @param fromDb The model from the database
     /// @param <T> The type of the model
-    /// @return The new instance of MaybeFromDb
+    /// @return The persisted model
     static <T> MaybeFromDb<T> of(FromDb<T> fromDb) {
         return new Persisted<>(fromDb);
     }
 
-    /// Convenience method to create a new instance of MaybeFromDb from an unsaved model.
+    /// Creates an [Unsaved] from an unsaved model.
     ///
     /// @param raw The unsaved model
     /// @param <T> The type of the model
-    /// @return The new instance of MaybeFromDb
+    /// @return The unsaved model
     static <T> MaybeFromDb<T> of(T raw) {
         return new Unsaved<>(raw);
     }
 
-    /// Access the underlying model regardless of the actual variant.
+    /// Returns the underlying model, whether it is saved or not.
     ///
     /// @return The underlying model
     default T value() {

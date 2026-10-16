@@ -32,8 +32,8 @@ public class ClockTrackApp extends Application {
 
     /// Sets up the main window and shows it.
     ///
-    /// @param stage the primary stage provided by JavaFX
-    /// @throws FileNotFoundException if the app icon is missing from the resources
+    /// @param stage The primary stage provided by JavaFX
+    /// @throws FileNotFoundException If the app icon is missing from the resources
     @Override
     public void start(Stage stage) throws FileNotFoundException {
         Dialogs.setPrimaryStage(stage);
@@ -81,8 +81,8 @@ public class ClockTrackApp extends Application {
 
     /// Opens the app icon from the resources.
     ///
-    /// @return a stream of the app icon
-    /// @throws FileNotFoundException if the icon is missing from the resources
+    /// @return A stream of the app icon
+    /// @throws FileNotFoundException If the icon is missing from the resources
     private InputStream getIcon() throws FileNotFoundException {
         String iconPath = "/icons/app-256.png";
         InputStream icon = getClass().getResourceAsStream(iconPath);
@@ -90,11 +90,11 @@ public class ClockTrackApp extends Application {
         return icon;
     }
 
-    /// Shows the error to the user in a dialog. The app closes afterward, unless it is a
-    /// recoverable [DatabaseException]. Can be called from any thread.
+    /// Shows the error to the user in a dialog. The app closes afterward, unless it is a recoverable
+    /// [DatabaseException]. Can be called from any thread.
     ///
-    /// @param thread    the thread the error was thrown on
-    /// @param throwable the error to show
+    /// @param thread The thread the error was thrown on
+    /// @param throwable The error to show
     private static void handleUncaughtException(Thread thread, Throwable throwable) {
         throwable.printStackTrace();
 

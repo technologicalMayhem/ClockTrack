@@ -7,7 +7,12 @@ import java.sql.Statement;
 import java.util.HashSet;
 import java.util.List;
 
+/// Creates and validates the database schema.
 class Schema {
+    /// Creates all tables.
+    ///
+    /// @param conn The connection to the database
+    /// @throws SQLException If a table cannot be created
     static void createSchema(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
             statement.execute("""
@@ -54,9 +59,12 @@ class Schema {
         }
     }
 
-    /// Checks if the schema needs to be set up. Returns true if no tables have been created yet.
+    /// Checks whether the schema has been set up.
     ///
-    /// If tables have already been created but do not match the expected schema, a `DatabaseException` is thrown.
+    /// @param conn The connection to the database
+    /// @return True if all expected tables exist, false if the database contains no tables
+    /// @throws DatabaseException If the existing tables do not match the expected tables
+    /// @throws SQLException If the tables cannot be read
     static boolean isDbSetup(Connection conn) throws SQLException {
         HashSet<String> foundTables = new HashSet<>();
         try (Statement statement = conn.createStatement();

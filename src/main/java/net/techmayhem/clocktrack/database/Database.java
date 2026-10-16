@@ -10,9 +10,18 @@ import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.projections.SessionSummary;
 import org.jspecify.annotations.Nullable;
 
+/// The shared connection to the ClockTrack database. All reads and writes of players, scripts, sessions, and the
+/// players taking part in each session go through it.
+///
+/// Each public method is a single transaction. On failure, its changes are rolled back and a [DatabaseException] is
+/// thrown.
+///
+/// The class is not thread-safe.
 public class Database implements AutoCloseable {
     private static final int EXPECTED_ROWS_AFFECTED_BY_UPDATE = 1;
+    /// The path of the database file, relative to the working directory.
     public static final String CLOCK_TRACK_DB = "ClockTrack.db";
+    /// The JDBC connection string for [#CLOCK_TRACK_DB].
     public static final String CONNECTION_STRING = "jdbc:sqlite:" + CLOCK_TRACK_DB;
 
     private final Connection connection;
@@ -29,6 +38,12 @@ public class Database implements AutoCloseable {
         connection.setAutoCommit(false);
     }
 
+    /// Returns the shared instance. On the first call, the connection is established, and the database file and schema
+    /// are created if they do not exist.
+    ///
+    /// @return The shared instance
+    /// @throws DatabaseException If the connection cannot be established, or the existing schema does not match the
+    /// expected one
     public static Database getInstance() {
         if (instance == null) {
             Database db;
@@ -55,10 +70,17 @@ public class Database implements AutoCloseable {
         });
     }
 
+    /// Checks whether the database file exists.
+    ///
+    /// @return True if the database file exists
     public static boolean exists() {
         return new File(CLOCK_TRACK_DB).exists();
     }
 
+    /// Inserts a new player.
+    ///
+    /// @param player The player to insert
+    /// @return The inserted player with its generated id
     public FromDb<Player> insertPlayer(Player player) {
         return runTransaction(conn -> insertPlayer(conn, player));
     }
@@ -76,6 +98,11 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves a player by id.
+    ///
+    /// @param id The id of the player
+    /// @return The player
+    /// @throws DatabaseException If no player with the given id exists
     public FromDb<Player> getPlayer(int id) {
         return runTransaction(conn -> getPlayer(conn, id));
     }
@@ -94,6 +121,9 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves all players.
+    ///
+    /// @return All players, in unspecified order
     public List<FromDb<Player>> getAllPlayers() {
         return runTransaction(Database::getAllPlayers);
     }
@@ -112,6 +142,10 @@ public class Database implements AutoCloseable {
         return result;
     }
 
+    /// Updates an existing player.
+    ///
+    /// @param player The player with its updated values
+    /// @throws DatabaseException If no player with the given id exists
     public void updatePlayer(FromDb<Player> player) {
         runTransaction(conn -> {
             updatePlayer(conn, player);
@@ -129,6 +163,13 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Deletes a player. Has no effect if no player with the given id exists.
+    ///
+    /// Sessions the player took part in are kept, so the history of past games stays intact. Their references to
+    /// the player are set to null instead, which anonymizes the player. [#isPlayerReferenced(int)] tells you
+    /// beforehand whether that will happen.
+    ///
+    /// @param id The id of the player
     public void deletePlayer(int id) {
         runTransaction(conn -> {
             deletePlayer(conn, id);
@@ -144,6 +185,10 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Checks whether a player is referenced by any session, either as a storyteller or as a participant.
+    ///
+    /// @param id The id of the player
+    /// @return True if at least one session references the player
     public boolean isPlayerReferenced(int id) {
         return runTransaction(conn -> isPlayerReferenced(conn, id));
     }
@@ -163,6 +208,10 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Checks whether a script is referenced by any session. A referenced script cannot be deleted.
+    ///
+    /// @param id The id of the script
+    /// @return True if at least one session references the script
     public boolean isScriptReferenced(int id) {
         return runTransaction(conn -> isScriptReferenced(conn, id));
     }
@@ -180,6 +229,12 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves a session by id. Its player sessions are retrieved separately with
+    /// [#getAllPlayerSessionsForSession(int)].
+    ///
+    /// @param id The id of the session
+    /// @return The session
+    /// @throws DatabaseException If no session with the given id exists
     public FromDb<Session> getSession(int id) {
         return runTransaction(conn -> getSession(conn, id));
     }
@@ -198,6 +253,15 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Inserts or updates a session together with its player sessions. An unsaved session is inserted, a persisted
+    /// session is updated.
+    ///
+    /// The given player sessions replace all player sessions previously stored for the session. Their session id is
+    /// ignored and set to the id of the stored session.
+    ///
+    /// @param session The session to insert or update
+    /// @param playerSessions The player sessions of the session
+    /// @throws DatabaseException If the session is persisted but no session with its id exists
     public void saveSession(MaybeFromDb<Session> session, List<PlayerSession> playerSessions) {
         runTransaction(conn -> {
             int sessionId;
@@ -235,6 +299,9 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves all sessions, without their player sessions.
+    ///
+    /// @return All sessions, in unspecified order
     public List<FromDb<Session>> getAllSessions() {
         return runTransaction(Database::getAllSessions);
     }
@@ -268,6 +335,9 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Deletes a session together with its player sessions. Has no effect if no session with the given id exists.
+    ///
+    /// @param id The id of the session
     public void deleteSession(int id) {
         runTransaction(conn -> {
             deleteAllPlayerSessionsForSession(conn, id);
@@ -299,6 +369,10 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves all player sessions of a session.
+    ///
+    /// @param session_id The id of the session
+    /// @return The player sessions of the session, in unspecified order
     public List<FromDb<PlayerSession>> getAllPlayerSessionsForSession(int session_id) {
         return runTransaction(conn -> getAllPlayerSessionsForSession(conn, session_id));
     }
@@ -326,6 +400,10 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Inserts a new script.
+    ///
+    /// @param script The script to insert
+    /// @return The inserted script with its generated id
     public FromDb<Script> insertScript(Script script) {
         return runTransaction(conn -> insertScript(conn, script));
     }
@@ -343,6 +421,11 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves a script by id.
+    ///
+    /// @param id The id of the script
+    /// @return The script
+    /// @throws DatabaseException If no script with the given id exists
     public FromDb<Script> getScript(int id) {
         return runTransaction(conn -> getScript(conn, id));
     }
@@ -361,6 +444,9 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves all scripts.
+    ///
+    /// @return All scripts, in unspecified order
     public List<FromDb<Script>> getAllScripts() {
         return runTransaction(Database::getAllScripts);
     }
@@ -379,6 +465,10 @@ public class Database implements AutoCloseable {
         return result;
     }
 
+    /// Updates an existing script.
+    ///
+    /// @param script The script with its updated values
+    /// @throws DatabaseException If no script with the given id exists
     public void updateScript(FromDb<Script> script) {
         runTransaction(conn -> {
             updateScript(conn, script);
@@ -397,6 +487,10 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Deletes a script. Has no effect if no script with the given id exists.
+    ///
+    /// @param id The id of the script
+    /// @throws DatabaseException If the script is referenced by any session, see [#isScriptReferenced(int)]
     public void deleteScript(int id) {
         runTransaction(conn -> {
             deleteScript(conn, id);
@@ -412,6 +506,9 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves summary statistics for every player.
+    ///
+    /// @return A summary for every player, ordered by name
     public List<PlayerSummary> getPlayerSummaries() {
         return runTransaction(Database::getPlayerSummaries);
     }
@@ -444,6 +541,9 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves summary statistics for every script.
+    ///
+    /// @return A summary for every script, ordered by name
     public List<ScriptSummary> getScriptSummaries() {
         return runTransaction(Database::getScriptSummaries);
     }
@@ -472,6 +572,9 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Retrieves summary statistics for every session.
+    ///
+    /// @return A summary for every session, ordered by date, newest first
     public List<SessionSummary> getSessionSummaries() {
         return runTransaction(Database::getSessionSummaries);
     }
@@ -506,12 +609,13 @@ public class Database implements AutoCloseable {
                     "Update changed " + rowCount + " rows instead of " + EXPECTED_ROWS_AFFECTED_BY_UPDATE, null, true);
     }
 
+    /// A function that runs against a database connection.
     @FunctionalInterface
     interface SqlFunction<T extends @Nullable Object> {
         T apply(Connection conn) throws SQLException;
     }
 
-    /// Wrapper function for common database exception handling logic.
+    /// Runs the given function in a single transaction. The transaction is rolled back if the function throws.
     private <T> T runTransaction(SqlFunction<T> body) {
         if (inTransaction)
             throw new IllegalStateException(
@@ -542,6 +646,9 @@ public class Database implements AutoCloseable {
         }
     }
 
+    /// Closes the database connection. The next call to [#getInstance()] establishes a new connection.
+    ///
+    /// @throws SQLException If the connection cannot be closed
     @Override
     public void close() throws SQLException {
         connection.close();

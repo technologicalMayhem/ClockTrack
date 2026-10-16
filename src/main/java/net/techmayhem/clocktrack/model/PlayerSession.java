@@ -2,18 +2,21 @@ package net.techmayhem.clocktrack.model;
 
 import org.jspecify.annotations.Nullable;
 
-/// Represents a players' state in a session.
+/// Represents a player's state in a [Session]. A `PlayerSession` holds all data that is specific to a player within a
+/// session.
 ///
-/// The [sessionId] and [playerId] must be unique among all PlayerSessions.
+/// The following properties are true for any valid `PlayerSession`:
+/// - The combination of [sessionId] and [playerId] is unique among all `PlayerSession`s.
+/// - A non-null [deathInPhase] requires a non-null [causeOfDeath]. And vice versa.
 ///
-/// TODO: Document this properly
+/// The [playerId] may be null. This occurs when a player has been anonymized and removed from the database.
 ///
-/// @param sessionId The unique identifier for the session
-/// @param playerId The unique identifier for the player
+/// @param sessionId The id of the session
+/// @param playerId The id of the player, or null if the player has been removed
 /// @param role The role of the player in the session
-/// @param deathInPhase The phase in which the player died
-/// @param causeOfDeath The cause of the player's death
-/// @param good Whether the player was good or evil
+/// @param deathInPhase The phase in which the player died, or null if they survived
+/// @param causeOfDeath The cause of the player's death, or null if they survived
+/// @param good Whether the player was good
 /// @param note Additional notes about the player's session
 public record PlayerSession(
         int sessionId,
@@ -24,6 +27,10 @@ public record PlayerSession(
         boolean good,
         @Nullable String note) {
 
+    /// Returns a copy with the given session id.
+    ///
+    /// @param sessionId The new session id
+    /// @return A copy with the given session id
     public PlayerSession withSessionId(int sessionId) {
         return new PlayerSession(
                 sessionId, this.playerId, this.role, this.deathInPhase, this.causeOfDeath, this.good, this.note);
