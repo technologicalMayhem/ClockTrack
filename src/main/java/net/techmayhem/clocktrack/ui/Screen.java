@@ -10,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 public abstract class Screen {
     @Nullable private Tab tab;
 
+    /// Creates the screen. Its tab is only created on the first call to [#getTab()].
     protected Screen() {}
 
     /// Returns the content of the screen. It is called once, when the tab is created.
@@ -28,6 +29,10 @@ public abstract class Screen {
     /// Called when the screen is hidden, including when its tab is about to close. Does nothing by default.
     protected void onHide() {}
 
+    /// Returns the tab that shows this screen. The tab is created on the first call, and [#onShow()] and [#onHide()]
+    /// are called when it is selected or deselected.
+    ///
+    /// @return The tab of the screen
     public Tab getTab() {
         if (tab == null) {
             tab = new Tab(getName(), getView());

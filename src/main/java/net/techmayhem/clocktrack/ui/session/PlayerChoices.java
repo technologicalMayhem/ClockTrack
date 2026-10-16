@@ -16,6 +16,8 @@ import org.jspecify.annotations.Nullable;
 ///
 /// The first choice is empty and stands for an unknown player. It also stands in for players who have been removed
 /// from the database, so every stored session can be shown.
+///
+/// @param items The choices, starting with the empty one for an unknown player
 record PlayerChoices(List<Optional<FromDb<Player>>> items) {
 
     static PlayerChoices of(List<FromDb<Player>> players) {

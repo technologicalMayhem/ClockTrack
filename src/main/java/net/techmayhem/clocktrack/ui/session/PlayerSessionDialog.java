@@ -41,6 +41,12 @@ class PlayerSessionDialog {
 
     private boolean shouldSubmit = false;
 
+    /// Creates the dialog for the given player session, with its fields filled in. Without a player session, the
+    /// fields start empty.
+    ///
+    /// @param playerSession The player session to edit, or null to add a new one
+    /// @param players The players to choose from
+    /// @param takenPlayerIds The ids of the players who are already in the session and cannot be chosen
     public PlayerSessionDialog(
             @Nullable PlayerSession playerSession, List<FromDb<Player>> players, Set<Integer> takenPlayerIds) {
         this.takenPlayerIds = takenPlayerIds;
@@ -200,7 +206,7 @@ class PlayerSessionDialog {
         return takenPlayerIds.contains(player.id());
     }
 
-    /// A cell of the player choice that greys out and disables players who are already in the session.
+    /// A cell of the player choice that grays out and disables players who are already in the session.
     private class PlayerChoiceCell extends ListCell<Optional<FromDb<Player>>> {
         private static final double OPACITY_NORMAL = 1.0;
         private static final double OPACITY_UNAVAILABLE = 0.4;
