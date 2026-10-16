@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=ClockTrack
+Comment=Track Blood on the Clocktower sessions
+Exec=/PATH/TO/ClockTrack/bin/ClockTrack
+Icon=clocktrack
+Terminal=false
+Categories=Game;Utility;
+StartupWMClass=net.techmayhem.clocktrack.ClockTrackApp
