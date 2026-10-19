@@ -86,7 +86,7 @@ public class ScriptEditor extends Screen {
         if (errorSummary.hasErrors().get()) return;
         Database db = Database.getInstance();
         String json = scriptJson.getText();
-        Script model = new Script(scriptName.getText(), json.isBlank() ? null : json);
+        Script model = new Script(scriptName.getText().strip(), json.isBlank() ? null : json);
         if (scriptFromDb != null) {
             db.updateScript(scriptFromDb.with(model));
         } else {
