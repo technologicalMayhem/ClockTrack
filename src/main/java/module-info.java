@@ -7,6 +7,7 @@ module net.techmayhem.clocktrack {
     requires static org.jspecify;
     requires org.xerial.sqlitejdbc;
     requires static org.jetbrains.annotations;
+    requires com.google.gson;
 
     exports net.techmayhem.clocktrack to
             javafx.graphics;
