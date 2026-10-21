@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
 
 /// Blood on the Clocktower roles loaded from bundled game data.
 ///
-/// Roles resolves each character's name and ability text using the active locale when a translation is available.
+/// `Roles` resolves each character's name and ability text using the active locale when a translation is available.
 /// If a character has no translation for the active locale, the default bundled text is used instead.
 public class Roles {
     private static final String ROLES_PATH = "/net/techmayhem/clocktrack/gamedata/roles.json";
