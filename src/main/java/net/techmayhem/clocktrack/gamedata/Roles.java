@@ -8,7 +8,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Locale;
-import org.jetbrains.annotations.Nullable;
+import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 /// Blood on the Clocktower roles loaded from bundled game data.
 ///
@@ -66,7 +67,9 @@ public class Roles {
                             id,
                             localized(translation, role, "name"),
                             localized(translation, role, "ability"),
-                            Team.fromJson(role.get("team").getAsString())));
+                            Objects.requireNonNull(
+                                    Team.parse(role.get("team").getAsString()),
+                                    "Unknown team in roles.json: " + role.get("team"))));
         }
     }
 

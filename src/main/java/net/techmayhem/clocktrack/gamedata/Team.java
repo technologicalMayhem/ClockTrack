@@ -1,6 +1,6 @@
 package net.techmayhem.clocktrack.gamedata;
 
-import java.util.Locale;
+import org.jspecify.annotations.Nullable;
 
 /// The character type a Blood on the Clocktower character belongs to. Referred to as a team in technical contexts.
 ///
@@ -51,7 +51,10 @@ public enum Team {
     /// the game feel fresh and interesting.
     LORIC;
 
-    static Team fromJson(String value) {
-        return valueOf(value.toUpperCase(Locale.ROOT));
+    static @Nullable Team parse(String value) {
+        for (Team team : values()) {
+            if (team.name().equalsIgnoreCase(value)) return team;
+        }
+        return null;
     }
 }

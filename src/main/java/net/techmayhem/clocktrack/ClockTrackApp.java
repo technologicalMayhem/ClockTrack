@@ -40,8 +40,9 @@ public class ClockTrackApp extends Application {
         Dialogs.setPrimaryStage(stage);
         Thread.setDefaultUncaughtExceptionHandler(ClockTrackApp::handleUncaughtException);
 
-        I18n.setLocale(Locale.getDefault());
-        Roles.loadLocale(Locale.getDefault());
+        Locale locale = Locale.getDefault();
+        I18n.setLocale(locale);
+        Roles.loadLocale(locale);
 
         stage.getIcons().add(new Image(getIcon()));
         stage.setTitle(localize("appTitle"));

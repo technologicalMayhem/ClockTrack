@@ -60,9 +60,11 @@ public final class SampleDataLoader {
         FromDb<Player> dog = player("Dog");
         FromDb<Player> adrian = player("Adrian");
 
-        FromDb<Script> troubleBrewing = db.insertScript(new Script(text("script.troubleBrewing"), null));
-        // Deliberately never played, so the overview shows a script without games.
-        db.insertScript(new Script(text("script.sectsAndViolets"), null));
+        FromDb<Script> troubleBrewing =
+                db.insertScript(new Script(BaseScripts.NAME_TROUBLE_BREWING, BaseScripts.JSON_TROUBLE_BREWING));
+        // Deliberately never played, so the overview shows scripts without games.
+        db.insertScript(new Script(BaseScripts.NAME_BAD_MOON_RISING, BaseScripts.JSON_BAD_MOON_RISING));
+        db.insertScript(new Script(BaseScripts.NAME_SECTS_AND_VIOLETS, BaseScripts.JSON_SECTS_AND_VIOLETS));
 
         // Saint executed on day one: evil wins immediately.
         session(

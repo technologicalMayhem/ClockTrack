@@ -115,7 +115,7 @@ public class ScriptsOverview extends EntityOverview {
     }
 
     private void createNewScript() {
-        screenHost.open(new ScriptEditor(null));
+        screenHost.open(new ScriptEditor(null, false));
     }
 
     private void viewScript() {
@@ -128,7 +128,7 @@ public class ScriptsOverview extends EntityOverview {
     private void editScript() {
         ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
         FromDb<Script> script = Database.getInstance().getScript(selectedItem.id());
-        ScriptEditor sessionEdit = new ScriptEditor(script);
+        ScriptEditor sessionEdit = new ScriptEditor(script, selectedItem.timesPlayed() > 0);
         screenHost.open(sessionEdit);
     }
 
