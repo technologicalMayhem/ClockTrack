@@ -616,7 +616,7 @@ public class Database implements AutoCloseable {
     }
 
     /// Runs the given function in a single transaction. The transaction is rolled back if the function throws.
-    private <T> T runTransaction(SqlFunction<T> body) {
+    private <T extends @Nullable Object> T runTransaction(SqlFunction<T> body) {
         if (inTransaction)
             throw new IllegalStateException(
                     "Nested transaction. runTransaction must not be called within a transaction.");
