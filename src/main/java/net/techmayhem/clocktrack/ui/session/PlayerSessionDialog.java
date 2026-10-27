@@ -10,10 +10,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import net.techmayhem.clocktrack.gamedata.Role;
+import net.techmayhem.clocktrack.gamedata.SessionRoles;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Player;
 import net.techmayhem.clocktrack.model.PlayerSession;
 import net.techmayhem.clocktrack.ui.Layout;
+import net.techmayhem.clocktrack.ui.component.DisplayConverter;
 import net.techmayhem.clocktrack.ui.component.ErrorSummary;
 import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 import org.jspecify.annotations.Nullable;
@@ -27,10 +30,10 @@ class PlayerSessionDialog {
 
     private final PlayerChoices playerChoices;
     private final ComboBox<Optional<FromDb<Player>>> playerChoice;
-    private final TextField roleField;
+    private final ComboBox<Role> roleField;
     private final CheckBox died;
     private final Spinner<Integer> deathPhase;
-    private final TextField causeOfDeathField;
+    private final ComboBox<String> causeOfDeathField;
     private final RadioButton goodRadio;
     private final RadioButton evilRadio;
     private final TextArea noteText;
@@ -47,8 +50,12 @@ class PlayerSessionDialog {
     /// @param playerSession The player session to edit, or null to add a new one
     /// @param players The players to choose from
     /// @param takenPlayerIds The ids of the players who are already in the session and cannot be chosen
+    /// @param sessionRoles The roles and causes of death that are valid in the session
     public PlayerSessionDialog(
-            @Nullable PlayerSession playerSession, List<FromDb<Player>> players, Set<Integer> takenPlayerIds) {
+            @Nullable PlayerSession playerSession,
+            List<FromDb<Player>> players,
+            Set<Integer> takenPlayerIds,
+            SessionRoles sessionRoles) {
         this.takenPlayerIds = takenPlayerIds;
         playerChoices = PlayerChoices.of(players);
         String title;
@@ -64,7 +71,9 @@ class PlayerSessionDialog {
         playerChoice.setConverter(playerChoices.converter());
         playerChoice.setCellFactory(_ -> new PlayerChoiceCell());
 
-        roleField = new TextField();
+        roleField = new ComboBox<>();
+        roleField.getItems().addAll(sessionRoles.roleChoices());
+        roleField.setConverter(new DisplayConverter<>(Role::name));
 
         died = new CheckBox(localize("playerSessionDialog.label.died"));
 
@@ -85,7 +94,10 @@ class PlayerSessionDialog {
             }
         });
 
-        causeOfDeathField = new TextField();
+        causeOfDeathField = new ComboBox<>();
+        causeOfDeathField.getItems().addAll(sessionRoles.causeChoices());
+        causeOfDeathField.setConverter(new DisplayConverter<>(id -> Lookup.cause(sessionRoles, id)));
+
         BooleanBinding diedProperty = died.selectedProperty().not();
         deathPhase.disableProperty().bind(diedProperty);
         causeOfDeathField.disableProperty().bind(diedProperty);
@@ -101,10 +113,10 @@ class PlayerSessionDialog {
         errorSummary = new ErrorSummary(
                 this::validate,
                 playerChoice.valueProperty(),
-                roleField.textProperty(),
+                roleField.valueProperty(),
                 died.selectedProperty(),
                 deathPhase.valueProperty(),
-                causeOfDeathField.textProperty(),
+                causeOfDeathField.valueProperty(),
                 alignmentGroup.selectedToggleProperty());
 
         Button submitButton = new Button(localize("generic.submit"));
@@ -138,11 +150,14 @@ class PlayerSessionDialog {
 
         if (playerSession != null) {
             playerChoice.setValue(playerChoices.itemFor(playerSession.playerId()));
-            roleField.setText(playerSession.role());
+            Role role = sessionRoles.get(playerSession.role());
+            if (role != null) roleField.setValue(role);
             if (playerSession.deathInPhase() != null && playerSession.causeOfDeath() != null) {
                 died.setSelected(true);
                 deathPhase.getValueFactory().setValue(playerSession.deathInPhase());
-                causeOfDeathField.setText(playerSession.causeOfDeath());
+                if (sessionRoles.isValidCause(playerSession.causeOfDeath())) {
+                    causeOfDeathField.setValue(playerSession.causeOfDeath());
+                }
             }
             if (playerSession.good()) {
                 goodRadio.setSelected(true);
@@ -168,9 +183,9 @@ class PlayerSessionDialog {
                 .getSelectedItem()
                 .map(FromDb::id)
                 .orElse(null);
-        String role = roleField.getText();
+        String role = roleField.getValue().id();
         Integer deathInPhase = died.isSelected() ? deathPhase.getValue() : null;
-        String causeOfDeath = died.isSelected() ? causeOfDeathField.getText() : null;
+        String causeOfDeath = died.isSelected() ? causeOfDeathField.getValue() : null;
         boolean good = goodRadio.isSelected();
         String note = noteText.getText();
 
@@ -189,10 +204,10 @@ class PlayerSessionDialog {
                 .orElse(false)) {
             errors.add(localize("playerSessionDialog.inspection.alreadyInGame"));
         }
-        if (roleField.getText().isBlank()) {
+        if (roleField.getSelectionModel().isEmpty()) {
             errors.add(localize("playerSessionDialog.inspection.role"));
         }
-        if (died.isSelected() && causeOfDeathField.getText().isBlank()) {
+        if (died.isSelected() && causeOfDeathField.getSelectionModel().isEmpty()) {
             errors.add(localize("playerSessionDialog.inspection.causeOfDeath"));
         }
         if (!goodRadio.isSelected() && !evilRadio.isSelected()) {

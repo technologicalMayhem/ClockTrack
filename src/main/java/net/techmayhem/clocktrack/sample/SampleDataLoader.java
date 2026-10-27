@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.database.DatabaseException;
+import net.techmayhem.clocktrack.gamedata.SessionRoles;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.MaybeFromDb;
 import net.techmayhem.clocktrack.model.Player;
@@ -36,7 +37,7 @@ public final class SampleDataLoader {
 
     /// Loads the sample data into the given database.
     ///
-    /// @param db The database to load the sample data into
+    /// @param db     The database to load the sample data into
     /// @param locale The locale that determines the language of the sample data
     /// @throws DatabaseException If the database already contains players, scripts, or sessions
     public static void load(Database db, Locale locale) {
@@ -74,14 +75,14 @@ public final class SampleDataLoader {
                 troubleBrewing,
                 "session.saintExecuted",
                 List.of(
-                        alive(barney, "role.washerwoman", true),
-                        alive(isaac, "role.empath", true),
-                        alive(eli, "role.monk", true),
-                        alive(wallace, "role.soldier", true),
-                        alive(judith, "role.fortuneTeller", true),
-                        dead(alyx, "role.saint", true, day(1), "cause.executed"),
-                        alive(lamar, "role.poisoner", false),
-                        alive(dog, "role.imp", false)));
+                        alive(barney, "washerwoman", true),
+                        alive(isaac, "empath", true),
+                        alive(eli, "monk", true),
+                        alive(wallace, "soldier", true),
+                        alive(judith, "fortuneteller", true),
+                        dead(alyx, "saint", true, day(1), SessionRoles.EXECUTION),
+                        alive(lamar, "poisoner", false),
+                        alive(dog, "imp", false)));
 
         // Good wins by executing the Imp on day two.
         session(
@@ -91,14 +92,14 @@ public final class SampleDataLoader {
                 troubleBrewing,
                 null,
                 List.of(
-                        alive(gordon, "role.chef", true),
-                        alive(isaac, "role.undertaker", true),
-                        dead(eli, "role.ravenkeeper", true, night(2), "cause.imp"),
-                        alive(wallace, "role.virgin", true),
-                        dead(judith, "role.investigator", true, day(1), "cause.executed"),
-                        alive(adrian, "role.butler", true),
-                        alive(lamar, "role.spy", false),
-                        dead(dog, "role.imp", false, day(2), "cause.executed")));
+                        alive(gordon, "chef", true),
+                        alive(isaac, "undertaker", true),
+                        dead(eli, "ravenkeeper", true, night(2), "imp"),
+                        alive(wallace, "virgin", true),
+                        dead(judith, "investigator", true, day(1), SessionRoles.EXECUTION),
+                        alive(adrian, "butler", true),
+                        alive(lamar, "spy", false),
+                        dead(dog, "imp", false, day(2), SessionRoles.EXECUTION)));
 
         // The Slayer hits the Imp on day one.
         session(
@@ -108,14 +109,14 @@ public final class SampleDataLoader {
                 troubleBrewing,
                 null,
                 List.of(
-                        alive(gordon, "role.librarian", true),
-                        alive(barney, "role.mayor", true),
-                        alive(eli, "role.slayer", true),
-                        alive(wallace, "role.monk", true),
-                        alive(judith, "role.empath", true),
-                        alive(alyx, "role.drunk", true),
-                        alive(adrian, "role.poisoner", false),
-                        dead(dog, "role.imp", false, day(1), "cause.slayer")));
+                        alive(gordon, "librarian", true),
+                        alive(barney, "mayor", true),
+                        alive(eli, "slayer", true),
+                        alive(wallace, "monk", true),
+                        alive(judith, "empath", true),
+                        alive(alyx, "drunk", true),
+                        alive(adrian, "poisoner", false),
+                        dead(dog, "imp", false, day(1), "slayer")));
 
         // A long game: evil wins once only two players are left.
         session(
@@ -125,14 +126,14 @@ public final class SampleDataLoader {
                 troubleBrewing,
                 null,
                 List.of(
-                        dead(barney, "role.fortuneTeller", true, day(3), "cause.executed"),
-                        dead(isaac, "role.monk", true, night(4), "cause.imp"),
-                        dead(eli, "role.chef", true, night(3), "cause.imp"),
-                        dead(wallace, "role.recluse", true, day(1), "cause.executed"),
-                        dead(judith, "role.washerwoman", true, day(2), "cause.executed"),
-                        alive(alyx, "role.spy", false),
-                        alive(adrian, "role.imp", false),
-                        dead(lamar, "role.empath", true, night(2), "cause.imp")));
+                        dead(barney, "fortuneteller", true, day(3), SessionRoles.EXECUTION),
+                        dead(isaac, "monk", true, night(4), "imp"),
+                        dead(eli, "chef", true, night(3), "imp"),
+                        dead(wallace, "recluse", true, day(1), SessionRoles.EXECUTION),
+                        dead(judith, "washerwoman", true, day(2), SessionRoles.EXECUTION),
+                        alive(alyx, "spy", false),
+                        alive(adrian, "imp", false),
+                        dead(lamar, "empath", true, night(2), "imp")));
 
         // A townsfolk nominates the Virgin and is executed on the spot; good wins on day three.
         session(
@@ -142,16 +143,16 @@ public final class SampleDataLoader {
                 troubleBrewing,
                 null,
                 List.of(
-                        alive(gordon, "role.investigator", true),
-                        dead(barney, "role.undertaker", true, night(3), "cause.imp"),
-                        alive(isaac, "role.ravenkeeper", true),
+                        alive(gordon, "investigator", true),
+                        dead(barney, "undertaker", true, night(3), "imp"),
+                        alive(isaac, "ravenkeeper", true),
                         withNote(
-                                dead(wallace, "role.empath", true, day(1), "cause.executed"),
+                                dead(wallace, "empath", true, day(1), SessionRoles.EXECUTION),
                                 text("seat.nominatedVirgin")),
-                        dead(judith, "role.virgin", true, night(2), "cause.imp"),
-                        alive(alyx, "role.butler", true),
-                        dead(adrian, "role.poisoner", false, day(2), "cause.executed"),
-                        dead(dog, "role.imp", false, day(3), "cause.executed")));
+                        dead(judith, "virgin", true, night(2), "imp"),
+                        alive(alyx, "butler", true),
+                        dead(adrian, "poisoner", false, day(2), SessionRoles.EXECUTION),
+                        dead(dog, "imp", false, day(3), SessionRoles.EXECUTION)));
     }
 
     private FromDb<Player> player(@NonNls String name) {
@@ -170,18 +171,12 @@ public final class SampleDataLoader {
         db.saveSession(MaybeFromDb.of(session), seats);
     }
 
-    private PlayerSession alive(
-            FromDb<Player> player, @PropertyKey(resourceBundle = BUNDLE_NAME) String roleKey, boolean good) {
-        return new PlayerSession(NEW_SESSION, player.id(), text(roleKey), null, null, good, null);
+    private PlayerSession alive(FromDb<Player> player, String role, boolean good) {
+        return new PlayerSession(NEW_SESSION, player.id(), role, null, null, good, null);
     }
 
-    private PlayerSession dead(
-            FromDb<Player> player,
-            @PropertyKey(resourceBundle = BUNDLE_NAME) String roleKey,
-            boolean good,
-            int phase,
-            @PropertyKey(resourceBundle = BUNDLE_NAME) String causeKey) {
-        return new PlayerSession(NEW_SESSION, player.id(), text(roleKey), phase, text(causeKey), good, null);
+    private PlayerSession dead(FromDb<Player> player, String role, boolean good, int phase, String cause) {
+        return new PlayerSession(NEW_SESSION, player.id(), role, phase, cause, good, null);
     }
 
     private static PlayerSession withNote(PlayerSession seat, String note) {

@@ -5,19 +5,22 @@ import static net.techmayhem.clocktrack.ui.I18n.localize;
 import java.time.format.FormatStyle;
 import java.util.*;
 import java.util.stream.Collectors;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.converter.LocalDateStringConverter;
 import net.techmayhem.clocktrack.database.Database;
+import net.techmayhem.clocktrack.gamedata.Roles;
+import net.techmayhem.clocktrack.gamedata.ScriptFormatException;
+import net.techmayhem.clocktrack.gamedata.SessionRoles;
 import net.techmayhem.clocktrack.model.*;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Screen;
-import net.techmayhem.clocktrack.ui.component.ColumnDef;
-import net.techmayhem.clocktrack.ui.component.DisplayConverter;
-import net.techmayhem.clocktrack.ui.component.ErrorSummary;
-import net.techmayhem.clocktrack.ui.component.TableHelper;
+import net.techmayhem.clocktrack.ui.component.*;
 import org.jspecify.annotations.Nullable;
 
 /// A screen for creating a new session or editing an existing one, together with its player sessions.
@@ -41,11 +44,12 @@ public class SessionEditor extends Screen {
     private final TextArea note;
     private final TableView<PlayerSession> playerSessionTable;
     private final ErrorSummary errorSummary;
+    private final ObjectBinding<@Nullable SessionRoles> sessionRoles;
 
     /// Creates an editor for the given session, with its fields filled in. Without a session, the fields start empty.
     /// All players and scripts are loaded from the database to choose from.
     ///
-    /// @param session The session to edit, or null to create a new one
+    /// @param session        The session to edit, or null to create a new one
     /// @param playerSessions The player sessions of the session, or null to create a new one
     public SessionEditor(@Nullable FromDb<Session> session, @Nullable List<FromDb<PlayerSession>> playerSessions) {
         root = new VBox(Layout.SPACING);
@@ -80,6 +84,8 @@ public class SessionEditor extends Screen {
         script.getItems().addAll(db.getAllScripts());
         script.setConverter(new DisplayConverter<>(s -> s.model().name()));
 
+        Label scriptNoEditLabel = new Label(localize("sessionEditor.scriptNoEdit"));
+
         Button addButton = new Button(localize("sessionEditor.addPlayer"));
         Button editButton = new Button(localize("sessionEditor.editPlayer"));
         Button removeButton = new Button(localize("sessionEditor.removePlayer"));
@@ -90,8 +96,26 @@ public class SessionEditor extends Screen {
         playerSessionTable = new TableView<>();
         var noSelection =
                 playerSessionTable.getSelectionModel().selectedItemProperty().isNull();
-        editButton.disableProperty().bind(noSelection);
+
+        sessionRoles = Bindings.createObjectBinding(
+                () -> {
+                    if (script.getSelectionModel().isEmpty()) return null;
+                    try {
+                        return SessionRoles.of(script.getValue().model(), Roles.getInstance());
+                    } catch (ScriptFormatException e) {
+                        return null;
+                    }
+                },
+                script.valueProperty());
+        sessionRoles.addListener((_, _, _) -> playerSessionTable.refresh());
+
+        addButton.disableProperty().bind(sessionRoles.isNull());
+        editButton.disableProperty().bind(noSelection.or(sessionRoles.isNull()));
         removeButton.disableProperty().bind(noSelection);
+
+        BooleanBinding hasPlayers = Bindings.isNotEmpty(playerSessionTable.getItems());
+        script.disableProperty().bind(hasPlayers);
+        scriptNoEditLabel.visibleProperty().bind(hasPlayers);
 
         List<Button> buttons = List.of(addButton, editButton, removeButton);
         for (Button button : buttons) {
@@ -108,7 +132,7 @@ public class SessionEditor extends Screen {
         TableHelper.buildTableColumns(
                 playerSessionTable,
                 new ColumnDef<>(localize("sessionEditor.table.player"), ps -> playerChoices.nameFor(ps.playerId())),
-                new ColumnDef<>(localize("sessionEditor.table.role"), PlayerSession::role),
+                new ColumnDef<>(localize("sessionEditor.table.role"), ps -> Lookup.role(sessionRoles.get(), ps.role())),
                 new ColumnDef<>(
                         localize("sessionEditor.table.alignment"),
                         ps -> ps.good() ? localize("generic.good") : localize("generic.evil")),
@@ -118,7 +142,7 @@ public class SessionEditor extends Screen {
                 }),
                 new ColumnDef<>(localize("sessionEditor.table.causeOfDeath"), ps -> {
                     String cause = ps.causeOfDeath();
-                    return cause == null ? "" : cause;
+                    return cause == null ? "" : Lookup.cause(sessionRoles.get(), cause);
                 }),
                 new ColumnDef<>(localize("sessionEditor.table.note"), ps -> ps.note() == null ? "" : ps.note()));
         playerSessionTable.getItems().setAll(this.playerSessions);
@@ -132,7 +156,10 @@ public class SessionEditor extends Screen {
         grid.addRow(row++, new Label(localize("sessionEditor.label.storyteller")), storytellerChoice);
         grid.addRow(
                 row++, new Label(localize("sessionEditor.label.winner")), new HBox(Layout.SPACING, goodWon, evilWon));
-        grid.addRow(row, new Label(localize("sessionEditor.label.script")), script);
+        grid.addRow(
+                row,
+                new Label(localize("sessionEditor.label.script")),
+                new HBox(Layout.SPACING, script, scriptNoEditLabel));
 
         errorSummary = new ErrorSummary(
                 this::validate,
@@ -181,16 +208,22 @@ public class SessionEditor extends Screen {
     }
 
     private void addPlayer() {
-        PlayerSession newPlayerSession = new PlayerSessionDialog(null, players, takenPlayerIds(null)).showAndWait();
+        SessionRoles roles = sessionRoles.get();
+        if (roles == null) return;
+        PlayerSession newPlayerSession =
+                new PlayerSessionDialog(null, players, takenPlayerIds(null), roles).showAndWait();
         if (newPlayerSession == null) return;
         playerSessions.add(newPlayerSession);
         updateTable();
     }
 
     private void editPlayer() {
+        SessionRoles roles = sessionRoles.get();
+        if (roles == null) return;
         PlayerSession selected = playerSessionTable.getSelectionModel().getSelectedItem();
         int index = playerSessions.indexOf(selected);
-        PlayerSession edited = new PlayerSessionDialog(selected, players, takenPlayerIds(selected)).showAndWait();
+        PlayerSession edited =
+                new PlayerSessionDialog(selected, players, takenPlayerIds(selected), roles).showAndWait();
         if (edited == null) return;
         playerSessions.set(index, edited);
         updateTable();

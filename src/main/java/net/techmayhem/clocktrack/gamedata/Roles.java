@@ -6,9 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import org.jspecify.annotations.Nullable;
 
 /// Blood on the Clocktower roles loaded from bundled game data.
@@ -98,5 +96,15 @@ public class Roles {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    /// Returns all roles of a given team.
+    /// @param team The team to filter by.
+    /// @return A list of roles belonging to the specified team.
+    public List<Role> ofTeam(Team team) {
+        return resolvedCharacter.values().stream()
+                .filter(role -> role.team() == team)
+                .sorted(Comparator.comparing(Role::name))
+                .toList();
     }
 }
