@@ -14,6 +14,7 @@ import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Player;
+import net.techmayhem.clocktrack.projections.PlayerStatistics;
 import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
 import net.techmayhem.clocktrack.ui.I18n;
@@ -51,15 +52,19 @@ public class PlayerOverview extends EntityOverview {
         Button createButton = new Button(localize("playerOverview.add"));
         Button editButton = new Button(localize("playerOverview.edit"));
         Button deleteButton = new Button(localize("playerOverview.delete"));
+        Button showStatisticsButton = new Button(localize("playerOverview.stats"));
 
         createButton.setOnAction(_ -> createNewPlayer());
         editButton.setOnAction(_ -> editPlayer());
         deleteButton.setOnAction(_ -> deleteSelectedPlayer());
+        showStatisticsButton.setOnAction(_ -> showPlayerStatistics());
+
         var noSelection = table.getSelectionModel().selectedItemProperty().isNull();
         editButton.disableProperty().bind(noSelection);
         deleteButton.disableProperty().bind(noSelection);
+        showStatisticsButton.disableProperty().bind(noSelection);
 
-        List<Button> buttons = List.of(createButton, editButton, deleteButton);
+        List<Button> buttons = List.of(createButton, editButton, deleteButton, showStatisticsButton);
         for (Button button : buttons) {
             button.setMaxWidth(Double.MAX_VALUE);
         }
@@ -119,6 +124,12 @@ public class PlayerOverview extends EntityOverview {
                     Database.getInstance().deletePlayer(selectedPlayer.id());
                     updateTable();
                 });
+    }
+
+    private void showPlayerStatistics() {
+        PlayerSummary selectedPlayer = table.getSelectionModel().getSelectedItem();
+        PlayerStatistics playerStatistics = Database.getInstance().getPlayerStatistics(selectedPlayer.id());
+        screenHost.open(new PlayerView(playerStatistics));
     }
 
     @Override

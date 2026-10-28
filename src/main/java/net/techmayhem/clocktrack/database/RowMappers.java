@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.function.Function;
 import net.techmayhem.clocktrack.model.*;
+import net.techmayhem.clocktrack.projections.PlayerStatistics;
 import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.projections.SessionSummary;
@@ -86,6 +87,31 @@ class RowMappers {
                 rs.getString("storyteller"),
                 rs.getString("script_name"),
                 rs.getInt("player_count"));
+    }
+
+    /// Maps the current row to a [PlayerStatistics.Rate], from the `games` and `wins` columns.
+    static PlayerStatistics.Rate rate(ResultSet rs) throws SQLException {
+        return new PlayerStatistics.Rate(rs.getInt("games"), rs.getInt("wins"));
+    }
+
+    /// Maps the current row to a [PlayerStatistics.ScriptPlays].
+    static PlayerStatistics.ScriptPlays scriptPlays(ResultSet rs) throws SQLException {
+        return new PlayerStatistics.ScriptPlays(rs.getString("name"), rs.getInt("games"));
+    }
+
+    /// Maps the current row to a [PlayerStatistics.Teammate].
+    static PlayerStatistics.Teammate teammate(ResultSet rs) throws SQLException {
+        return new PlayerStatistics.Teammate(rs.getString("name"), rate(rs));
+    }
+
+    /// Maps the current row to a [GameInfo].
+    static GameInfo gameInfo(ResultSet rs) throws SQLException {
+        return new GameInfo(
+                rs.getInt("session_id"),
+                LocalDate.parse(rs.getString("date")),
+                rs.getBoolean("good"),
+                rs.getBoolean("won"),
+                rs.getBoolean("survived"));
     }
 
     /// Reads a nullable integer column. Returns null if the column is SQL NULL.

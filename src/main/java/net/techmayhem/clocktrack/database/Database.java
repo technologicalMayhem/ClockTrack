@@ -3,8 +3,11 @@ package net.techmayhem.clocktrack.database;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import net.techmayhem.clocktrack.model.*;
+import net.techmayhem.clocktrack.projections.PlayerStatistics;
 import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.projections.SessionSummary;
@@ -19,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 /// The class is not thread-safe.
 public class Database implements AutoCloseable {
     private static final int EXPECTED_ROWS_AFFECTED_BY_UPDATE = 1;
+    private static final int RECENT_GAME_COUNT = 5;
     /// The path of the database file, relative to the working directory.
     public static final String CLOCK_TRACK_DB = "ClockTrack.db";
     /// The JDBC connection string for [#CLOCK_TRACK_DB].
@@ -601,6 +605,223 @@ public class Database implements AutoCloseable {
             }
             return result;
         }
+    }
+
+    /// Retrieves the statistics of a player over all games they took part in.
+    ///
+    /// @param playerId The id of the player
+    /// @return The statistics of the player
+    /// @throws DatabaseException If no player with the given id exists
+    public PlayerStatistics getPlayerStatistics(int playerId) {
+        return runTransaction(conn -> {
+            FromDb<Player> player = getPlayer(conn, playerId);
+            List<GameInfo> games = getGameInfos(conn, playerId);
+
+            int wonGood = 0;
+            int wonEvil = 0;
+            int lossGood = 0;
+            int lossEvil = 0;
+            int survived = 0;
+
+            int longestWinStreak = 0;
+            int longestLossStreak = 0;
+            int longestGoodStreak = 0;
+            int longestEvilStreak = 0;
+
+            int curWin = 0;
+            int curLoss = 0;
+            int curGood = 0;
+            int curEvil = 0;
+
+            for (GameInfo game : games) {
+                if (game.good()) {
+                    if (game.won()) {
+                        wonGood++;
+                    } else {
+                        lossGood++;
+                    }
+                } else {
+                    if (game.won()) {
+                        wonEvil++;
+                    } else {
+                        lossEvil++;
+                    }
+                }
+                if (game.survived()) {
+                    survived++;
+                }
+
+                if (game.won()) {
+                    curWin++;
+                    curLoss = 0;
+                } else {
+                    curLoss++;
+                    curWin = 0;
+                }
+
+                if (game.good()) {
+                    curGood++;
+                    curEvil = 0;
+                } else {
+                    curEvil++;
+                    curGood = 0;
+                }
+
+                longestWinStreak = Math.max(longestWinStreak, curWin);
+                longestLossStreak = Math.max(longestLossStreak, curLoss);
+                longestGoodStreak = Math.max(longestGoodStreak, curGood);
+                longestEvilStreak = Math.max(longestEvilStreak, curEvil);
+            }
+
+            List<PlayerStatistics.RecentGame> recentGames = games.reversed().stream()
+                    .limit(RECENT_GAME_COUNT)
+                    .map(game ->
+                            new PlayerStatistics.RecentGame(game.sessionId(), game.date(), game.good(), game.won()))
+                    .toList();
+
+            return new PlayerStatistics(
+                    player.id(),
+                    player.model().name(),
+                    countStorytold(conn, playerId),
+                    wonGood,
+                    wonEvil,
+                    lossGood,
+                    lossEvil,
+                    survived,
+                    longestWinStreak,
+                    longestLossStreak,
+                    longestGoodStreak,
+                    longestEvilStreak,
+                    getCharactersPlayed(conn, playerId),
+                    getDeathsByPhase(conn, playerId),
+                    getScriptPlays(conn, playerId),
+                    getTeammates(conn, playerId, true),
+                    getTeammates(conn, playerId, false),
+                    recentGames);
+        });
+    }
+
+    private static List<GameInfo> getGameInfos(Connection conn, int playerId) throws SQLException {
+        String sql = """
+                SELECT s.id AS session_id,
+                    s.date,
+                    ps.good,
+                    ps.good = s.good_won AS won,
+                    ps.death_in_phase IS NULL AS survived
+                FROM player_session ps
+                JOIN session s ON s.id = ps.session_id
+                WHERE ps.player_id = ?
+                ORDER BY s.date, s.id
+                """;
+        ArrayList<GameInfo> result = new ArrayList<>();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, playerId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result.add(RowMappers.gameInfo(rs));
+                }
+            }
+        }
+        return result;
+    }
+
+    private static int countStorytold(Connection conn, int playerId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM session WHERE storyteller_id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, playerId);
+            try (ResultSet rs = statement.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    private static Map<String, PlayerStatistics.Rate> getCharactersPlayed(Connection conn, int playerId)
+            throws SQLException {
+        String sql = """
+                SELECT ps.role, COUNT(*) AS games, SUM(ps.good = s.good_won) AS wins
+                FROM player_session ps
+                JOIN session s ON s.id = ps.session_id
+                WHERE ps.player_id = ?
+                GROUP BY ps.role
+                """;
+        HashMap<String, PlayerStatistics.Rate> result = new HashMap<>();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, playerId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result.put(rs.getString("role"), RowMappers.rate(rs));
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Map<Integer, Integer> getDeathsByPhase(Connection conn, int playerId) throws SQLException {
+        String sql = """
+                SELECT death_in_phase AS phase, COUNT(*) AS deaths
+                FROM player_session
+                WHERE player_id = ? AND death_in_phase IS NOT NULL
+                GROUP BY death_in_phase
+                """;
+        HashMap<Integer, Integer> result = new HashMap<>();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, playerId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result.put(rs.getInt("phase"), rs.getInt("deaths"));
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Map<Integer, PlayerStatistics.ScriptPlays> getScriptPlays(Connection conn, int playerId)
+            throws SQLException {
+        String sql = """
+                SELECT script.id, script.name, COUNT(*) AS games
+                FROM player_session ps
+                JOIN session s ON s.id = ps.session_id
+                JOIN script ON script.id = s.script_id
+                WHERE ps.player_id = ?
+                GROUP BY script.id, script.name
+                """;
+        HashMap<Integer, PlayerStatistics.ScriptPlays> result = new HashMap<>();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, playerId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result.put(rs.getInt("id"), RowMappers.scriptPlays(rs));
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Map<Integer, PlayerStatistics.Teammate> getTeammates(Connection conn, int playerId, boolean good)
+            throws SQLException {
+        String sql = """
+                SELECT p.id, p.name, COUNT(*) AS games, SUM(me.good = s.good_won) AS wins
+                FROM player_session me
+                JOIN player_session mate ON mate.session_id = me.session_id
+                    AND mate.good = me.good
+                    AND mate.player_id <> me.player_id
+                JOIN session s ON s.id = me.session_id
+                JOIN player p ON p.id = mate.player_id
+                WHERE me.player_id = ? AND me.good = ?
+                GROUP BY p.id, p.name
+                """;
+        HashMap<Integer, PlayerStatistics.Teammate> result = new HashMap<>();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, playerId);
+            statement.setBoolean(2, good);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result.put(rs.getInt("id"), RowMappers.teammate(rs));
+                }
+            }
+        }
+        return result;
     }
 
     private static void ensureUpdated(int rowCount) {
