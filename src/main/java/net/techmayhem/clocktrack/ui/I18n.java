@@ -77,9 +77,18 @@ public class I18n {
     /// @param value The value to format, where 1 is 100%
     /// @return The formatted percentage
     public static String formatPercentage(double value) {
+        return formatPercentage(value, FRACTION_DIGITS);
+    }
+
+    /// Formats a value as a percentage with the given number of fraction digits.
+    ///
+    /// @param value The value to format, where 1 is 100%
+    /// @param fractionDigits The number of fraction digits to use
+    /// @return The formatted percentage
+    public static String formatPercentage(double value, int fractionDigits) {
         NumberFormat formatter = NumberFormat.getPercentInstance(locale);
-        formatter.setMaximumFractionDigits(FRACTION_DIGITS);
-        formatter.setMinimumFractionDigits(FRACTION_DIGITS);
+        formatter.setMaximumFractionDigits(fractionDigits);
+        formatter.setMinimumFractionDigits(fractionDigits);
         return formatter.format(value);
     }
 }
