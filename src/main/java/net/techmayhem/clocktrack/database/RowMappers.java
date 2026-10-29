@@ -5,10 +5,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.function.Function;
 import net.techmayhem.clocktrack.model.*;
-import net.techmayhem.clocktrack.projections.PlayerStatistics;
-import net.techmayhem.clocktrack.projections.PlayerSummary;
-import net.techmayhem.clocktrack.projections.ScriptSummary;
-import net.techmayhem.clocktrack.projections.SessionSummary;
+import net.techmayhem.clocktrack.projections.*;
 import org.jspecify.annotations.Nullable;
 
 /// Maps rows of query results to model objects and projections. Each method maps the current row of the given result
@@ -89,9 +86,9 @@ class RowMappers {
                 rs.getInt("player_count"));
     }
 
-    /// Maps the current row to a [PlayerStatistics.Rate], from the `games` and `wins` columns.
-    static PlayerStatistics.Rate rate(ResultSet rs) throws SQLException {
-        return new PlayerStatistics.Rate(rs.getInt("games"), rs.getInt("wins"));
+    /// Maps the current row to a [Rate], from the `games` and `wins` columns.
+    static Rate rate(ResultSet rs) throws SQLException {
+        return new Rate(rs.getInt("games"), rs.getInt("wins"));
     }
 
     /// Maps the current row to a [PlayerStatistics.ScriptPlays].
@@ -112,6 +109,22 @@ class RowMappers {
                 rs.getBoolean("good"),
                 rs.getBoolean("won"),
                 rs.getBoolean("survived"));
+    }
+
+    /// Maps the current row to a [ScriptStatistics.Session].
+    static ScriptStatistics.Session scriptStatisticsSession(ResultSet rs) throws SQLException {
+        return new ScriptStatistics.Session(
+                LocalDate.parse(rs.getString("date")), rs.getBoolean("good_won"), getInteger(rs, "storyteller_id"));
+    }
+
+    /// Maps the current row to a [ScriptStatistics.Seat].
+    static ScriptStatistics.Seat scriptStatisticsSeat(ResultSet rs) throws SQLException {
+        return new ScriptStatistics.Seat(
+                rs.getInt("session_id"),
+                getInteger(rs, "player_id"),
+                rs.getString("role"),
+                rs.getBoolean("good"),
+                rs.getBoolean("good_won"));
     }
 
     /// Reads a nullable integer column. Returns null if the column is SQL NULL.

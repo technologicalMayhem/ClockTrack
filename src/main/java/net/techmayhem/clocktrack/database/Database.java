@@ -7,10 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.techmayhem.clocktrack.model.*;
-import net.techmayhem.clocktrack.projections.PlayerStatistics;
-import net.techmayhem.clocktrack.projections.PlayerSummary;
-import net.techmayhem.clocktrack.projections.ScriptSummary;
-import net.techmayhem.clocktrack.projections.SessionSummary;
+import net.techmayhem.clocktrack.projections.*;
 import org.jspecify.annotations.Nullable;
 
 /// The shared connection to the ClockTrack database. All reads and writes of players, scripts, sessions, and the
@@ -736,8 +733,7 @@ public class Database implements AutoCloseable {
         }
     }
 
-    private static Map<String, PlayerStatistics.Rate> getCharactersPlayed(Connection conn, int playerId)
-            throws SQLException {
+    private static Map<String, Rate> getCharactersPlayed(Connection conn, int playerId) throws SQLException {
         String sql = """
                 SELECT ps.role, COUNT(*) AS games, SUM(ps.good = s.good_won) AS wins
                 FROM player_session ps
@@ -745,7 +741,7 @@ public class Database implements AutoCloseable {
                 WHERE ps.player_id = ?
                 GROUP BY ps.role
                 """;
-        HashMap<String, PlayerStatistics.Rate> result = new HashMap<>();
+        HashMap<String, Rate> result = new HashMap<>();
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, playerId);
             try (ResultSet rs = statement.executeQuery()) {
@@ -822,6 +818,59 @@ public class Database implements AutoCloseable {
             }
         }
         return result;
+    }
+
+    /// Retrieves the statistics of a script over all games it was used in.
+    ///
+    /// @param scriptId The id of the script
+    /// @return The statistics of the script
+    /// @throws DatabaseException If no script with the given id exists
+    public ScriptStatistics getScriptStatistics(int scriptId) {
+        return runTransaction(conn ->
+                new ScriptStatistics(getScriptStatSessions(conn, scriptId), getScriptStatSeats(conn, scriptId)));
+    }
+
+    private List<ScriptStatistics.Session> getScriptStatSessions(Connection conn, int scriptId) throws SQLException {
+        String sql = """
+                SELECT
+                    s.date,
+                    s.good_won,
+                    s.storyteller_id
+                FROM script
+                JOIN session s ON s.script_id = script.id
+                WHERE script.id = ?
+                """;
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, scriptId);
+            ArrayList<ScriptStatistics.Session> result = new ArrayList<>();
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) result.add(RowMappers.scriptStatisticsSession(rs));
+            }
+            return result;
+        }
+    }
+
+    private List<ScriptStatistics.Seat> getScriptStatSeats(Connection conn, int scriptId) throws SQLException {
+        String sql = """
+                SELECT
+                    s.id AS session_id,
+                    ps.player_id,
+                    ps.role,
+                    ps.good,
+                    s.good_won
+                FROM script
+                JOIN session s ON s.script_id = script.id\s
+                JOIN player_session ps ON ps.session_id = s.id
+                WHERE script.id = ?
+                """;
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, scriptId);
+            ArrayList<ScriptStatistics.Seat> result = new ArrayList<>();
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) result.add(RowMappers.scriptStatisticsSeat(rs));
+            }
+            return result;
+        }
     }
 
     private static void ensureUpdated(int rowCount) {
