@@ -129,7 +129,7 @@ public class PlayerOverview extends EntityOverview {
     private void showPlayerStatistics() {
         PlayerSummary selectedPlayer = table.getSelectionModel().getSelectedItem();
         PlayerStatistics playerStatistics = Database.getInstance().getPlayerStatistics(selectedPlayer.id());
-        screenHost.open(new PlayerView(playerStatistics));
+        screenHost.open(new PlayerView(selectedPlayer, playerStatistics));
     }
 
     @Override

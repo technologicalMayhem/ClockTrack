@@ -1,5 +1,8 @@
 package net.techmayhem.clocktrack.ui.player;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.chart.*;
 import javafx.scene.layout.StackPane;
@@ -8,17 +11,16 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.gamedata.Role;
 import net.techmayhem.clocktrack.gamedata.Roles;
-import net.techmayhem.clocktrack.gamedata.Team;
 import net.techmayhem.clocktrack.projections.PlayerStatistics;
+import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.projections.Rate;
+import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Screen;
 import net.techmayhem.clocktrack.ui.component.DonutChart;
+import net.techmayhem.clocktrack.ui.component.StatBlocks;
 import net.techmayhem.clocktrack.ui.component.TeamColors;
 import org.jetbrains.annotations.NonNls;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /// A screen that shows the statistics of a player. Currently, it is a placeholder that only shows the statistics as
 /// text.
@@ -34,27 +36,60 @@ public class PlayerView extends Screen {
                 CHART_COLOR_4: #ff0000;
             """;
 
-    PlayerView(PlayerStatistics statistics) {
+    PlayerView(PlayerSummary summary, PlayerStatistics statistics) {
         root = new StackPane();
-        Text e = new Text(statistics.toString());
-        e.setWrappingWidth(400);
-        int total = statistics.gamesPlayed();
-        List<PieChart.Data> data = List.of(
-                slice("Good wins", statistics.wonGood(), total),
-                slice("Good loss", statistics.lossGood(), total),
-                slice("Evil loss", statistics.lossEvil(), total),
-                slice("Evil wins", statistics.wonEvil(), total)
-        );
-        DonutChart donutChart = new DonutChart();
-        donutChart.setStyle(PIEC_CHART_CSS);
-        donutChart.setClockwise(false);
-        donutChart.setStartAngle(90);
-        donutChart.getData().addAll(data);
+        root.setPadding(new Insets(Layout.PADDING));
 
+        VBox header = buildHeader(summary);
+        StatBlocks statBlocks = buildStatBlocks(statistics);
+        DonutChart donutChart = buildDonutChart(statistics);
+        BarChart<Number, String> characterChart = buildCharacterChart(statistics);
+
+        root.getChildren().addAll(new VBox(Layout.SPACING, header, statBlocks, donutChart, characterChart));
+        name = "View: " + statistics.name();
+    }
+
+    private VBox buildHeader(PlayerSummary summary) {
+        Text name = new Text(summary.name());
+        name.setStyle("-fx-font-weight: bold; -fx-font-size: 26px;");
+        return new VBox(
+                Layout.SPACING,
+                name,
+                new Text("First game " + summary.firstGame() + " · Last game " + summary.lastGame()));
+    }
+
+    private StatBlocks buildStatBlocks(PlayerStatistics statistics) {
+        StatBlocks.StatBlock gamesPlayed =
+                new StatBlocks.StatBlock(Integer.toString(statistics.gamesPlayed()), "Games played");
+        StatBlocks.StatBlock gamesStorytold =
+                new StatBlocks.StatBlock(Integer.toString(statistics.gamesStorytold()), "Games storytold");
+        StatBlocks.StatBlock winrate = new StatBlocks.StatBlock(
+                I18n.formatPercentage(
+                        (double) (statistics.wonGood() + statistics.wonEvil()) / statistics.gamesPlayed(), 0),
+                "Winrate\n" + statistics.wonGood() + statistics.wonEvil() + " of " + statistics.gamesPlayed());
+        StatBlocks.StatBlock winrateGood = new StatBlocks.StatBlock(
+                I18n.formatPercentage(
+                        (double) statistics.wonGood() / (statistics.wonGood() + statistics.lossGood()), 0),
+                "Winrate good\n" + statistics.wonGood() + " of " + (statistics.wonGood() + statistics.lossGood()));
+        StatBlocks.StatBlock winrateEvil = new StatBlocks.StatBlock(
+                I18n.formatPercentage(
+                        (double) statistics.wonEvil() / (statistics.wonEvil() + statistics.lossEvil()), 0),
+                "Winrate evil\n" + statistics.wonEvil() + " of " + (statistics.wonEvil() + statistics.lossEvil()));
+        StatBlocks.StatBlock survivalRate = new StatBlocks.StatBlock(
+                I18n.formatPercentage((double) statistics.survived() / statistics.gamesPlayed(), 0),
+                "Survival rate\n" + statistics.survived() + " of " + statistics.gamesPlayed());
+
+        return new StatBlocks(gamesPlayed, gamesStorytold, winrate, winrateGood, winrateEvil, survivalRate);
+    }
+
+    private static BarChart<Number, String> buildCharacterChart(PlayerStatistics statistics) {
         NumberAxis xAxis = new NumberAxis();
         CategoryAxis yAxis = new CategoryAxis();
 
-        int max = statistics.charactersPlayed().values().stream().map(Rate::games).max(Integer::compare).orElse(1);
+        int max = statistics.charactersPlayed().values().stream()
+                .map(Rate::games)
+                .max(Integer::compare)
+                .orElse(1);
 
         xAxis.setLabel("Times played");
         xAxis.setAutoRanging(false);
@@ -80,9 +115,22 @@ public class PlayerView extends Screen {
         roles.forEach((key, value) -> series.getData().add(new XYChart.Data<>(value.games(), key.name(), key)));
         characterChart.getData().add(series);
         characterChart.getData().getFirst().getData().forEach(PlayerView::colorBars);
+        return characterChart;
+    }
 
-        root.getChildren().addAll(new VBox(Layout.SPACING, donutChart, characterChart));
-        name = "View: " + statistics.name();
+    private DonutChart buildDonutChart(PlayerStatistics statistics) {
+        int total = statistics.gamesPlayed();
+        List<PieChart.Data> data = List.of(
+                slice("Good wins", statistics.wonGood(), total),
+                slice("Good loss", statistics.lossGood(), total),
+                slice("Evil loss", statistics.lossEvil(), total),
+                slice("Evil wins", statistics.wonEvil(), total));
+        DonutChart donutChart = new DonutChart();
+        donutChart.setStyle(PIEC_CHART_CSS);
+        donutChart.setClockwise(false);
+        donutChart.setStartAngle(90);
+        donutChart.getData().addAll(data);
+        return donutChart;
     }
 
     private static PieChart.Data slice(String name, int count, int total) {
@@ -96,10 +144,10 @@ public class PlayerView extends Screen {
     }
 
     private static String toCss(Color c) {
-        return String.format("#%02x%02x%02x",
-                (int) Math.round(c.getRed() * 255),
-                (int) Math.round(c.getGreen() * 255),
-                (int) Math.round(c.getBlue() * 255));
+        return String.format(
+                "#%02x%02x%02x",
+                (int) Math.round(c.getRed() * 255), (int) Math.round(c.getGreen() * 255), (int)
+                        Math.round(c.getBlue() * 255));
     }
 
     @Override
