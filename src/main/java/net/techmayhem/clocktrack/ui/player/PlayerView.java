@@ -1,7 +1,6 @@
 package net.techmayhem.clocktrack.ui.player;
 
 import java.util.*;
-import java.util.stream.IntStream;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -35,6 +34,7 @@ public class PlayerView extends Screen {
 
     private static final int MIN_GAMES_FOR_RANKING = 3;
     private static final int RANKING_SIZE = 5;
+    private static final int MIN_DISPLAYED_PHASE = 10;
 
     private static final double SCROLL_SPEED = 2;
 
@@ -306,13 +306,7 @@ public class PlayerView extends Screen {
             return new VBox(Layout.SPACING, summary, new Label("No deaths recorded."));
         }
 
-        IntStream.rangeClosed(1, 10).forEach(phase -> {
-            if (!deaths.containsKey(phase)) {
-                deaths.put(phase, 0);
-            }
-        });
-
-        int lastPhase = Collections.max(deaths.keySet());
+        int lastPhase = Math.max(Collections.max(deaths.keySet()), MIN_DISPLAYED_PHASE);
         int mostDeaths = Collections.max(deaths.values());
         double tickUnit = Math.max(1, Math.ceil(mostDeaths / 10.0)); // whole steps, ~10 ticks at most
 
