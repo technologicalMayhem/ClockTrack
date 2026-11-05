@@ -4,6 +4,7 @@ import static net.techmayhem.clocktrack.ui.I18n.localize;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Locale;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -51,6 +52,13 @@ public class ClockTrackApp extends Application {
 
         TabPane tabPane = new TabPane();
         Scene scene = new Scene(tabPane, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        URL cssUrl = ClockTrackApp.class.getResource("style.css");
+        if (cssUrl == null) {
+            throw new FileNotFoundException("Could not find style.css");
+        }
+        scene.getStylesheets().add(cssUrl.toExternalForm());
+
         stage.setScene(scene);
         stage.show();
 
@@ -96,7 +104,7 @@ public class ClockTrackApp extends Application {
     /// Shows the error to the user in a dialog. The app closes afterward, unless it is a recoverable
     /// [DatabaseException]. Can be called from any thread.
     ///
-    /// @param thread The thread the error was thrown on
+    /// @param thread    The thread the error was thrown on
     /// @param throwable The error to show
     private static void handleUncaughtException(Thread thread, Throwable throwable) {
         throwable.printStackTrace();

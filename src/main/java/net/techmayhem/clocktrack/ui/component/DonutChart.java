@@ -3,6 +3,7 @@ package net.techmayhem.clocktrack.ui.component;
 import javafx.geometry.Bounds;
 import javafx.scene.chart.PieChart;
 import javafx.scene.shape.Circle;
+import net.techmayhem.clocktrack.ui.Styles;
 
 public class DonutChart extends PieChart {
     private static final double HOLE_RATIO = 0.7; // hole radius relative to the pie radius
@@ -11,7 +12,7 @@ public class DonutChart extends PieChart {
 
     public DonutChart() {
         hole.setMouseTransparent(true);
-        hole.setStyle("-fx-fill: -fx-background;"); // same as the default chart background
+        hole.getStyleClass().add(Styles.DONUT_CHART); // same as the default chart background
     }
 
     @Override

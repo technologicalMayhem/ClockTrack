@@ -7,6 +7,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.ui.Layout;
+import net.techmayhem.clocktrack.ui.Styles;
 
 public class StatBlocks extends HBox {
 
@@ -15,7 +16,7 @@ public class StatBlocks extends HBox {
         ObservableList<Node> children = getChildren();
         for (StatBlock block : blocks) {
             Text value = new Text(block.value);
-            value.setStyle("-fx-font-weight: bold; -fx-font-size: 26px;");
+            value.getStyleClass().add(Styles.STAT_BLOCK_VALUE);
             VBox blockBox = new VBox(Layout.SPACING, value, new Text(block.label));
 
             blockBox.setBackground(Background.fill(Color.WHITE));
