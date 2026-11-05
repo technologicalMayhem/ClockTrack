@@ -8,6 +8,7 @@ import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import net.techmayhem.clocktrack.gamedata.Team;
 import org.jetbrains.annotations.PropertyKey;
 import org.jspecify.annotations.Nullable;
 
@@ -90,5 +91,17 @@ public class I18n {
         formatter.setMaximumFractionDigits(fractionDigits);
         formatter.setMinimumFractionDigits(fractionDigits);
         return formatter.format(value);
+    }
+
+    public static String teamName(Team team) {
+        return switch (team) {
+            case TOWNSFOLK -> "Townsfolk";
+            case OUTSIDER -> "Outsider";
+            case MINION -> "Minion";
+            case DEMON -> "Demon";
+            case TRAVELLER -> "Traveller";
+            case FABLED -> "Fabled";
+            case LORIC -> "Loric";
+        };
     }
 }
