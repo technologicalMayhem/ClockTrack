@@ -99,13 +99,7 @@ public class PlayerView extends Screen {
     }
 
     private static VBox characterPane(PlayerStatistics statistics) {
-        GridPane top5 = new GridPane(Layout.PADDING * 3, 0);
-        ColumnConstraints half = new ColumnConstraints();
-        half.setPercentWidth(50);
-        top5.getColumnConstraints().addAll(half, half);
-        top5.add(buildTop5(statistics, true), 0, 0);
-        top5.add(buildTop5(statistics, false), 1, 0);
-        top5.setMaxWidth(Double.MAX_VALUE);
+        GridPane top5 = sideBySide(buildTop5(statistics, true), buildTop5(statistics, false));
 
         Roles roles = Roles.getInstance();
 
@@ -133,7 +127,6 @@ public class PlayerView extends Screen {
                 new ColumnDef<>(
                         "Win Percentage", entry -> winRate(entry.getValue()), rate -> I18n.formatPercentage(rate, 0)));
         characterStatsTable.getItems().addAll(sortedByGames(statistics));
-        fitToRows(characterStatsTable);
 
         return new VBox(Layout.SPACING, top5, tableHeader, characterStatsTable);
     }
@@ -151,20 +144,32 @@ public class PlayerView extends Screen {
     }
 
     private static VBox buildTop5(PlayerStatistics statistics, boolean top) {
-        Comparator<Map.Entry<String, Rate>> comparator = getComparator(top);
-
-        List<Map.Entry<String, Rate>> entries = statistics.charactersPlayed().entrySet().stream()
-                .filter(entry -> entry.getValue().games() >= MIN_GAMES_FOR_RANKING)
-                .sorted(comparator)
+        Roles roles = Roles.getInstance();
+        List<Ranked> rows = statistics.charactersPlayed().entrySet().stream()
+                .map(entry -> {
+                    Role role = roles.get(entry.getKey());
+                    return new Ranked(role == null ? entry.getKey() : role.name(), entry.getValue());
+                })
+                .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING)
+                .sorted(byWinRate(top))
                 .limit(RANKING_SIZE)
                 .toList();
 
+        return rankingBox(
+                top ? "Top 5 Characters" : "Bottom 5 Characters",
+                "No character with " + MIN_GAMES_FOR_RANKING + " games yet.",
+                rows,
+                top);
+    }
+
+    /// Builds a titled list of bars. With `top`, the bars show the share of games won, otherwise the share lost.
+    private static VBox rankingBox(String title, String emptyText, List<Ranked> rows, boolean top) {
         VBox container = new VBox(Layout.SPACING);
-        Label header = new Label(top ? "Top 5 Characters" : "Bottom 5 Characters");
+        Label header = new Label(title);
         header.getStyleClass().add(Styles.CHARACTER_SECTION_HEADER);
         container.getChildren().add(header);
-        if (entries.isEmpty()) {
-            container.getChildren().add(new Label("No character with " + MIN_GAMES_FOR_RANKING + " games yet."));
+        if (rows.isEmpty()) {
+            container.getChildren().add(new Label(emptyText));
             return container;
         }
 
@@ -178,14 +183,9 @@ public class PlayerView extends Screen {
         grid.getColumnConstraints().addAll(nameConstraint, barConstraint, statConstraint);
         container.getChildren().add(grid);
 
-        Roles roles = Roles.getInstance();
         int rowIndex = 0;
-        for (Map.Entry<String, Rate> entry : entries) {
-            Role role = roles.get(entry.getKey());
-            Label label = new Label(role == null ? entry.getKey() : role.name());
-
-            // The top list shows the share of games won, the bottom list the share of games lost.
-            Rate rate = entry.getValue();
+        for (Ranked row : rows) {
+            Rate rate = row.rate();
             int count = top ? rate.wins() : rate.games() - rate.wins();
             double share = (double) count / rate.games();
 
@@ -195,22 +195,46 @@ public class PlayerView extends Screen {
 
             Label rateLabel = new Label(count + "/" + rate.games() + " - " + I18n.formatPercentage(share, 0));
 
-            grid.addRow(rowIndex, label, bar, rateLabel);
+            grid.addRow(rowIndex, new Label(row.name()), bar, rateLabel);
             rowIndex++;
         }
 
         return container;
     }
 
-    private static Comparator<Map.Entry<String, Rate>> getComparator(boolean top) {
-        Comparator<Map.Entry<String, Rate>> byWinRate = Comparator.comparingDouble(entry -> winRate(entry.getValue()));
-        Comparator<Map.Entry<String, Rate>> byGames =
-                Comparator.comparingInt(entry -> entry.getValue().games());
-        Comparator<Map.Entry<String, Rate>> comparator = top ? byWinRate.reversed() : byWinRate;
-        // Ties go to the character with more games, then by id, so the order is the same on every open.
-        comparator = comparator.thenComparing(byGames.reversed()).thenComparing(Map.Entry::getKey);
-        return comparator;
+    /// Orders by win rate, highest first with `top`, then by games, then by name, so ties keep the same order.
+    private static Comparator<Ranked> byWinRate(boolean top) {
+        Comparator<Ranked> byRate = Comparator.comparingDouble(row -> winRate(row.rate()));
+        Comparator<Ranked> byGames = Comparator.comparingInt(row -> row.rate().games());
+        return (top ? byRate.reversed() : byRate)
+                .thenComparing(byGames.reversed())
+                .thenComparing(Ranked::name);
     }
+
+    /// Places two nodes side by side, each taking half of the width.
+    private static GridPane sideBySide(Node left, Node right) {
+        return sideBySide(left, right, Layout.PADDING, 50);
+    }
+
+    /// Places two nodes side by side. The left node takes the given percentage of the width, the right one the rest.
+    private static GridPane sideBySide(Node left, Node right, double spacing, double leftPercent) {
+        GridPane grid = new GridPane(spacing, 0);
+        ColumnConstraints leftColumn = new ColumnConstraints();
+        leftColumn.setPercentWidth(leftPercent);
+        ColumnConstraints rightColumn = new ColumnConstraints();
+        rightColumn.setPercentWidth(100 - leftPercent);
+        grid.getColumnConstraints().addAll(leftColumn, rightColumn);
+        grid.add(left, 0, 0);
+        grid.add(right, 1, 0);
+        grid.setMaxWidth(Double.MAX_VALUE);
+        return grid;
+    }
+
+    /// A row of a ranking: what is ranked, and its games and wins.
+    ///
+    /// @param name The display name
+    /// @param rate The games and how many of them were won
+    private record Ranked(String name, Rate rate) {}
 
     private static double winRate(Rate rate) {
         return rate.games() == 0 ? 0 : (double) rate.wins() / rate.games();
@@ -242,24 +266,11 @@ public class PlayerView extends Screen {
     }
 
     private static GridPane survivalStreakPane(PlayerStatistics statistics) {
-        GridPane row = new GridPane();
-        row.setHgap(Layout.SPACING);
-
-        ColumnConstraints wide = new ColumnConstraints();
-        wide.setPercentWidth(60);
-        ColumnConstraints narrow = new ColumnConstraints();
-        narrow.setPercentWidth(40);
-        row.getColumnConstraints().addAll(wide, narrow);
-
-        VBox survival = section("Survival", buildSurvival(statistics));
-        VBox streaks = section("Streaks", buildStreaks(statistics));
-        survival.setMaxHeight(Double.MAX_VALUE);
-        streaks.setMaxHeight(Double.MAX_VALUE);
-
-        row.add(survival, 0, 0);
-        row.add(streaks, 1, 0);
-
-        return row;
+        return sideBySide(
+                section("Survival", buildSurvival(statistics)),
+                section("Streaks", buildStreaks(statistics)),
+                Layout.SPACING,
+                60);
     }
 
     private static VBox buildSurvival(PlayerStatistics statistics) {
@@ -321,6 +332,24 @@ public class PlayerView extends Screen {
                 new StatBlocks(longestGoodStreak, longestEvilStreak));
     }
 
+    private static Node alliesPane(PlayerStatistics statistics) {
+        GridPane rankings = sideBySide(
+                allyRanking("Best allies as good", statistics.goodTeammates()),
+                allyRanking("Best allies as evil", statistics.evilTeammates()));
+        Label note = new Label("Only allies with at least " + MIN_GAMES_FOR_RANKING + " games on the same team.");
+        return new VBox(Layout.SPACING, rankings, note);
+    }
+
+    private static VBox allyRanking(String title, Map<Integer, PlayerStatistics.Teammate> teammates) {
+        List<Ranked> rows = teammates.values().stream()
+                .map(teammate -> new Ranked(teammate.name(), teammate.rate()))
+                .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING)
+                .sorted(byWinRate(true))
+                .limit(RANKING_SIZE)
+                .toList();
+        return rankingBox(title, "No ally with " + MIN_GAMES_FOR_RANKING + " games together yet.", rows, true);
+    }
+
     private Node scriptsPane(PlayerStatistics statistics) {
         GridPane grid = new GridPane();
         grid.setHgap(Layout.PADDING);
@@ -348,10 +377,6 @@ public class PlayerView extends Screen {
         }
 
         return grid;
-    }
-
-    private Node alliesPane(PlayerStatistics statistics) {
-        return placeholder();
     }
 
     private static PieChart.Data slice(String name, int count, int total) {
@@ -385,12 +410,6 @@ public class PlayerView extends Screen {
         table.prefHeightProperty().bind(Bindings.size(table.getItems()).add(1.1).multiply(table.getFixedCellSize()));
         table.setMinHeight(Region.USE_PREF_SIZE);
         table.setMaxHeight(Region.USE_PREF_SIZE);
-    }
-
-    private static Node placeholder() {
-        VBox node = new VBox();
-        node.setPrefHeight(200);
-        return node;
     }
 
     private static String rate(int won, int total) {
