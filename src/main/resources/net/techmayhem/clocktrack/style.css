@@ -6,6 +6,11 @@
     -traveller: #800080;
     -fabled: #D4AF37;
     -loric: #4ccc33;
+
+    -good-win: #00a9ff;
+    -good-loss: #7fd4ff;
+    -evil-loss: #ff7f7f;
+    -evil-win: #ff0000;
 }
 
 .teamTownsfolk {
@@ -37,10 +42,67 @@
 }
 
 .winLossPie {
-    CHART_COLOR_1: #00a9ff;
-    CHART_COLOR_2: #7fd4ff;
-    CHART_COLOR_3: #ff7f7f;
-    CHART_COLOR_4: #ff0000;
+    CHART_COLOR_1: -good-win;
+    CHART_COLOR_2: -good-loss;
+    CHART_COLOR_3: -evil-loss;
+    CHART_COLOR_4: -evil-win;
+}
+
+.legend-swatch {
+    -fx-min-width: 12;
+    -fx-min-height: 12;
+    -fx-max-width: 12;
+    -fx-max-height: 12;
+    -fx-background-radius: 6;
+}
+
+.win-loss-good-win {
+    -fx-background-color: -good-win;
+}
+
+.win-loss-good-loss {
+    -fx-background-color: -good-loss;
+}
+
+.win-loss-evil-loss {
+    -fx-background-color: -evil-loss;
+}
+
+.win-loss-evil-win {
+    -fx-background-color: -evil-win;
+}
+
+.donut-total {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.stat-caption {
+    -fx-text-fill: #555555;
+}
+
+.stat-value-small {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.recent-game {
+    -fx-min-width: 28;
+    -fx-min-height: 28;
+    -fx-background-radius: 14;
+    -fx-alignment: center;
+    -fx-font-weight: bold;
+}
+
+.recent-game.won {
+    -fx-background-color: #2e6b45;
+    -fx-text-fill: white;
+}
+
+.recent-game.lost {
+    -fx-background-color: #8a8a8a, white;
+    -fx-background-insets: 0, 2;
+    -fx-text-fill: #333333;
 }
 
 .statBlockValue {
@@ -53,7 +115,7 @@
 }
 
 .donutChart {
-    -fx-fill: -fx-background;
+    -fx-fill: white;
 }
 
 .stat-section {

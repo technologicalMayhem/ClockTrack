@@ -2,7 +2,9 @@ package net.techmayhem.clocktrack.ui.player;
 
 import java.util.*;
 import javafx.beans.binding.Bindings;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.chart.*;
@@ -37,6 +39,7 @@ public class PlayerView extends Screen {
     private static final int MIN_DISPLAYED_PHASE = 10;
 
     private static final double SCROLL_SPEED = 2;
+    private static final double DONUT_SIZE = 300;
 
     PlayerView(PlayerSummary summary, PlayerStatistics statistics) {
         root = new ScrollPane();
@@ -182,10 +185,7 @@ public class PlayerView extends Screen {
 
     /// Builds a titled list of bars that show the share of games won. `best` picks the style of the bars.
     private static VBox rankingBox(String title, String emptyText, List<Ranked> rows, boolean best) {
-        VBox container = new VBox(Layout.SPACING);
-        Label header = new Label(title);
-        header.getStyleClass().add(Styles.CHARACTER_SECTION_HEADER);
-        container.getChildren().add(header);
+        VBox container = new VBox(Layout.SPACING, header(title));
         if (rows.isEmpty()) {
             container.getChildren().add(new Label(emptyText));
             return container;
@@ -273,19 +273,127 @@ public class PlayerView extends Screen {
                 .toList();
     }
 
-    private DonutChart winLossPane(PlayerStatistics statistics) {
+    private static GridPane winLossPane(PlayerStatistics statistics) {
+        return sideBySide(winLossDetails(statistics), winLossDonut(statistics), Layout.PADDING, 55);
+    }
+
+    /// Builds the left side of the wins and losses section: a legend with numbers, the win rates and recent games.
+    private static VBox winLossDetails(PlayerStatistics statistics) {
+        int total = statistics.gamesPlayed();
+        int goodGames = statistics.wonGood() + statistics.lossGood();
+        int evilGames = statistics.wonEvil() + statistics.lossEvil();
+
+        GridPane legend = new GridPane(Layout.PADDING, Layout.SPACING);
+        ColumnConstraints numberColumn = new ColumnConstraints();
+        numberColumn.setHalignment(HPos.RIGHT);
+        numberColumn.setMinWidth(40);
+        legend.getColumnConstraints()
+                .addAll(new ColumnConstraints(), new ColumnConstraints(), numberColumn, numberColumn);
+        legendRow(legend, 0, Styles.WIN_LOSS_GOOD_WIN, "Good wins", statistics.wonGood(), total);
+        legendRow(legend, 1, Styles.WIN_LOSS_GOOD_LOSS, "Good losses", statistics.lossGood(), total);
+        legendRow(legend, 2, Styles.WIN_LOSS_EVIL_LOSS, "Evil losses", statistics.lossEvil(), total);
+        legendRow(legend, 3, Styles.WIN_LOSS_EVIL_WIN, "Evil wins", statistics.wonEvil(), total);
+
+        HBox rates = new HBox(
+                Layout.PADDING * 4,
+                smallStat(
+                        "Winrate good",
+                        rate(statistics.wonGood(), goodGames),
+                        statistics.wonGood() + " of " + goodGames),
+                smallStat(
+                        "Winrate evil",
+                        rate(statistics.wonEvil(), evilGames),
+                        statistics.wonEvil() + " of " + evilGames),
+                smallStat("Played evil", rate(evilGames, total), evilGames + " of " + total));
+
+        return new VBox(
+                Layout.PADDING * 2,
+                new VBox(Layout.SPACING, header("Results"), legend),
+                new Separator(),
+                rates,
+                new Separator(),
+                recentGames(statistics.recentGames()));
+    }
+
+    private static void legendRow(GridPane legend, int row, String colorClass, String label, int count, int total) {
+        Region swatch = new Region();
+        swatch.getStyleClass().addAll(Styles.LEGEND_SWATCH, colorClass);
+        Label share = new Label(rate(count, total));
+        share.getStyleClass().add(Styles.STAT_CAPTION);
+        legend.addRow(row, swatch, new Label(label), new Label(String.valueOf(count)), share);
+    }
+
+    private static VBox smallStat(String caption, String value, String detail) {
+        Label captionLabel = new Label(caption);
+        captionLabel.getStyleClass().add(Styles.STAT_CAPTION);
+        Label valueLabel = new Label(value);
+        valueLabel.getStyleClass().add(Styles.STAT_VALUE_SMALL);
+        Label detailLabel = new Label(detail);
+        detailLabel.getStyleClass().add(Styles.STAT_CAPTION);
+        return new VBox(captionLabel, valueLabel, detailLabel);
+    }
+
+    /// Builds a strip with one circle per recent game, newest first, marked W for won and L for lost.
+    private static VBox recentGames(List<PlayerStatistics.RecentGame> games) {
+        HBox strip = new HBox(Layout.PADDING * 1.5);
+        for (PlayerStatistics.RecentGame game : games) {
+            Label result = new Label(game.won() ? "W" : "L");
+            result.getStyleClass().addAll(Styles.RECENT_GAME, game.won() ? Styles.WON : Styles.LOST);
+
+            Label date = new Label(I18n.formatDate(game.date()));
+            date.getStyleClass().add(Styles.STAT_CAPTION);
+
+            VBox entry = new VBox(Layout.SPACING, result, date);
+            entry.setAlignment(Pos.CENTER);
+            Tooltip.install(
+                    entry,
+                    new Tooltip(I18n.formatDate(game.date()) + ": " + (game.won() ? "won" : "lost") + " as "
+                            + (game.good() ? "good" : "evil")));
+            strip.getChildren().add(entry);
+        }
+        return new VBox(Layout.SPACING, header("Last " + games.size() + " games, newest first"), strip);
+    }
+
+    /// Builds the donut of wins and losses by alignment, with the number of games in its center.
+    private static StackPane winLossDonut(PlayerStatistics statistics) {
         int total = statistics.gamesPlayed();
         List<PieChart.Data> data = List.of(
-                slice("Good wins", statistics.wonGood(), total),
-                slice("Good loss", statistics.lossGood(), total),
-                slice("Evil loss", statistics.lossEvil(), total),
-                slice("Evil wins", statistics.wonEvil(), total));
+                new PieChart.Data("Good wins", statistics.wonGood()),
+                new PieChart.Data("Good losses", statistics.lossGood()),
+                new PieChart.Data("Evil losses", statistics.lossEvil()),
+                new PieChart.Data("Evil wins", statistics.wonEvil()));
+
         DonutChart donutChart = new DonutChart();
         donutChart.getStyleClass().add(Styles.WIN_LOSS_PIE);
         donutChart.setClockwise(false);
         donutChart.setStartAngle(90);
+        donutChart.setLegendVisible(false);
+        donutChart.setLabelsVisible(false);
+        donutChart.setPrefSize(DONUT_SIZE, DONUT_SIZE);
+        donutChart.setMaxSize(DONUT_SIZE, DONUT_SIZE);
         donutChart.getData().addAll(data);
-        return donutChart;
+        for (PieChart.Data slice : data) {
+            Tooltip.install(
+                    slice.getNode(),
+                    new Tooltip(slice.getName() + ": " + (int) slice.getPieValue() + " ("
+                            + rate((int) slice.getPieValue(), total) + ")"));
+        }
+
+        Label totalValue = new Label(String.valueOf(total));
+        totalValue.getStyleClass().add(Styles.DONUT_TOTAL);
+        Label totalCaption = new Label("games");
+        totalCaption.getStyleClass().add(Styles.STAT_CAPTION);
+        VBox center = new VBox(totalValue, totalCaption);
+        center.setAlignment(Pos.CENTER);
+        center.setMouseTransparent(true);
+
+        return new StackPane(donutChart, center);
+    }
+
+    private static Label header(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add(Styles.CHARACTER_SECTION_HEADER);
+        return label;
     }
 
     private static GridPane survivalStreakPane(PlayerStatistics statistics) {
@@ -394,11 +502,6 @@ public class PlayerView extends Screen {
         }
 
         return grid;
-    }
-
-    private static PieChart.Data slice(String name, int count, int total) {
-        double percent = total == 0 ? 0 : 100.0 * count / total;
-        return new PieChart.Data(String.format("%s (%.0f%%)", name, percent), count);
     }
 
     private static void colorBars(XYChart.Data<Number, String> d) {
