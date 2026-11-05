@@ -2,6 +2,7 @@ package net.techmayhem.clocktrack.ui.session;
 
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.util.StringConverter;
+import net.techmayhem.clocktrack.ui.PhaseFormat;
 import org.jspecify.annotations.Nullable;
 
 /// Converts phases to text and back for a spinner. Text that is not a valid phase keeps the current value of the

@@ -8,6 +8,15 @@ public class Styles {
     public static final String TEAM_BAR = "teamBar";
     public static final String DONUT_CHART = "donutChart";
 
+    public static final String STAT_SECTION = "stat-section";
+    public static final String STAT_SECTION_TITLE = "stat-section-title";
+    public static final String STAT_SECTION_CONTENT = "stat-section-content";
+
+    public static final String CHARACTER_SECTION_HEADER = "character-section-header";
+    public static final String CHARACTER_SECTION_BOX_WIN = "character-section-box-win";
+    public static final String CHARACTER_SECTION_BOX_LOSS = "character-section-box-loss";
+    public static final String CHARACTER_SECTION_BOX_UNCOLORED = "character-section-box-uncolored";
+
     public static final String TEAM_TOWNSFOLK = "teamTownsfolk";
     public static final String TEAM_OUTSIDER = "teamOutsider";
     public static final String TEAM_MINION = "teamMinion";

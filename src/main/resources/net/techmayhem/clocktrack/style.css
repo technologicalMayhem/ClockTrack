@@ -48,11 +48,42 @@
     -fx-font-size: 26px;
 }
 
-
 .teamBar {
     -fx-bar-fill: -team;
 }
 
 .donutChart {
     -fx-fill: -fx-background;
+}
+
+.stat-section {
+    -fx-background-color: #b5b5b5, white;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 3, 2;
+}
+
+.stat-section-title {
+    -fx-background-color: linear-gradient(#f7f7f7, #e2e2e2);
+    -fx-background-insets: 1 1 0 1;
+    -fx-background-radius: 2 2 0 0;
+    -fx-border-color: transparent transparent #c4c4c4 transparent;
+    -fx-border-insets: 0 1 0 1;
+    -fx-padding: 6 10 6 10;
+    -fx-font-weight: bold;
+}
+
+.stat-section-content {
+    -fx-padding: 16;
+}
+
+.character-section-header {
+    -fx-font-weight: bold;
+}
+
+.character-section-box-win {
+    -fx-accent: green;
+}
+
+.character-section-box-loss {
+    -fx-accent: red;
 }
