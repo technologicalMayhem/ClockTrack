@@ -1,0 +1,58 @@
+.root {
+    -townsfolk: #3297F4;
+    -outsider: #7ABAF4;
+    -minion: #A61115;
+    -demon: #CC141A;
+    -traveller: #800080;
+    -fabled: #D4AF37;
+    -loric: #4ccc33;
+}
+
+.teamTownsfolk {
+    -team: -townsfolk;
+}
+
+.teamOutsider {
+    -team: -outsider;
+}
+
+.teamMinion {
+    -team: -minion;
+}
+
+.teamDemon {
+    -team: -demon;
+}
+
+.teamTraveller {
+    -team: -traveller;
+}
+
+.teamFabled {
+    -team: -fabled;
+}
+
+.teamLoric {
+    -team: -loric;
+}
+
+.winLossPie {
+    CHART_COLOR_1: #00a9ff;
+    CHART_COLOR_2: #7fd4ff;
+    CHART_COLOR_3: #ff7f7f;
+    CHART_COLOR_4: #ff0000;
+}
+
+.statBlockValue {
+    -fx-font-weight: bold;
+    -fx-font-size: 26px;
+}
+
+
+.teamBar {
+    -fx-bar-fill: -team;
+}
+
+.donutChart {
+    -fx-fill: -fx-background;
+}

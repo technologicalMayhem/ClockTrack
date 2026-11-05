@@ -17,24 +17,15 @@ import net.techmayhem.clocktrack.projections.Rate;
 import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Screen;
+import net.techmayhem.clocktrack.ui.Styles;
 import net.techmayhem.clocktrack.ui.component.DonutChart;
 import net.techmayhem.clocktrack.ui.component.StatBlocks;
-import net.techmayhem.clocktrack.ui.component.TeamColors;
-import org.jetbrains.annotations.NonNls;
 
 /// A screen that shows the statistics of a player. Currently, it is a placeholder that only shows the statistics as
 /// text.
 public class PlayerView extends Screen {
     private final StackPane root;
     private final String name;
-
-    @NonNls
-    String PIEC_CHART_CSS = """
-                CHART_COLOR_1: #00a9ff;
-                CHART_COLOR_2: #7fd4ff;
-                CHART_COLOR_3: #ff7f7f;
-                CHART_COLOR_4: #ff0000;
-            """;
 
     PlayerView(PlayerSummary summary, PlayerStatistics statistics) {
         root = new StackPane();
@@ -51,7 +42,7 @@ public class PlayerView extends Screen {
 
     private VBox buildHeader(PlayerSummary summary) {
         Text name = new Text(summary.name());
-        name.setStyle("-fx-font-weight: bold; -fx-font-size: 26px;");
+        name.getStyleClass().add(Styles.STAT_BLOCK_VALUE);
         return new VBox(
                 Layout.SPACING,
                 name,
@@ -126,7 +117,7 @@ public class PlayerView extends Screen {
                 slice("Evil loss", statistics.lossEvil(), total),
                 slice("Evil wins", statistics.wonEvil(), total));
         DonutChart donutChart = new DonutChart();
-        donutChart.setStyle(PIEC_CHART_CSS);
+        donutChart.getStyleClass().add(Styles.WIN_LOSS_PIE);
         donutChart.setClockwise(false);
         donutChart.setStartAngle(90);
         donutChart.getData().addAll(data);
@@ -140,7 +131,7 @@ public class PlayerView extends Screen {
 
     private static void colorBars(XYChart.Data<Number, String> d) {
         if (d.getExtraValue() instanceof Role role)
-            d.getNode().setStyle("-fx-bar-fill: " + toCss(TeamColors.getColor(role.team())) + ";");
+            d.getNode().getStyleClass().addAll(Styles.TEAM_BAR, Styles.teamClass(role.team()));
     }
 
     private static String toCss(Color c) {
