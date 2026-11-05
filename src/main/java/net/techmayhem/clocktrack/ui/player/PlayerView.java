@@ -143,6 +143,7 @@ public class PlayerView extends Screen {
                 new ColumnDef<>(
                         "Win Percentage", entry -> winRate(entry.getValue()), rate -> I18n.formatPercentage(rate, 0)));
         characterStatsTable.getItems().addAll(sortedByGames(statistics));
+        fitToRows(characterStatsTable);
 
         return new VBox(Layout.SPACING, rankings, tableHeader, characterStatsTable);
     }
