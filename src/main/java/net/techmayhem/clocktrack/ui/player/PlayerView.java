@@ -57,6 +57,11 @@ public class PlayerView extends Screen {
 
         name = "View: " + statistics.name();
 
+        if (statistics.gamesPlayed() == 0) {
+            content.getChildren().addAll(new VBox(Layout.SPACING, header(summary), onlyStorytoldPane(statistics)));
+            return;
+        }
+
         content.getChildren()
                 .addAll(new VBox(
                         Layout.SPACING,
@@ -67,6 +72,13 @@ public class PlayerView extends Screen {
                         survivalStreakPane(statistics),
                         section("Scripts", scriptsPane(statistics)),
                         section("Allies", alliesPane(statistics))));
+    }
+
+    private VBox onlyStorytoldPane(PlayerStatistics statistics) {
+        return section(
+                "Only storytold",
+                new Label(statistics.name() + " has only been storyteller so far. They have storytold "
+                        + statistics.gamesStorytold() + " games."));
     }
 
     private VBox header(PlayerSummary summary) {
