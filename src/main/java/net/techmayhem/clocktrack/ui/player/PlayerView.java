@@ -83,18 +83,22 @@ public class PlayerView extends Screen {
 
     private VBox onlyStorytoldPane(PlayerStatistics statistics) {
         return section(
-                "Only storytold",
-                new Label(statistics.name() + " has only been storyteller so far. They have storytold "
+                "NO data to show",
+                new Label(statistics.name() + " has never been a player in a game. They have storytold "
                         + statistics.gamesStorytold() + " games."));
     }
 
     private VBox header(PlayerSummary summary) {
         Text name = new Text(summary.name());
         name.getStyleClass().add(Styles.STAT_BLOCK_VALUE);
-        return new VBox(
-                Layout.SPACING,
-                name,
-                new Text("First game " + summary.firstGame() + " · Last game " + summary.lastGame()));
+        String firstLastGameText;
+        if (summary.firstGame() != null && summary.lastGame() != null) {
+            firstLastGameText = "First game " + I18n.formatDate(summary.firstGame()) + " · Last game "
+                    + I18n.formatDate(summary.lastGame());
+        } else {
+            firstLastGameText = "";
+        }
+        return new VBox(Layout.SPACING, name, new Text(firstLastGameText));
     }
 
     private StatBlocks statBlocks(PlayerStatistics statistics) {
@@ -255,7 +259,7 @@ public class PlayerView extends Screen {
             bar.setMaxWidth(Double.MAX_VALUE);
             bar.getStyleClass().add(best ? Styles.CHARACTER_SECTION_BOX_WIN : Styles.CHARACTER_SECTION_BOX_LOSS);
 
-            Label rateLabel = new Label(rate.wins() + "/" + rate.games() + " - " + I18n.formatPercentage(share, 0));
+            Label rateLabel = new Label(rate.wins() + " of " + rate.games() + " - " + I18n.formatPercentage(share, 0));
 
             grid.addRow(rowIndex, new Label(row.name()), bar, rateLabel);
             rowIndex++;
@@ -539,7 +543,8 @@ public class PlayerView extends Screen {
 
         List<PlayerStatistics.ScriptPlays> entries = statistics.scriptPlays().values().stream()
                 .sorted(Comparator.comparingInt(PlayerStatistics.ScriptPlays::games)
-                        .reversed())
+                        .reversed()
+                        .thenComparing(PlayerStatistics.ScriptPlays::name))
                 .toList();
         int highestPlays = entries.stream()
                 .mapToInt(PlayerStatistics.ScriptPlays::games)
