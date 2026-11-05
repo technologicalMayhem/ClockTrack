@@ -2,11 +2,13 @@ package net.techmayhem.clocktrack.ui.player;
 
 import java.util.*;
 import java.util.stream.IntStream;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.gamedata.Role;
@@ -35,6 +37,8 @@ public class PlayerView extends Screen {
     private static final int MIN_GAMES_FOR_RANKING = 3;
     private static final int RANKING_SIZE = 5;
 
+    private static final double SCROLL_SPEED = 2;
+
     PlayerView(PlayerSummary summary, PlayerStatistics statistics) {
         root = new ScrollPane();
         root.setFitToWidth(true);
@@ -42,6 +46,15 @@ public class PlayerView extends Screen {
         VBox content = new VBox(Layout.SPACING);
         content.setPadding(new Insets(Layout.PADDING));
         root.setContent(content);
+
+        root.addEventFilter(ScrollEvent.SCROLL, event -> {
+            double scrollable = root.getContent().getBoundsInLocal().getHeight()
+                    - root.getViewportBounds().getHeight();
+            if (scrollable <= 0) return;
+            double delta = event.getDeltaY() * SCROLL_SPEED / scrollable;
+            root.setVvalue(Math.clamp(root.getVvalue() - delta, 0, 1));
+            event.consume();
+        });
 
         name = "View: " + statistics.name();
 
@@ -120,6 +133,7 @@ public class PlayerView extends Screen {
                 new ColumnDef<>(
                         "Win Percentage", entry -> winRate(entry.getValue()), rate -> I18n.formatPercentage(rate, 0)));
         characterStatsTable.getItems().addAll(sortedByGames(statistics));
+        fitToRows(characterStatsTable);
 
         return new VBox(Layout.SPACING, top5, tableHeader, characterStatsTable);
     }
@@ -307,11 +321,36 @@ public class PlayerView extends Screen {
                 new StatBlocks(longestGoodStreak, longestEvilStreak));
     }
 
-    private Node alliesPane(PlayerStatistics statistics) {
-        return placeholder();
+    private Node scriptsPane(PlayerStatistics statistics) {
+        GridPane grid = new GridPane();
+        grid.setHgap(Layout.PADDING);
+        grid.setVgap(Layout.SPACING);
+        ColumnConstraints outer = new ColumnConstraints();
+        outer.setHgrow(Priority.SOMETIMES);
+        ColumnConstraints inner = new ColumnConstraints();
+        inner.setHgrow(Priority.ALWAYS);
+        grid.getColumnConstraints().addAll(outer, inner, outer);
+
+        List<PlayerStatistics.ScriptPlays> entries = statistics.scriptPlays().values().stream()
+                .sorted(Comparator.comparingInt(PlayerStatistics.ScriptPlays::games)
+                        .reversed())
+                .toList();
+        int highestPlays = entries.stream()
+                .mapToInt(PlayerStatistics.ScriptPlays::games)
+                .max()
+                .orElse(0);
+        int gridRow = 0;
+        for (PlayerStatistics.ScriptPlays entry : entries) {
+            ProgressBar progressBar = new ProgressBar((double) entry.games() / highestPlays);
+            progressBar.setMaxWidth(Double.MAX_VALUE);
+            grid.addRow(gridRow, new Label(entry.name()), progressBar, new Label(String.valueOf(entry.games())));
+            gridRow++;
+        }
+
+        return grid;
     }
 
-    private Node scriptsPane(PlayerStatistics statistics) {
+    private Node alliesPane(PlayerStatistics statistics) {
         return placeholder();
     }
 
@@ -338,6 +377,14 @@ public class PlayerView extends Screen {
         section.getStyleClass().add(Styles.STAT_SECTION);
         section.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         return section;
+    }
+
+    /// Makes the table exactly as tall as its rows, so it never scrolls on its own.
+    private static void fitToRows(TableView<?> table) {
+        table.setFixedCellSize(26);
+        table.prefHeightProperty().bind(Bindings.size(table.getItems()).add(1.1).multiply(table.getFixedCellSize()));
+        table.setMinHeight(Region.USE_PREF_SIZE);
+        table.setMaxHeight(Region.USE_PREF_SIZE);
     }
 
     private static Node placeholder() {
