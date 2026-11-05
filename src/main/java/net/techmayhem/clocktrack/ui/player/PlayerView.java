@@ -13,7 +13,6 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.gamedata.Role;
 import net.techmayhem.clocktrack.gamedata.Roles;
-import net.techmayhem.clocktrack.gamedata.Team;
 import net.techmayhem.clocktrack.projections.PlayerStatistics;
 import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.projections.Rate;
@@ -99,9 +98,26 @@ public class PlayerView extends Screen {
     }
 
     private static VBox characterPane(PlayerStatistics statistics) {
-        GridPane top5 = sideBySide(buildTop5(statistics, true), buildTop5(statistics, false));
-
         Roles roles = Roles.getInstance();
+
+        List<Ranked> characters = statistics.charactersPlayed().entrySet().stream()
+                .map(entry -> {
+                    Role role = roles.get(entry.getKey());
+                    return new Ranked(role == null ? entry.getKey() : role.name(), entry.getValue());
+                })
+                .toList();
+        Split split = split(characters);
+        GridPane rankings = sideBySide(
+                rankingBox(
+                        "Best characters",
+                        "No character with " + MIN_GAMES_FOR_RANKING + " games and more than half of them won.",
+                        split.best(),
+                        true),
+                rankingBox(
+                        "Worst characters",
+                        "No character with " + MIN_GAMES_FOR_RANKING + " games and less than half of them won.",
+                        split.worst(),
+                        false));
 
         HBox tableHeader = new HBox(Layout.SPACING);
         Label allPlayedCharacters = new Label("All played characters");
@@ -121,49 +137,37 @@ public class PlayerView extends Screen {
                             Role role = roles.get(entry.getKey());
                             return role == null ? null : role.team();
                         },
-                        PlayerView::teamName),
+                        I18n::teamName),
                 new ColumnDef<>("Games", entry -> entry.getValue().games()),
                 new ColumnDef<>("Wins", entry -> entry.getValue().wins()),
                 new ColumnDef<>(
                         "Win Percentage", entry -> winRate(entry.getValue()), rate -> I18n.formatPercentage(rate, 0)));
         characterStatsTable.getItems().addAll(sortedByGames(statistics));
 
-        return new VBox(Layout.SPACING, top5, tableHeader, characterStatsTable);
+        return new VBox(Layout.SPACING, rankings, tableHeader, characterStatsTable);
     }
 
-    private static String teamName(Team team) {
-        return switch (team) {
-            case TOWNSFOLK -> "Townsfolk";
-            case OUTSIDER -> "Outsider";
-            case MINION -> "Minion";
-            case DEMON -> "Demon";
-            case TRAVELLER -> "Traveller";
-            case FABLED -> "Fabled";
-            case LORIC -> "Loric";
-        };
-    }
-
-    private static VBox buildTop5(PlayerStatistics statistics, boolean top) {
-        Roles roles = Roles.getInstance();
-        List<Ranked> rows = statistics.charactersPlayed().entrySet().stream()
-                .map(entry -> {
-                    Role role = roles.get(entry.getKey());
-                    return new Ranked(role == null ? entry.getKey() : role.name(), entry.getValue());
-                })
+    /// Splits the rows with enough games into the best and the worst, each at most [#RANKING_SIZE] long. The best
+    /// won more than half of their games, the worst less than half. Rows at exactly half are in neither.
+    private static Split split(List<Ranked> rows) {
+        List<Ranked> ranked = rows.stream()
                 .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING)
-                .sorted(byWinRate(top))
+                .toList();
+        List<Ranked> best = ranked.stream()
+                .filter(row -> winRate(row.rate()) > 0.5)
+                .sorted(byWinRate(true))
                 .limit(RANKING_SIZE)
                 .toList();
-
-        return rankingBox(
-                top ? "Top 5 Characters" : "Bottom 5 Characters",
-                "No character with " + MIN_GAMES_FOR_RANKING + " games yet.",
-                rows,
-                top);
+        List<Ranked> worst = ranked.stream()
+                .filter(row -> winRate(row.rate()) < 0.5)
+                .sorted(byWinRate(false))
+                .limit(RANKING_SIZE)
+                .toList();
+        return new Split(best, worst);
     }
 
-    /// Builds a titled list of bars. With `top`, the bars show the share of games won, otherwise the share lost.
-    private static VBox rankingBox(String title, String emptyText, List<Ranked> rows, boolean top) {
+    /// Builds a titled list of bars that show the share of games won. `best` picks the style of the bars.
+    private static VBox rankingBox(String title, String emptyText, List<Ranked> rows, boolean best) {
         VBox container = new VBox(Layout.SPACING);
         Label header = new Label(title);
         header.getStyleClass().add(Styles.CHARACTER_SECTION_HEADER);
@@ -186,14 +190,13 @@ public class PlayerView extends Screen {
         int rowIndex = 0;
         for (Ranked row : rows) {
             Rate rate = row.rate();
-            int count = top ? rate.wins() : rate.games() - rate.wins();
-            double share = (double) count / rate.games();
+            double share = winRate(rate);
 
             ProgressBar bar = new ProgressBar(share);
             bar.setMaxWidth(Double.MAX_VALUE);
-            bar.getStyleClass().add(top ? Styles.CHARACTER_SECTION_BOX_WIN : Styles.CHARACTER_SECTION_BOX_LOSS);
+            bar.getStyleClass().add(best ? Styles.CHARACTER_SECTION_BOX_WIN : Styles.CHARACTER_SECTION_BOX_LOSS);
 
-            Label rateLabel = new Label(count + "/" + rate.games() + " - " + I18n.formatPercentage(share, 0));
+            Label rateLabel = new Label(rate.wins() + "/" + rate.games() + " - " + I18n.formatPercentage(share, 0));
 
             grid.addRow(rowIndex, new Label(row.name()), bar, rateLabel);
             rowIndex++;
@@ -235,6 +238,12 @@ public class PlayerView extends Screen {
     /// @param name The display name
     /// @param rate The games and how many of them were won
     private record Ranked(String name, Rate rate) {}
+
+    /// The best and the worst rows of a ranking. No row is in both.
+    ///
+    /// @param best The best rows, best first
+    /// @param worst The worst rows, worst first
+    private record Split(List<Ranked> best, List<Ranked> worst) {}
 
     private static double winRate(Rate rate) {
         return rate.games() == 0 ? 0 : (double) rate.wins() / rate.games();
