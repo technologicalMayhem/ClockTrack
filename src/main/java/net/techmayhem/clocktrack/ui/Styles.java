@@ -7,6 +7,20 @@ public class Styles {
     public static final String STAT_BLOCK_VALUE = "statBlockValue";
     public static final String TEAM_BAR = "teamBar";
     public static final String DONUT_CHART = "donutChart";
+    public static final String DONUT_TOTAL = "donut-total";
+
+    public static final String WIN_LOSS_GOOD_WIN = "win-loss-good-win";
+    public static final String WIN_LOSS_GOOD_LOSS = "win-loss-good-loss";
+    public static final String WIN_LOSS_EVIL_LOSS = "win-loss-evil-loss";
+    public static final String WIN_LOSS_EVIL_WIN = "win-loss-evil-win";
+
+    public static final String STAT_CAPTION = "stat-caption";
+    public static final String STAT_VALUE_SMALL = "stat-value-small";
+
+    public static final String LEGEND_SWATCH = "legend-swatch";
+    public static final String RECENT_GAME = "recent-game";
+    public static final String WON = "won";
+    public static final String LOST = "lost";
 
     public static final String STAT_SECTION = "stat-section";
     public static final String STAT_SECTION_TITLE = "stat-section-title";

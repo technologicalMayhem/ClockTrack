@@ -41,12 +41,20 @@ public final class SampleDataLoader {
     /// @param locale The locale that determines the language of the sample data
     /// @throws DatabaseException If the database already contains players, scripts, or sessions
     public static void load(Database db, Locale locale) {
+        requireEmpty(db);
+        new SampleDataLoader(db, ResourceBundle.getBundle(BUNDLE_NAME, locale)).insertAll();
+    }
+
+    /// Ensures that the database holds no players, scripts, or sessions, so sample data can be loaded into it.
+    ///
+    /// @param db The database to check
+    /// @throws DatabaseException If the database already contains players, scripts, or sessions
+    static void requireEmpty(Database db) {
         if (!db.getAllPlayers().isEmpty()
                 || !db.getAllScripts().isEmpty()
                 || !db.getAllSessions().isEmpty()) {
             throw new DatabaseException("Sample data can only be loaded into an empty database", null, true);
         }
-        new SampleDataLoader(db, ResourceBundle.getBundle(BUNDLE_NAME, locale)).insertAll();
     }
 
     private void insertAll() {
