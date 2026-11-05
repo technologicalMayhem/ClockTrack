@@ -2,6 +2,9 @@ package net.techmayhem.clocktrack.ui.player;
 
 import java.util.*;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -36,6 +39,7 @@ public class PlayerView extends Screen {
 
     private static final int MIN_GAMES_FOR_RANKING = 3;
     private static final int RANKING_SIZE = 5;
+    private static final int COLLAPSED_ROWS = 10;
     private static final int MIN_DISPLAYED_PHASE = 10;
 
     private static final double SCROLL_SPEED = 2;
@@ -133,11 +137,10 @@ public class PlayerView extends Screen {
                         "No character with " + MIN_GAMES_FOR_RANKING + " games and less than half of them won.",
                         split.worst(),
                         false));
+        Label rankingNote = caption("Only characters with at least " + MIN_GAMES_FOR_RANKING + " games.");
 
-        HBox tableHeader = new HBox(Layout.SPACING);
-        Label allPlayedCharacters = new Label("All played characters");
-        allPlayedCharacters.getStyleClass().add(Styles.CHARACTER_SECTION_HEADER);
-        tableHeader.getChildren().addAll(allPlayedCharacters);
+        Label sortNote = caption("Click a column header to sort. Shift-click another header to sort by it within the "
+                + "first, e.g. Type, then Win Percentage.");
 
         TableView<Map.Entry<String, Rate>> characterStatsTable = new TableView<>();
         TableHelper.buildTableColumns(
@@ -157,11 +160,53 @@ public class PlayerView extends Screen {
                 new ColumnDef<>("Wins", entry -> entry.getValue().wins()),
                 new ColumnDef<>(
                         "Win Percentage", entry -> winRate(entry.getValue()), rate -> I18n.formatPercentage(rate, 0)));
-        characterStatsTable.getItems().addAll(sortedByGames(statistics));
         characterStatsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         fitToRows(characterStatsTable);
 
-        return new VBox(Layout.SPACING, rankings, tableHeader, characterStatsTable);
+        Region spacer = new Region();
+        spacer.setPrefHeight(Layout.PADDING);
+
+        return new VBox(
+                Layout.SPACING,
+                rankings,
+                rankingNote,
+                spacer,
+                new VBox(header("All played characters"), sortNote),
+                expandableTable(characterStatsTable, sortedByGames(statistics), "characters"));
+    }
+
+    private static <T> VBox expandableTable(TableView<T> table, List<T> rows, String rowsName) {
+        BooleanProperty expanded = new SimpleBooleanProperty(false);
+        Button toggle = new Button();
+        toggle.setVisible(rows.size() > COLLAPSED_ROWS);
+        toggle.setManaged(toggle.isVisible());
+
+        Runnable update = () -> {
+            boolean showAll = expanded.get() || rows.size() <= COLLAPSED_ROWS;
+            table.getItems().setAll(showAll ? rows : rows.subList(0, COLLAPSED_ROWS));
+            if (!table.getSortOrder().isEmpty()) {
+                table.sort();
+            }
+            toggle.setText(expanded.get() ? "Show fewer" : "Show all " + rows.size() + " " + rowsName);
+        };
+
+        toggle.setOnAction(_ -> {
+            if (expanded.get()) {
+                // The first rows are the first ones in the original order, so a sort would not apply to them.
+                table.getSortOrder().clear();
+            }
+            expanded.set(!expanded.get());
+            update.run();
+        });
+        table.getSortOrder().addListener((ListChangeListener<TableColumn<T, ?>>) _ -> {
+            if (!table.getSortOrder().isEmpty()) {
+                expanded.set(true);
+            }
+            update.run();
+        });
+
+        update.run();
+        return new VBox(Layout.SPACING, table, toggle);
     }
 
     /// Splits the rows with enough games into the best and the worst, each at most [#RANKING_SIZE] long. The best
@@ -390,6 +435,13 @@ public class PlayerView extends Screen {
         return new StackPane(donutChart, center);
     }
 
+    private static Label caption(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add(Styles.STAT_CAPTION);
+        label.setWrapText(true);
+        return label;
+    }
+
     private static Label header(String text) {
         Label label = new Label(text);
         label.getStyleClass().add(Styles.CHARACTER_SECTION_HEADER);
@@ -461,7 +513,7 @@ public class PlayerView extends Screen {
         GridPane rankings = sideBySide(
                 allyRanking("Best allies as good", statistics.goodTeammates()),
                 allyRanking("Best allies as evil", statistics.evilTeammates()));
-        Label note = new Label("Only allies with at least " + MIN_GAMES_FOR_RANKING + " games on the same team.");
+        Label note = caption("Only allies with at least " + MIN_GAMES_FOR_RANKING + " games on the same team.");
         return new VBox(Layout.SPACING, rankings, note);
     }
 
