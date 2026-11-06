@@ -484,6 +484,7 @@ public class PlayerView extends Screen {
         chart.setAnimated(false);
         chart.setPrefHeight(240);
         chart.setCategoryGap(8);
+        chart.getStyleClass().add(Styles.SURVIVAL_BAR_CHART);
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         for (int phase = PhaseFormat.FIRST_PHASE; phase <= lastPhase; phase++) {
@@ -515,20 +516,20 @@ public class PlayerView extends Screen {
 
     private static Node alliesPane(PlayerStatistics statistics) {
         GridPane rankings = sideBySide(
-                allyRanking("Best allies as good", statistics.goodTeammates()),
-                allyRanking("Best allies as evil", statistics.evilTeammates()));
+                allyRanking("Best allies as good", statistics.goodTeammates(), true),
+                allyRanking("Best allies as evil", statistics.evilTeammates(), false));
         Label note = caption("Only allies with at least " + MIN_GAMES_FOR_RANKING + " games on the same team.");
         return new VBox(Layout.SPACING, rankings, note);
     }
 
-    private static VBox allyRanking(String title, Map<Integer, PlayerStatistics.Teammate> teammates) {
+    private static VBox allyRanking(String title, Map<Integer, PlayerStatistics.Teammate> teammates, boolean good) {
         List<Ranked> rows = teammates.values().stream()
                 .map(teammate -> new Ranked(teammate.name(), teammate.rate()))
                 .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING)
                 .sorted(byWinRate(true))
                 .limit(RANKING_SIZE)
                 .toList();
-        return rankingBox(title, "No ally with " + MIN_GAMES_FOR_RANKING + " games together yet.", rows, true);
+        return rankingBox(title, "No ally with " + MIN_GAMES_FOR_RANKING + " games together yet.", rows, good);
     }
 
     private Node scriptsPane(PlayerStatistics statistics) {
@@ -554,6 +555,7 @@ public class PlayerView extends Screen {
         for (PlayerStatistics.ScriptPlays entry : entries) {
             ProgressBar progressBar = new ProgressBar((double) entry.games() / highestPlays);
             progressBar.setMaxWidth(Double.MAX_VALUE);
+            progressBar.getStyleClass().add(Styles.SCRIPTS_BAR);
             grid.addRow(gridRow, new Label(entry.name()), progressBar, new Label(String.valueOf(entry.games())));
             gridRow++;
         }
