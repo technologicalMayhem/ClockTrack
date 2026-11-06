@@ -138,7 +138,7 @@ public class ScriptView extends Screen {
         StackedBarChart<String, Number> chart = new StackedBarChart<>(categoryAxis, numberAxis);
         chart.setAnimated(false);
         chart.setPrefHeight(CHART_HEIGHT);
-        chart.getStyleClass().add(Styles.PLAYER_COUNT_RESULT_CHART);
+        chart.getStyleClass().add(Styles.PLAYER_COUNT_CHART);
 
         XYChart.Series<String, Number> goodWin = new XYChart.Series<>();
         goodWin.setName("Good wins");
@@ -299,7 +299,7 @@ public class ScriptView extends Screen {
         for (ScriptReport.PlayerGames entry : players) {
             ProgressBar bar = new ProgressBar((double) entry.games() / most);
             bar.setMaxWidth(Double.MAX_VALUE);
-            bar.getStyleClass().add(Styles.SCRIPTS_BAR);
+            bar.getStyleClass().add(Styles.GAMES_BAR);
 
             grid.addRow(rowIndex, new Label(entry.player().name()), bar, new Label(String.valueOf(entry.games())));
             rowIndex++;

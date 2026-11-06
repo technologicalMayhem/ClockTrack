@@ -42,15 +42,15 @@ public final class Layout {
 
     public static VBox section(String title, Node content) {
         Label heading = new Label(title);
-        heading.getStyleClass().add(Styles.STAT_SECTION_TITLE);
+        heading.getStyleClass().add(Styles.SECTION_TITLE);
         heading.setMaxWidth(Double.MAX_VALUE);
 
         VBox body = new VBox(content);
-        body.getStyleClass().add(Styles.STAT_SECTION_CONTENT);
+        body.getStyleClass().add(Styles.SECTION_CONTENT);
         VBox.setVgrow(body, Priority.ALWAYS);
 
         VBox section = new VBox(heading, body);
-        section.getStyleClass().add(Styles.STAT_SECTION);
+        section.getStyleClass().add(Styles.SECTION);
         section.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         return section;
     }

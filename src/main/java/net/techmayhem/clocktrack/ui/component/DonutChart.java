@@ -12,7 +12,7 @@ public class DonutChart extends PieChart {
 
     public DonutChart() {
         hole.setMouseTransparent(true);
-        hole.getStyleClass().add(Styles.DONUT_CHART); // same as the default chart background
+        hole.getStyleClass().add(Styles.DONUT_HOLE); // same as the default chart background
     }
 
     @Override

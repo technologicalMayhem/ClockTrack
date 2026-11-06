@@ -258,7 +258,7 @@ public class PlayerView extends Screen {
 
             ProgressBar bar = new ProgressBar(share);
             bar.setMaxWidth(Double.MAX_VALUE);
-            bar.getStyleClass().add(best ? Styles.CHARACTER_SECTION_BOX_WIN : Styles.CHARACTER_SECTION_BOX_LOSS);
+            bar.getStyleClass().add(best ? Styles.BEST_BAR : Styles.WORST_BAR);
 
             Label rateLabel = new Label(rate.wins() + " of " + rate.games() + " - " + I18n.formatPercentage(share, 0));
 
@@ -350,17 +350,17 @@ public class PlayerView extends Screen {
         Region swatch = new Region();
         swatch.getStyleClass().addAll(Styles.LEGEND_SWATCH, colorClass);
         Label share = new Label(rate(count, total));
-        share.getStyleClass().add(Styles.STAT_CAPTION);
+        share.getStyleClass().add(Styles.CAPTION);
         legend.addRow(row, swatch, new Label(label), new Label(String.valueOf(count)), share);
     }
 
     private static VBox smallStat(String caption, String value, String detail) {
         Label captionLabel = new Label(caption);
-        captionLabel.getStyleClass().add(Styles.STAT_CAPTION);
+        captionLabel.getStyleClass().add(Styles.CAPTION);
         Label valueLabel = new Label(value);
-        valueLabel.getStyleClass().add(Styles.STAT_VALUE_SMALL);
+        valueLabel.getStyleClass().add(Styles.VALUE_SMALL);
         Label detailLabel = new Label(detail);
-        detailLabel.getStyleClass().add(Styles.STAT_CAPTION);
+        detailLabel.getStyleClass().add(Styles.CAPTION);
         return new VBox(captionLabel, valueLabel, detailLabel);
     }
 
@@ -369,10 +369,11 @@ public class PlayerView extends Screen {
         HBox strip = new HBox(Layout.PADDING * 1.5);
         for (PlayerStatistics.RecentGame game : games) {
             Label result = new Label(game.won() ? "W" : "L");
-            result.getStyleClass().addAll(Styles.RECENT_GAME, game.won() ? Styles.WON : Styles.LOST);
+            result.getStyleClass()
+                    .addAll(Styles.RECENT_GAME, game.won() ? Styles.RECENT_GAME_WON : Styles.RECENT_GAME_LOST);
 
             Label date = new Label(I18n.formatDate(game.date()));
-            date.getStyleClass().add(Styles.STAT_CAPTION);
+            date.getStyleClass().add(Styles.CAPTION);
 
             VBox entry = new VBox(Layout.SPACING, result, date);
             entry.setAlignment(Pos.CENTER);
@@ -395,7 +396,7 @@ public class PlayerView extends Screen {
                 new PieChart.Data("Evil wins", statistics.wonEvil()));
 
         DonutChart donutChart = new DonutChart();
-        donutChart.getStyleClass().add(Styles.WIN_LOSS_PIE);
+        donutChart.getStyleClass().add(Styles.WIN_LOSS_CHART);
         donutChart.setClockwise(false);
         donutChart.setStartAngle(90);
         donutChart.setLegendVisible(false);
@@ -413,7 +414,7 @@ public class PlayerView extends Screen {
         Label totalValue = new Label(String.valueOf(total));
         totalValue.getStyleClass().add(Styles.DONUT_TOTAL);
         Label totalCaption = new Label("games");
-        totalCaption.getStyleClass().add(Styles.STAT_CAPTION);
+        totalCaption.getStyleClass().add(Styles.CAPTION);
         VBox center = new VBox(totalValue, totalCaption);
         center.setAlignment(Pos.CENTER);
         center.setMouseTransparent(true);
@@ -423,7 +424,7 @@ public class PlayerView extends Screen {
 
     private static Label caption(String text) {
         Label label = new Label(text);
-        label.getStyleClass().add(Styles.STAT_CAPTION);
+        label.getStyleClass().add(Styles.CAPTION);
         label.setWrapText(true);
         return label;
     }
@@ -466,7 +467,7 @@ public class PlayerView extends Screen {
         chart.setAnimated(false);
         chart.setPrefHeight(240);
         chart.setCategoryGap(8);
-        chart.getStyleClass().add(Styles.SURVIVAL_BAR_CHART);
+        chart.getStyleClass().add(Styles.SURVIVAL_CHART);
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         for (int phase = PhaseFormat.FIRST_PHASE; phase <= lastPhase; phase++) {
@@ -541,7 +542,7 @@ public class PlayerView extends Screen {
         for (PlayerStatistics.ScriptPlays entry : entries) {
             ProgressBar progressBar = new ProgressBar((double) entry.games() / highestPlays);
             progressBar.setMaxWidth(Double.MAX_VALUE);
-            progressBar.getStyleClass().add(Styles.SCRIPTS_BAR);
+            progressBar.getStyleClass().add(Styles.GAMES_BAR);
             grid.addRow(gridRow, new Label(entry.name()), progressBar, new Label(String.valueOf(entry.games())));
             gridRow++;
         }
