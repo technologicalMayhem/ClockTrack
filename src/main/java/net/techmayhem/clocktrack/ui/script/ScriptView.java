@@ -60,14 +60,7 @@ public class ScriptView extends Screen {
         content.setPadding(new Insets(Layout.PADDING));
         root.setContent(content);
 
-        root.addEventFilter(ScrollEvent.SCROLL, event -> {
-            double scrollable = root.getContent().getBoundsInLocal().getHeight()
-                    - root.getViewportBounds().getHeight();
-            if (scrollable <= 0) return;
-            double delta = event.getDeltaY() * Layout.SCROLL_SPEED / scrollable;
-            root.setVvalue(Math.clamp(root.getVvalue() - delta, 0, 1));
-            event.consume();
-        });
+        root.addEventFilter(ScrollEvent.SCROLL, event -> Layout.acceleratedScroll(root, event));
 
         name = "View: " + script.name();
 
