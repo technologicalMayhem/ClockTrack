@@ -16,7 +16,7 @@ public class StatBlocks extends HBox {
         ObservableList<Node> children = getChildren();
         for (StatBlock block : blocks) {
             Text value = new Text(block.value);
-            value.getStyleClass().add(Styles.STAT_BLOCK_VALUE);
+            value.getStyleClass().add(Styles.TITLE_TEXT);
             Text text = new Text(block.label);
             VBox blockBox = new VBox(Layout.SPACING, value, text);
 

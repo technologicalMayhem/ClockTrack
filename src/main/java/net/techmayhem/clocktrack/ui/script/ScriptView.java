@@ -93,7 +93,7 @@ public class ScriptView extends Screen {
 
     private VBox header(ScriptSummary summary) {
         Text name = new Text(summary.name());
-        name.getStyleClass().add(Styles.STAT_BLOCK_VALUE);
+        name.getStyleClass().add(Styles.TITLE_TEXT);
         String firstLastGameText;
         if (summary.firstPlayed() != null && summary.lastPlayed() != null) {
             firstLastGameText = "First game " + I18n.formatDate(summary.firstPlayed()) + " · Last game "

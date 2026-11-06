@@ -105,7 +105,7 @@
     -fx-text-fill: #333333;
 }
 
-.statBlockValue {
+.titleText {
     -fx-font-weight: bold;
     -fx-font-size: 26px;
 }
