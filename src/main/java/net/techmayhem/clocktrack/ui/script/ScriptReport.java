@@ -146,7 +146,7 @@ public record ScriptReport(
                 }
             }
             for (Role demon : demons) {
-                count(results, demon, goodWon(seats));
+                count(results, demon, !goodWon(seats));
             }
         }
         return results;

@@ -42,7 +42,6 @@ public class PlayerView extends Screen {
     private static final int COLLAPSED_ROWS = 10;
     private static final int MIN_DISPLAYED_PHASE = 10;
 
-    private static final double SCROLL_SPEED = 2;
     private static final double DONUT_SIZE = 300;
 
     PlayerView(PlayerSummary summary, PlayerStatistics statistics) {
@@ -57,7 +56,7 @@ public class PlayerView extends Screen {
             double scrollable = root.getContent().getBoundsInLocal().getHeight()
                     - root.getViewportBounds().getHeight();
             if (scrollable <= 0) return;
-            double delta = event.getDeltaY() * SCROLL_SPEED / scrollable;
+            double delta = event.getDeltaY() * Layout.SCROLL_SPEED / scrollable;
             root.setVvalue(Math.clamp(root.getVvalue() - delta, 0, 1));
             event.consume();
         });
@@ -74,11 +73,11 @@ public class PlayerView extends Screen {
                         Layout.SPACING,
                         header(summary),
                         statBlocks(statistics),
-                        section("Wins and Losses", winLossPane(statistics)),
-                        section("Characters", characterPane(statistics)),
+                        Layout.section("Wins and Losses", winLossPane(statistics)),
+                        Layout.section("Characters", characterPane(statistics)),
                         survivalStreakPane(statistics),
-                        section("Scripts", scriptsPane(statistics)),
-                        section("Allies", alliesPane(statistics))));
+                        Layout.section("Scripts", scriptsPane(statistics)),
+                        Layout.section("Allies", alliesPane(statistics))));
     }
 
     private VBox onlyStorytoldPane(PlayerStatistics statistics) {
@@ -86,7 +85,7 @@ public class PlayerView extends Screen {
         if (statistics.gamesStorytold() != 0) {
             s += " They have storytold " + statistics.gamesStorytold() + " games.";
         }
-        return section("No data to show", new Label(s));
+        return Layout.section("No data to show", new Label(s));
     }
 
     private VBox header(PlayerSummary summary) {
@@ -139,7 +138,7 @@ public class PlayerView extends Screen {
                 })
                 .toList();
         Split split = split(characters);
-        GridPane rankings = sideBySide(
+        GridPane rankings = Layout.sideBySide(
                 rankingBox(
                         "Best characters",
                         "No character with " + MIN_GAMES_FOR_RANKING + " games and more than half of them won.",
@@ -286,25 +285,6 @@ public class PlayerView extends Screen {
                 .thenComparing(Ranked::name);
     }
 
-    /// Places two nodes side by side, each taking half of the width.
-    private static GridPane sideBySide(Node left, Node right) {
-        return sideBySide(left, right, Layout.PADDING, 50);
-    }
-
-    /// Places two nodes side by side. The left node takes the given percentage of the width, the right one the rest.
-    private static GridPane sideBySide(Node left, Node right, double spacing, double leftPercent) {
-        GridPane grid = new GridPane(spacing, 0);
-        ColumnConstraints leftColumn = new ColumnConstraints();
-        leftColumn.setPercentWidth(leftPercent);
-        ColumnConstraints rightColumn = new ColumnConstraints();
-        rightColumn.setPercentWidth(100 - leftPercent);
-        grid.getColumnConstraints().addAll(leftColumn, rightColumn);
-        grid.add(left, 0, 0);
-        grid.add(right, 1, 0);
-        grid.setMaxWidth(Double.MAX_VALUE);
-        return grid;
-    }
-
     /// A row of a ranking: what is ranked, and its games and wins.
     ///
     /// @param name The display name
@@ -332,7 +312,7 @@ public class PlayerView extends Screen {
     }
 
     private static GridPane winLossPane(PlayerStatistics statistics) {
-        return sideBySide(winLossDetails(statistics), winLossDonut(statistics), Layout.PADDING, 55);
+        return Layout.sideBySide(winLossDetails(statistics), winLossDonut(statistics), Layout.PADDING, 55);
     }
 
     /// Builds the left side of the wins and losses section: a legend with numbers, the win rates and recent games.
@@ -462,9 +442,9 @@ public class PlayerView extends Screen {
     }
 
     private static GridPane survivalStreakPane(PlayerStatistics statistics) {
-        return sideBySide(
-                section("Survival", buildSurvival(statistics)),
-                section("Streaks", buildStreaks(statistics)),
+        return Layout.sideBySide(
+                Layout.section("Survival", buildSurvival(statistics)),
+                Layout.section("Streaks", buildStreaks(statistics)),
                 Layout.SPACING,
                 60);
     }
@@ -524,7 +504,7 @@ public class PlayerView extends Screen {
     }
 
     private static Node alliesPane(PlayerStatistics statistics) {
-        GridPane rankings = sideBySide(
+        GridPane rankings = Layout.sideBySide(
                 allyRanking("Best allies as good", statistics.goodTeammates(), true),
                 allyRanking("Best allies as evil", statistics.evilTeammates(), false));
         Label note = caption("Only allies with at least " + MIN_GAMES_FOR_RANKING + " games on the same team.");
@@ -574,26 +554,6 @@ public class PlayerView extends Screen {
         }
 
         return grid;
-    }
-
-    private static void colorBars(XYChart.Data<Number, String> d) {
-        if (d.getExtraValue() instanceof Role role)
-            d.getNode().getStyleClass().addAll(Styles.TEAM_BAR, Styles.teamClass(role.team()));
-    }
-
-    private static VBox section(String title, Node content) {
-        Label heading = new Label(title);
-        heading.getStyleClass().add(Styles.STAT_SECTION_TITLE);
-        heading.setMaxWidth(Double.MAX_VALUE);
-
-        VBox body = new VBox(content);
-        body.getStyleClass().add(Styles.STAT_SECTION_CONTENT);
-        VBox.setVgrow(body, Priority.ALWAYS);
-
-        VBox section = new VBox(heading, body);
-        section.getStyleClass().add(Styles.STAT_SECTION);
-        section.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        return section;
     }
 
     /// Makes the table exactly as tall as its rows, so it never scrolls on its own.

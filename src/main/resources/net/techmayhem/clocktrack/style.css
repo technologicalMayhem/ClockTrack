@@ -1,16 +1,16 @@
 .root {
-    -townsfolk: #3297F4;
-    -outsider: #7ABAF4;
-    -minion: #A61115;
-    -demon: #CC141A;
+    -townsfolk: #003c73;
+    -outsider: #7fb0e0;
+    -minion: #a83a1f;
+    -demon: #880015;
     -traveller: #800080;
     -fabled: #D4AF37;
     -loric: #4ccc33;
 
-    -good-win: #00a9ff;
-    -good-loss: #7fd4ff;
-    -evil-loss: #ff7f7f;
-    -evil-win: #ff0000;
+    -good-win: derive(-townsfolk, 50%);
+    -good-loss: derive(-outsider, 50%);
+    -evil-loss: derive(-minion, 50%);
+    -evil-win: derive(-demon, 50%);
 }
 
 .teamTownsfolk {
@@ -111,7 +111,7 @@
 }
 
 .teamBar {
-    -fx-bar-fill: -team;
+    -fx-accent: -team;
 }
 
 .donutChart {
@@ -156,4 +156,13 @@
 
 .survival-bar-chart {
     CHART_COLOR_1: -good-win;
+}
+
+.player-count-result-chart {
+    CHART_COLOR_1: -good-win;
+    CHART_COLOR_2: -evil-win;
+}
+
+.team-fill {
+    -fx-fill: -team;
 }

@@ -12,11 +12,17 @@ public record ScriptStatistics(List<Session> sessions, List<Seat> seats) {
 
     /// Represents a session played on the script.
     ///
+    /// @param id The id of the session
     /// @param date The date of the session
     /// @param goodWon Whether the good team won
     /// @param storytellerId The id of the storyteller, or null if unknown
+    /// @param playerCount The number of players in the session
     public record Session(
-            LocalDate date, boolean goodWon, @Nullable Integer storytellerId) {}
+            int id,
+            LocalDate date,
+            boolean goodWon,
+            @Nullable Integer storytellerId,
+            int playerCount) {}
 
     /// Represents a seat in a session played on the script.
     ///

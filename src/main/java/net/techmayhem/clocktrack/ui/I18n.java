@@ -95,13 +95,13 @@ public class I18n {
 
     public static String teamName(Team team) {
         return switch (team) {
-            case TOWNSFOLK -> "Townsfolk";
-            case OUTSIDER -> "Outsider";
-            case MINION -> "Minion";
-            case DEMON -> "Demon";
-            case TRAVELLER -> "Traveller";
-            case FABLED -> "Fabled";
-            case LORIC -> "Loric";
+            case TOWNSFOLK -> localize("generic.team.townsfolk");
+            case OUTSIDER -> localize("generic.team.outsider");
+            case MINION -> localize("generic.team.minion");
+            case DEMON -> localize("generic.team.demon");
+            case TRAVELLER -> localize("generic.team.traveller");
+            case FABLED -> localize("generic.team.fabled");
+            case LORIC -> localize("generic.team.loric");
         };
     }
 }

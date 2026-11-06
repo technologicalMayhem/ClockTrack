@@ -833,9 +833,11 @@ public class Database implements AutoCloseable {
     private List<ScriptStatistics.Session> getScriptStatSessions(Connection conn, int scriptId) throws SQLException {
         String sql = """
                 SELECT
+                    s.id,
                     s.date,
                     s.good_won,
-                    s.storyteller_id
+                    s.storyteller_id,
+                    (SELECT COUNT(*) FROM player_session ps WHERE ps.session_id = s.id) AS player_count
                 FROM script
                 JOIN session s ON s.script_id = script.id
                 WHERE script.id = ?
