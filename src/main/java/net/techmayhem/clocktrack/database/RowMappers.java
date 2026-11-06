@@ -114,11 +114,7 @@ class RowMappers {
     /// Maps the current row to a [ScriptStatistics.Session].
     static ScriptStatistics.Session scriptStatisticsSession(ResultSet rs) throws SQLException {
         return new ScriptStatistics.Session(
-                rs.getInt("id"),
-                LocalDate.parse(rs.getString("date")),
-                rs.getBoolean("good_won"),
-                getInteger(rs, "storyteller_id"),
-                rs.getInt("player_count"));
+                LocalDate.parse(rs.getString("date")), rs.getBoolean("good_won"), getInteger(rs, "storyteller_id"));
     }
 
     /// Maps the current row to a [ScriptStatistics.Seat].
