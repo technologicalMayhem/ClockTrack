@@ -98,13 +98,15 @@ public class Roles {
         }
     }
 
-    /// Returns all roles of a given team.
-    /// @param team The team to filter by.
+    /// Returns all roles of the given teams.
+    ///
+    /// @param teams The teams to filter by.
     /// @return A list of roles belonging to the specified team.
-    public List<Role> ofTeam(Team team) {
-        return resolvedCharacter.values().stream()
-                .filter(role -> role.team() == team)
-                .sorted(Comparator.comparing(Role::name))
+    public List<Role> ofTeam(Team... teams) {
+        return Arrays.stream(teams)
+                .flatMap(team -> resolvedCharacter.values().stream()
+                        .filter(role -> role.team() == team)
+                        .sorted(Comparator.comparing(Role::name)))
                 .toList();
     }
 }

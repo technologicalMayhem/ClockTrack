@@ -17,7 +17,8 @@ public class StatBlocks extends HBox {
         for (StatBlock block : blocks) {
             Text value = new Text(block.value);
             value.getStyleClass().add(Styles.STAT_BLOCK_VALUE);
-            VBox blockBox = new VBox(Layout.SPACING, value, new Text(block.label));
+            Text text = new Text(block.label);
+            VBox blockBox = new VBox(Layout.SPACING, value, text);
 
             blockBox.setBackground(Background.fill(Color.WHITE));
             blockBox.setPadding(new Insets(Layout.PADDING));
@@ -27,6 +28,8 @@ public class StatBlocks extends HBox {
             blockBox.setMaxWidth(Double.MAX_VALUE);
             blockBox.setPrefWidth(0);
             blockBox.setMinWidth(0);
+
+            text.wrappingWidthProperty().bind(blockBox.widthProperty());
 
             children.add(blockBox);
         }

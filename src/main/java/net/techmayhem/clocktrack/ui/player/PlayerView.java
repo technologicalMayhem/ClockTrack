@@ -17,6 +17,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.gamedata.Role;
 import net.techmayhem.clocktrack.gamedata.Roles;
+import net.techmayhem.clocktrack.gamedata.Team;
 import net.techmayhem.clocktrack.projections.PlayerStatistics;
 import net.techmayhem.clocktrack.projections.PlayerSummary;
 import net.techmayhem.clocktrack.projections.Rate;
@@ -102,22 +103,30 @@ public class PlayerView extends Screen {
     }
 
     private StatBlocks statBlocks(PlayerStatistics statistics) {
+        Roles roles = Roles.getInstance();
+        List<Role> regularRoles = roles.ofTeam(Team.TOWNSFOLK, Team.OUTSIDER, Team.MINION, Team.DEMON);
+        long regularRolesPlayed = regularRoles.stream()
+                .filter(role -> statistics.charactersPlayed().containsKey(role.id()))
+                .count();
+        long travellerRolesPlayed = roles.ofTeam(Team.TRAVELLER).stream()
+                .filter(role -> statistics.charactersPlayed().containsKey(role.id()))
+                .count();
+        int totalRoles = regularRoles.size();
+
         StatBlock gamesPlayed = new StatBlock(Integer.toString(statistics.gamesPlayed()), "Games played");
         StatBlock gamesStorytold = new StatBlock(Integer.toString(statistics.gamesStorytold()), "Games storytold");
         StatBlock winrate = new StatBlock(
                 rate(statistics.wonGood() + statistics.wonEvil(), statistics.gamesPlayed()),
-                "Winrate\n" + (statistics.wonGood() + statistics.wonEvil()) + " of " + statistics.gamesPlayed());
-        StatBlock winrateGood = new StatBlock(
-                rate(statistics.wonGood(), (statistics.wonGood() + statistics.lossGood())),
-                "Winrate good\n" + statistics.wonGood() + " of " + (statistics.wonGood() + statistics.lossGood()));
-        StatBlock winrateEvil = new StatBlock(
-                rate(statistics.wonEvil(), statistics.wonEvil() + statistics.lossEvil()),
-                "Winrate evil\n" + statistics.wonEvil() + " of " + (statistics.wonEvil() + statistics.lossEvil()));
+                "Winrate " + (statistics.wonGood() + statistics.wonEvil()) + " of " + statistics.gamesPlayed());
+        StatBlock gamesAsATraveller = new StatBlock(Long.toString(travellerRolesPlayed), "Games as a traveller");
+        StatBlock roleCoverage = new StatBlock(
+                I18n.formatPercentage((double) statistics.charactersPlayed().size() / totalRoles, 0),
+                "Played " + regularRolesPlayed + " of " + totalRoles + " characters");
         StatBlock survivalRate = new StatBlock(
                 rate(statistics.survived(), statistics.gamesPlayed()),
                 "Survival rate\n" + statistics.survived() + " of " + statistics.gamesPlayed());
 
-        return new StatBlocks(gamesPlayed, gamesStorytold, winrate, winrateGood, winrateEvil, survivalRate);
+        return new StatBlocks(gamesPlayed, gamesStorytold, winrate, roleCoverage, gamesAsATraveller, survivalRate);
     }
 
     private static VBox characterPane(PlayerStatistics statistics) {
