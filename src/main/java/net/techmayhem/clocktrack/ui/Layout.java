@@ -2,6 +2,8 @@ package net.techmayhem.clocktrack.ui;
 
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -51,5 +53,14 @@ public final class Layout {
         section.getStyleClass().add(Styles.STAT_SECTION);
         section.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         return section;
+    }
+
+    public static void acceleratedScroll(ScrollPane root, ScrollEvent event) {
+        double scrollable = root.getContent().getBoundsInLocal().getHeight()
+                - root.getViewportBounds().getHeight();
+        if (scrollable <= 0) return;
+        double delta = event.getDeltaY() * SCROLL_SPEED / scrollable;
+        root.setVvalue(Math.clamp(root.getVvalue() - delta, 0, 1));
+        event.consume();
     }
 }
