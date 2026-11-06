@@ -164,8 +164,8 @@ public class ScriptView extends Screen {
             }
         }
 
-        chart.getData().add(evilWin);
         chart.getData().add(goodWin);
+        chart.getData().add(evilWin);
 
         for (XYChart.Series<String, Number> series : chart.getData()) {
             for (XYChart.Data<String, Number> data : series.getData()) {
