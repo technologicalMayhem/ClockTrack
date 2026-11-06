@@ -14,6 +14,7 @@ import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Script;
+import net.techmayhem.clocktrack.projections.ScriptStatistics;
 import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
 import net.techmayhem.clocktrack.ui.I18n;
@@ -120,8 +121,11 @@ public class ScriptsOverview extends EntityOverview {
 
     private void viewScript() {
         ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
-        FromDb<Script> script = Database.getInstance().getScript(selectedItem.id());
-        ScriptView sessionView = new ScriptView(script.model());
+        Database instance = Database.getInstance();
+        FromDb<Script> script = instance.getScript(selectedItem.id());
+        ScriptStatistics scriptStatistics = instance.getScriptStatistics(script.id());
+        ScriptView sessionView =
+                new ScriptView(script.model(), selectedItem, scriptStatistics, instance.getPlayerSummaries());
         screenHost.open(sessionView);
     }
 

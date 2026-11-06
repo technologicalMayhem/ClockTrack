@@ -8,6 +8,7 @@ public class Styles {
     public static final String WIN_LOSS_PIE = "winLossPie";
     public static final String STAT_BLOCK_VALUE = "statBlockValue";
     public static final String TEAM_BAR = "teamBar";
+    public static final String TEAM_FILL = "team-fill";
     public static final String DONUT_CHART = "donutChart";
     public static final String DONUT_TOTAL = "donut-total";
 
@@ -35,6 +36,8 @@ public class Styles {
     public static final String SURVIVAL_BAR_CHART = "survival-bar-chart";
 
     public static final String SCRIPTS_BAR = "scripts-bars";
+
+    public static final String PLAYER_COUNT_RESULT_CHART = "player-count-result-chart";
 
     public static final String TEAM_TOWNSFOLK = "teamTownsfolk";
     public static final String TEAM_OUTSIDER = "teamOutsider";
