@@ -525,11 +525,15 @@ public class PlayerView extends Screen {
     private static VBox allyRanking(String title, Map<Integer, PlayerStatistics.Teammate> teammates, boolean good) {
         List<Ranked> rows = teammates.values().stream()
                 .map(teammate -> new Ranked(teammate.name(), teammate.rate()))
-                .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING)
+                .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING && winRate(row.rate) > .5)
                 .sorted(byWinRate(true))
                 .limit(RANKING_SIZE)
                 .toList();
-        return rankingBox(title, "No ally with " + MIN_GAMES_FOR_RANKING + " games together yet.", rows, good);
+        return rankingBox(
+                title,
+                "No ally with " + MIN_GAMES_FOR_RANKING + " games together or positive winrate yet.",
+                rows,
+                good);
     }
 
     private Node scriptsPane(PlayerStatistics statistics) {
