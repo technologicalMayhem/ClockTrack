@@ -83,7 +83,7 @@ public class PlayerView extends Screen {
 
     private VBox onlyStorytoldPane(PlayerStatistics statistics) {
         return section(
-                "NO data to show",
+                "No data to show",
                 new Label(statistics.name() + " has never been a player in a game. They have storytold "
                         + statistics.gamesStorytold() + " games."));
     }
