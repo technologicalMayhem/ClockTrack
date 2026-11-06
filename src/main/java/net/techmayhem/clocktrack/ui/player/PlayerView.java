@@ -90,7 +90,7 @@ public class PlayerView extends Screen {
 
     private VBox header(PlayerSummary summary) {
         Text name = new Text(summary.name());
-        name.getStyleClass().add(Styles.STAT_BLOCK_VALUE);
+        name.getStyleClass().add(Styles.TITLE_TEXT);
         String firstLastGameText;
         if (summary.firstGame() != null && summary.lastGame() != null) {
             firstLastGameText = "First game " + I18n.formatDate(summary.firstGame()) + " · Last game "
