@@ -159,8 +159,8 @@
 }
 
 .player-count-result-chart {
-    CHART_COLOR_1: -evil-win;
-    CHART_COLOR_2: -good-win;
+    CHART_COLOR_1: -good-win;
+    CHART_COLOR_2: -evil-win;
 }
 
 .team-fill {
