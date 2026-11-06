@@ -23,24 +23,17 @@ import net.techmayhem.clocktrack.projections.ScriptStatistics;
 ///
 /// @param results The games played on the script and how many of them good won
 /// @param appearances Every character that appeared, most frequent first
-/// @param unknownRoles The role identifiers that appeared but are not known to the script, sorted.
-/// @param neverAppeared The characters of the script that never appeared, sorted by team and in script order within a
-/// team. Travellers are left out, since they are not part of the script.
 /// @param resultsByDemon The games and evil wins per Demon.
 /// @param resultsByPlayerCount The games and good wins per player count, ordered by player count. Travellers do not
 /// count towards the player count.
 /// @param mostPlayed The players who played the script, the most games first
-/// @param neverPlayed The players who played at least one game, but none on this script, in the order they were given
 /// @param storytellers The players who ran the script as the storyteller, the most games first
 public record ScriptReport(
         Rate results,
         List<Appearance> appearances,
-        List<String> unknownRoles,
-        List<Role> neverAppeared,
         Map<Role, Rate> resultsByDemon,
         SortedMap<Integer, Rate> resultsByPlayerCount,
         List<PlayerGames> mostPlayed,
-        List<PlayerSummary> neverPlayed,
         List<PlayerGames> storytellers) {
 
     /// Represents how often a character appeared on the script.
@@ -72,12 +65,9 @@ public record ScriptReport(
         return new ScriptReport(
                 results(statistics.sessions()),
                 knownAppearances(appearanceCounts, roles),
-                unknownRoles(appearanceCounts, roles),
-                neverAppeared(appearanceCounts, roles),
                 resultsByDemon(games, roles),
                 resultsByPlayerCount(games, roles),
                 rank(gamesByPlayer, playersById),
-                neverPlayed(players, gamesByPlayer),
                 rank(countGamesByStoryteller(statistics.sessions()), playersById));
     }
 
@@ -118,20 +108,6 @@ public record ScriptReport(
                 .reversed()
                 .thenComparing(appearance -> appearance.role().name()));
         return appearances;
-    }
-
-    private static List<String> unknownRoles(Map<String, Integer> appearanceCounts, SessionRoles roles) {
-        return appearanceCounts.keySet().stream()
-                .filter(id -> roles.get(id) == null)
-                .sorted()
-                .toList();
-    }
-
-    private static List<Role> neverAppeared(Map<String, Integer> appearanceCounts, SessionRoles roles) {
-        return roles.roleChoices().stream()
-                .filter(role -> role.team() != Team.TRAVELLER)
-                .filter(role -> !appearanceCounts.containsKey(role.id()))
-                .toList();
     }
 
     /// Counts the games and good wins per Demon. Each Demon held by an evil player counts once per game.
@@ -199,14 +175,6 @@ public record ScriptReport(
             }
         }
         return counts;
-    }
-
-    /// Returns the players who played at least one game overall, but none on this script.
-    private static List<PlayerSummary> neverPlayed(List<PlayerSummary> players, Map<Integer, Integer> gamesByPlayer) {
-        return players.stream()
-                .filter(player -> player.gamesPlayed() > 0)
-                .filter(player -> !gamesByPlayer.containsKey(player.id()))
-                .toList();
     }
 
     /// Adds a game to the rate stored under the key.
