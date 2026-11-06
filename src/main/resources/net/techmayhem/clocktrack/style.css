@@ -143,9 +143,17 @@
 }
 
 .character-section-box-win {
-    -fx-accent: green;
+    -fx-accent: -good-win;
 }
 
 .character-section-box-loss {
-    -fx-accent: red;
+    -fx-accent: -evil-loss;
+}
+
+.scripts-bars {
+    -fx-accent: -good-win;
+}
+
+.survival-bar-chart {
+    CHART_COLOR_1: -good-win;
 }

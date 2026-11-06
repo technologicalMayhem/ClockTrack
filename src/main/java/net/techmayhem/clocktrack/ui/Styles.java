@@ -31,6 +31,10 @@ public class Styles {
     public static final String CHARACTER_SECTION_BOX_LOSS = "character-section-box-loss";
     public static final String CHARACTER_SECTION_BOX_UNCOLORED = "character-section-box-uncolored";
 
+    public static final String SURVIVAL_BAR_CHART = "survival-bar-chart";
+
+    public static final String SCRIPTS_BAR = "scripts-bars";
+
     public static final String TEAM_TOWNSFOLK = "teamTownsfolk";
     public static final String TEAM_OUTSIDER = "teamOutsider";
     public static final String TEAM_MINION = "teamMinion";
