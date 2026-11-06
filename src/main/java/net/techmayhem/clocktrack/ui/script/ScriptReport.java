@@ -26,7 +26,7 @@ import net.techmayhem.clocktrack.projections.ScriptStatistics;
 /// @param unknownRoles The role identifiers that appeared but are not known to the script, sorted.
 /// @param neverAppeared The characters of the script that never appeared, sorted by team and in script order within a
 /// team. Travellers are left out, since they are not part of the script.
-/// @param resultsByDemon The games and good wins per Demon. Only Demons held by an evil player count.
+/// @param resultsByDemon The games and evil wins per Demon.
 /// @param resultsByPlayerCount The games and good wins per player count, ordered by player count. Travellers do not
 /// count towards the player count.
 /// @param mostPlayed The players who played the script, the most games first
@@ -137,6 +137,11 @@ public record ScriptReport(
     /// Counts the games and good wins per Demon. Each Demon held by an evil player counts once per game.
     private static Map<Role, Rate> resultsByDemon(Collection<List<ScriptStatistics.Seat>> games, SessionRoles roles) {
         Map<Role, Rate> results = new HashMap<>();
+        for (Role role : roles.roleChoices()) {
+            if (role.team() == Team.DEMON) {
+                results.put(role, new Rate(0, 0));
+            }
+        }
         for (List<ScriptStatistics.Seat> seats : games) {
             Set<Role> demons = new HashSet<>();
             for (ScriptStatistics.Seat seat : seats) {
