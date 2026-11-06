@@ -199,7 +199,7 @@ public class ScriptView extends Screen {
             teamSection.setMaxWidth(Double.MAX_VALUE);
             HBox teamSectionHeader = new HBox(Layout.SPACING);
             teamSectionHeader.setAlignment(Pos.CENTER_LEFT);
-            Label teamLabel = header(I18n.teamName(team));
+            Label teamLabel = subheading(I18n.teamName(team));
             Rectangle teamColor = new Rectangle();
             teamColor.getStyleClass().addAll(Styles.TEAM_FILL, Styles.teamClass(team));
             DoubleBinding halfLabelHeight = teamLabel.heightProperty().divide(2);
@@ -271,7 +271,7 @@ public class ScriptView extends Screen {
             rowIndex++;
         }
 
-        return new VBox(Layout.SPACING, header("How often did each demon win?"), grid);
+        return new VBox(Layout.SPACING, subheading("How often did each demon win?"), grid);
     }
 
     /// Returns the demons, most games first. Ties are ordered by role id, so the order is stable.
@@ -312,7 +312,7 @@ public class ScriptView extends Screen {
             rowIndex++;
         }
 
-        VBox box = new VBox(Layout.SPACING, header(title), grid);
+        VBox box = new VBox(Layout.SPACING, subheading(title), grid);
         GridPane.setHgrow(box, Priority.ALWAYS);
         return box;
     }
@@ -330,7 +330,7 @@ public class ScriptView extends Screen {
         return grid;
     }
 
-    private static Label header(String text) {
+    private static Label subheading(String text) {
         Label label = new Label(text);
         label.getStyleClass().add(Styles.SUBHEADING);
         return label;
