@@ -31,8 +31,7 @@ import net.techmayhem.clocktrack.ui.component.StatBlocks;
 import net.techmayhem.clocktrack.ui.component.StatBlocks.StatBlock;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 
-/// A screen that shows the statistics of a player. Currently, it is a placeholder that only shows the statistics as
-/// text.
+/// A screen that shows the statistics of a player: their results, characters, survival, scripts, and allies.
 public class PlayerView extends Screen {
     private final ScrollPane root;
     private final String name;
@@ -449,7 +448,7 @@ public class PlayerView extends Screen {
 
     private static Label header(String text) {
         Label label = new Label(text);
-        label.getStyleClass().add(Styles.CHARACTER_SECTION_HEADER);
+        label.getStyleClass().add(Styles.SUBHEADING);
         return label;
     }
 
