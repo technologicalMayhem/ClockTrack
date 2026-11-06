@@ -1,61 +1,106 @@
 package net.techmayhem.clocktrack.ui;
 
+import java.util.Locale;
 import net.techmayhem.clocktrack.gamedata.Team;
 
-public class Styles {
+/// The names of the style classes defined in `style.css`, and the lookup of the style class of a team.
+///
+/// The constants and the rules in `style.css` follow the same order, so a constant is easy to find in the stylesheet.
+public final class Styles {
+    private Styles() {}
+
+    // Teams
+
+    /// Sets the fill of a shape to the color of the team set by the style class of that team.
+    public static final String TEAM_FILL = "team-fill";
+
+    /// Sets the accent of a progress bar to the color of the team set by the style class of that team.
+    public static final String TEAM_BAR = "team-bar";
+
+    // Text
+
+    /// The large bold text of a title or of the value of a stat block.
+    public static final String TITLE_TEXT = "title-text";
+
+    /// The bold text above a group of related rows.
     public static final String SUBHEADING = "subheading";
 
-    public static final String WIN_LOSS_PIE = "winLossPie";
-    public static final String TITLE_TEXT = "titleText";
-    public static final String TEAM_BAR = "teamBar";
-    public static final String TEAM_FILL = "team-fill";
-    public static final String DONUT_CHART = "donutChart";
+    /// The gray text of secondary information, such as a share, a date or a description.
+    public static final String CAPTION = "caption";
+
+    /// The bold text of a value that has a [#CAPTION] next to it.
+    public static final String VALUE_SMALL = "value-small";
+
+    // Sections
+
+    /// The outer frame of a section.
+    public static final String SECTION = "section";
+
+    /// The title bar at the top of a section.
+    public static final String SECTION_TITLE = "section-title";
+
+    /// The content area of a section.
+    public static final String SECTION_CONTENT = "section-content";
+
+    // Wins and losses
+
+    /// Sets the colors of the slices of the chart that shows the wins and losses.
+    public static final String WIN_LOSS_CHART = "win-loss-chart";
+
+    /// Sets the fill of the hole in the middle of a donut chart, so it matches the background.
+    public static final String DONUT_HOLE = "donut-hole";
+
+    /// The large bold text that shows the total in the hole of a donut chart.
     public static final String DONUT_TOTAL = "donut-total";
 
+    /// The small round color marker in front of a legend entry.
+    public static final String LEGEND_SWATCH = "legend-swatch";
+
+    /// The background color that stands for a game won as good.
     public static final String WIN_LOSS_GOOD_WIN = "win-loss-good-win";
+
+    /// The background color that stands for a game lost as good.
     public static final String WIN_LOSS_GOOD_LOSS = "win-loss-good-loss";
+
+    /// The background color that stands for a game lost as evil.
     public static final String WIN_LOSS_EVIL_LOSS = "win-loss-evil-loss";
+
+    /// The background color that stands for a game won as evil.
     public static final String WIN_LOSS_EVIL_WIN = "win-loss-evil-win";
 
-    public static final String STAT_CAPTION = "stat-caption";
-    public static final String STAT_VALUE_SMALL = "stat-value-small";
-
-    public static final String LEGEND_SWATCH = "legend-swatch";
+    /// The round marker that shows the result of a recent game. Combined with [#RECENT_GAME_WON] or
+    /// [#RECENT_GAME_LOST].
     public static final String RECENT_GAME = "recent-game";
-    public static final String WON = "won";
-    public static final String LOST = "lost";
 
-    public static final String STAT_SECTION = "stat-section";
-    public static final String STAT_SECTION_TITLE = "stat-section-title";
-    public static final String STAT_SECTION_CONTENT = "stat-section-content";
+    /// Fills the marker of a recent game that was won.
+    public static final String RECENT_GAME_WON = "recent-game-won";
 
-    public static final String CHARACTER_SECTION_BOX_WIN = "character-section-box-win";
-    public static final String CHARACTER_SECTION_BOX_LOSS = "character-section-box-loss";
-    public static final String CHARACTER_SECTION_BOX_UNCOLORED = "character-section-box-uncolored";
+    /// Outlines the marker of a recent game that was lost.
+    public static final String RECENT_GAME_LOST = "recent-game-lost";
 
-    public static final String SURVIVAL_BAR_CHART = "survival-bar-chart";
+    // Bars and charts
 
-    public static final String SCRIPTS_BAR = "scripts-bars";
+    /// The progress bar of a ranking entry that is among the best.
+    public static final String BEST_BAR = "best-bar";
 
-    public static final String PLAYER_COUNT_RESULT_CHART = "player-count-result-chart";
+    /// The progress bar of a ranking entry that is among the worst.
+    public static final String WORST_BAR = "worst-bar";
 
-    public static final String TEAM_TOWNSFOLK = "teamTownsfolk";
-    public static final String TEAM_OUTSIDER = "teamOutsider";
-    public static final String TEAM_MINION = "teamMinion";
-    public static final String TEAM_DEMON = "teamDemon";
-    public static final String TEAM_TRAVELLER = "teamTraveller";
-    public static final String TEAM_FABLED = "teamFabled";
-    public static final String TEAM_LORIC = "teamLoric";
+    /// The progress bar that shows a number of games.
+    public static final String GAMES_BAR = "games-bar";
 
+    /// Sets the color of the bars of the chart that shows when a player died.
+    public static final String SURVIVAL_CHART = "survival-chart";
+
+    /// Sets the colors of the bars of the chart that shows the results by player count.
+    public static final String PLAYER_COUNT_CHART = "player-count-chart";
+
+    /// Returns the style class that sets the team color for the given team. It is meant to be combined with
+    /// [#TEAM_FILL] or [#TEAM_BAR].
+    ///
+    /// @param team The team
+    /// @return The style class of the team
     public static String teamClass(Team team) {
-        return switch (team) {
-            case TOWNSFOLK -> TEAM_TOWNSFOLK;
-            case OUTSIDER -> TEAM_OUTSIDER;
-            case MINION -> TEAM_MINION;
-            case DEMON -> TEAM_DEMON;
-            case TRAVELLER -> TEAM_TRAVELLER;
-            case FABLED -> TEAM_FABLED;
-            case LORIC -> TEAM_LORIC;
-        };
+        return "team-" + team.name().toLowerCase(Locale.ROOT);
     }
 }
