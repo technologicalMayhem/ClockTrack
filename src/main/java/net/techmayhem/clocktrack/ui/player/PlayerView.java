@@ -504,13 +504,12 @@ public class PlayerView extends Screen {
         String share = played == 0 ? "–" : I18n.formatPercentage((double) statistics.survived() / played, 0);
         Label summary = new Label(localize("playerView.survival.summary", statistics.survived(), played, share));
 
-        Map<Integer, Integer> deaths = new HashMap<>(statistics.deathsByPhase());
-        if (deaths.isEmpty()) {
+        if (statistics.deathsByPhase().isEmpty()) {
             return new VBox(Layout.SPACING, summary, new Label(localize("playerView.survival.noDeaths")));
         }
 
-        int lastPhase = Math.max(Collections.max(deaths.keySet()), MIN_DISPLAYED_PHASE);
-        int mostDeaths = Collections.max(deaths.values());
+        int lastPhase = Math.max(Collections.max(statistics.deathsByPhase().keySet()), MIN_DISPLAYED_PHASE);
+        int mostDeaths = Collections.max(statistics.deathsByPhase().values());
         double tickUnit = Math.max(1, Math.ceil(mostDeaths / 10.0)); // whole steps, ~10 ticks at most
 
         CategoryAxis xAxis = new CategoryAxis();
@@ -527,7 +526,10 @@ public class PlayerView extends Screen {
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         for (int phase = PhaseFormat.FIRST_PHASE; phase <= lastPhase; phase++) {
-            series.getData().add(new XYChart.Data<>(PhaseFormat.format(phase), deaths.getOrDefault(phase, 0)));
+            series.getData()
+                    .add(new XYChart.Data<>(
+                            PhaseFormat.format(phase),
+                            statistics.deathsByPhase().getOrDefault(phase, 0)));
         }
         chart.getData().add(series);
 
