@@ -8,15 +8,11 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.HPos;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.gamedata.Role;
 import net.techmayhem.clocktrack.gamedata.Roles;
 import net.techmayhem.clocktrack.gamedata.Team;
@@ -26,7 +22,7 @@ import net.techmayhem.clocktrack.projections.Rate;
 import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.PhaseFormat;
-import net.techmayhem.clocktrack.ui.Screen;
+import net.techmayhem.clocktrack.ui.StatisticsView;
 import net.techmayhem.clocktrack.ui.Styles;
 import net.techmayhem.clocktrack.ui.component.ColumnDef;
 import net.techmayhem.clocktrack.ui.component.DonutChart;
@@ -35,18 +31,15 @@ import net.techmayhem.clocktrack.ui.component.StatBlocks.StatBlock;
 import net.techmayhem.clocktrack.ui.component.TableHelper;
 
 /// A screen that shows the statistics of a player: their results, characters, survival, scripts, and allies.
-public class PlayerView extends Screen {
+public class PlayerView extends StatisticsView {
     private static final double RATING_THRESHOLD = 0.5;
     private static final int BAR_WIDTH_PERCENT = 50;
     private static final int DONUT_START_ANGLE = 90;
     private static final int SURVIVAL_SECTION_PERCENT = 60;
-    private static final double MAX_TICK_COUNT = 10.0;
     private static final int DEFAULT_CHART_HEIGHT = 240;
     private static final int TABLE_ROW_HEIGHT = 26;
     /// Extra pixels for the table's border and insets, so a fitted table never shows a scrollbar.
     private static final int TABLE_BORDER_SLACK = 3;
-    private final ScrollPane root;
-    private final String name;
 
     private static final int MIN_GAMES_FOR_RANKING = 3;
     private static final int RANKING_SIZE = 5;
@@ -56,54 +49,35 @@ public class PlayerView extends Screen {
     private static final double DONUT_SIZE = 300;
 
     PlayerView(PlayerSummary summary, PlayerStatistics statistics) {
-        root = new ScrollPane();
-        root.setFitToWidth(true);
-
-        VBox content = new VBox(Layout.SPACING);
-        content.setPadding(new Insets(Layout.PADDING));
-        root.setContent(content);
-
-        root.addEventFilter(ScrollEvent.SCROLL, event -> Layout.acceleratedScroll(root, event));
-
-        name = localize("playerView.title", statistics.name());
+        super(localize("statistics.title", statistics.name()));
 
         if (statistics.gamesPlayed() == 0) {
-            content.getChildren().addAll(new VBox(Layout.SPACING, header(summary), onlyStorytoldPane(statistics)));
+            setContent(summary.name(), summary.firstGame(), summary.lastGame(), onlyStorytoldPane(statistics));
             return;
         }
 
-        content.getChildren()
-                .addAll(new VBox(
-                        Layout.SPACING,
-                        header(summary),
-                        statBlocks(statistics),
-                        Layout.section(localize("playerView.section.winLoss"), winLossPane(statistics)),
-                        Layout.section(localize("playerView.section.characters"), characterPane(statistics)),
-                        survivalStreakPane(statistics),
-                        Layout.section(localize("playerView.section.scripts"), scriptsPane(statistics)),
-                        Layout.section(localize("playerView.section.allies"), alliesPane(statistics))));
+        setContent(
+                summary.name(),
+                summary.firstGame(),
+                summary.lastGame(),
+                statBlocks(statistics),
+                section(localize("playerView.section.winLoss"), winLossPane(statistics)),
+                section(localize("playerView.section.characters"), characterPane(statistics)),
+                survivalStreakPane(statistics),
+                section(localize("playerView.section.scripts"), scriptsPane(statistics)),
+                section(localize("playerView.section.allies"), alliesPane(statistics)));
     }
 
+    /// A pane for when a player has no data.
     private static VBox onlyStorytoldPane(PlayerStatistics statistics) {
         String s = localize("playerView.noData.neverPlayed", statistics.name());
         if (statistics.gamesStorytold() != 0) {
             s += " " + localize("playerView.noData.storytold", statistics.gamesStorytold());
         }
-        return Layout.section(localize("playerView.section.noData"), new Label(s));
+        return noDataSection(s);
     }
 
-    private static VBox header(PlayerSummary summary) {
-        Text name = new Text(summary.name());
-        name.getStyleClass().add(Styles.TITLE_TEXT);
-        String firstLastGameText;
-        if (summary.firstGame() != null && summary.lastGame() != null) {
-            firstLastGameText = localize("playerView.header.firstLastGame", summary.firstGame(), summary.lastGame());
-        } else {
-            firstLastGameText = "";
-        }
-        return new VBox(Layout.SPACING, name, new Text(firstLastGameText));
-    }
-
+    /// Creates a set of blocks holding neat stats about a player.
     private static StatBlocks statBlocks(PlayerStatistics statistics) {
         Roles roles = Roles.getInstance();
         List<Role> regularRoles = roles.ofTeam(Team.TOWNSFOLK, Team.OUTSIDER, Team.MINION, Team.DEMON);
@@ -139,6 +113,7 @@ public class PlayerView extends Screen {
         return new StatBlocks(gamesPlayed, gamesStorytold, winrate, roleCoverage, gamesAsATraveller, survivalRate);
     }
 
+    /// Shows best and worst characters as well as a table of all characters and the respective stats.
     private static VBox characterPane(PlayerStatistics statistics) {
         Roles roles = Roles.getInstance();
 
@@ -149,7 +124,7 @@ public class PlayerView extends Screen {
                 })
                 .toList();
         Split split = split(characters);
-        GridPane rankings = Layout.sideBySide(
+        GridPane rankings = sideBySide(
                 rankingBox(
                         localize("playerView.characters.best"),
                         localize("playerView.characters.bestEmpty", MIN_GAMES_FOR_RANKING),
@@ -318,10 +293,6 @@ public class PlayerView extends Screen {
     /// @param worst The worst rows, worst first
     private record Split(List<Ranked> best, List<Ranked> worst) {}
 
-    private static double winRate(Rate rate) {
-        return rate.games() == 0 ? 0 : (double) rate.wins() / rate.games();
-    }
-
     /// Returns the played characters, most games first. Ties are ordered by role id, so the order is stable.
     private static List<Map.Entry<String, Rate>> sortedByGames(PlayerStatistics statistics) {
         return statistics.charactersPlayed().entrySet().stream()
@@ -333,8 +304,7 @@ public class PlayerView extends Screen {
     }
 
     private static GridPane winLossPane(PlayerStatistics statistics) {
-        return Layout.sideBySide(
-                winLossDetails(statistics), winLossDonut(statistics), Layout.PADDING, BAR_WIDTH_PERCENT);
+        return sideBySide(winLossDetails(statistics), winLossDonut(statistics), Layout.PADDING, BAR_WIDTH_PERCENT);
     }
 
     /// Builds the left side of the wins and losses section: a legend with numbers, the win rates, and recent games.
@@ -401,6 +371,7 @@ public class PlayerView extends Screen {
                 recentGames(statistics.recentGames()));
     }
 
+    /// Build a legend row used in the top right of the wins and losses section.
     private static void legendRow(GridPane legend, int row, String colorClass, String label, int count, int total) {
         Region swatch = new Region();
         swatch.getStyleClass().addAll(Styles.LEGEND_SWATCH, colorClass);
@@ -409,6 +380,7 @@ public class PlayerView extends Screen {
         legend.addRow(row, swatch, new Label(label), new Label(String.valueOf(count)), share);
     }
 
+    /// Builds a small stat row with a caption, value, and detail. Used in the wins and losses section.
     private static VBox smallStat(String caption, String value, String detail) {
         Label captionLabel = new Label(caption);
         captionLabel.getStyleClass().add(Styles.CAPTION);
@@ -433,21 +405,9 @@ public class PlayerView extends Screen {
 
             VBox entry = new VBox(Layout.SPACING, result, date);
             entry.setAlignment(Pos.CENTER);
-            Tooltip.install(entry, new Tooltip(recentGameTooltip(game)));
             strip.getChildren().add(entry);
         }
         return new VBox(Layout.PADDING, subheading(localize("playerView.recentGames.title", games.size())), strip);
-    }
-
-    private static String recentGameTooltip(PlayerStatistics.RecentGame game) {
-        if (game.good()) {
-            return game.won()
-                    ? localize("playerView.recentGames.goodWon", game.date())
-                    : localize("playerView.recentGames.goodLost", game.date());
-        }
-        return game.won()
-                ? localize("playerView.recentGames.evilWon", game.date())
-                : localize("playerView.recentGames.evilLost", game.date());
     }
 
     /// Builds the donut of wins and losses by alignment, with the number of games in its center.
@@ -496,16 +456,10 @@ public class PlayerView extends Screen {
         return label;
     }
 
-    private static Label subheading(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add(Styles.SUBHEADING);
-        return label;
-    }
-
     private static GridPane survivalStreakPane(PlayerStatistics statistics) {
-        return Layout.sideBySide(
-                Layout.section(localize("playerView.section.survival"), survivalPane(statistics)),
-                Layout.section(localize("playerView.section.streaks"), steaksPane(statistics)),
+        return sideBySide(
+                section(localize("playerView.section.survival"), survivalPane(statistics)),
+                section(localize("playerView.section.streaks"), steaksPane(statistics)),
                 Layout.SPACING,
                 SURVIVAL_SECTION_PERCENT);
     }
@@ -521,12 +475,9 @@ public class PlayerView extends Screen {
 
         int lastPhase = Math.max(Collections.max(statistics.deathsByPhase().keySet()), MIN_DISPLAYED_PHASE);
         int mostDeaths = Collections.max(statistics.deathsByPhase().values());
-        double tickUnit = Math.max(1, Math.ceil(mostDeaths / MAX_TICK_COUNT));
 
         CategoryAxis xAxis = new CategoryAxis();
-        NumberAxis yAxis = new NumberAxis(0, Math.ceil(Math.max(mostDeaths, 5) / tickUnit) * tickUnit, tickUnit);
-        yAxis.setMinorTickVisible(false);
-        yAxis.setLabel(localize("playerView.survival.axis"));
+        NumberAxis yAxis = countAxis(mostDeaths, localize("playerView.survival.axis"));
 
         BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);
@@ -570,7 +521,7 @@ public class PlayerView extends Screen {
     }
 
     private static Node alliesPane(PlayerStatistics statistics) {
-        GridPane rankings = Layout.sideBySide(
+        GridPane rankings = sideBySide(
                 allyRanking(localize("playerView.allies.bestGood"), statistics.goodTeammates(), true),
                 allyRanking(localize("playerView.allies.bestEvil"), statistics.evilTeammates(), false));
         Label note = caption(localize("playerView.allies.note", MIN_GAMES_FOR_RANKING));
@@ -628,19 +579,5 @@ public class PlayerView extends Screen {
                         .add(TABLE_BORDER_SLACK));
         table.setMinHeight(Region.USE_PREF_SIZE);
         table.setMaxHeight(Region.USE_PREF_SIZE);
-    }
-
-    private static String rate(int won, int total) {
-        return total == 0 ? "―" : I18n.formatPercentage((double) won / total, 0);
-    }
-
-    @Override
-    protected Parent getView() {
-        return root;
-    }
-
-    @Override
-    protected String getName() {
-        return name;
     }
 }

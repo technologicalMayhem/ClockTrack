@@ -9,22 +9,17 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.gamedata.*;
 import net.techmayhem.clocktrack.model.Script;
 import net.techmayhem.clocktrack.projections.PlayerSummary;
@@ -33,21 +28,19 @@ import net.techmayhem.clocktrack.projections.ScriptStatistics;
 import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.ui.I18n;
 import net.techmayhem.clocktrack.ui.Layout;
-import net.techmayhem.clocktrack.ui.Screen;
+import net.techmayhem.clocktrack.ui.StatisticsView;
 import net.techmayhem.clocktrack.ui.Styles;
 import net.techmayhem.clocktrack.ui.component.StatBlocks;
 import net.techmayhem.clocktrack.ui.component.StatBlocks.StatBlock;
 
 /// A screen that shows the statistics of a script: its results by player count, characters, demons, and players.
-public class ScriptView extends Screen {
-    private static final double MAX_TICK_COUNT = 10.0;
-    private final ScrollPane root;
-    private final String name;
-
+public class ScriptView extends StatisticsView {
     private static final int PLAYER_RANKING_SIZE = 10;
     private static final double CHART_HEIGHT = 400;
 
     ScriptView(Script script, ScriptSummary summary, ScriptStatistics statistics, List<PlayerSummary> players) {
+        super(localize("statistics.title", script.name()));
+
         SessionRoles roles;
         try {
             roles = SessionRoles.of(script, Roles.getInstance());
@@ -56,50 +49,24 @@ public class ScriptView extends Screen {
         }
         ScriptReport report = ScriptReport.of(statistics, roles, players);
 
-        root = new ScrollPane();
-        root.setFitToWidth(true);
-
-        VBox content = new VBox(Layout.SPACING);
-        content.setPadding(new Insets(Layout.PADDING));
-        root.setContent(content);
-
-        root.addEventFilter(ScrollEvent.SCROLL, event -> Layout.acceleratedScroll(root, event));
-
-        name = localize("scriptView.title", script.name());
-
         if (report.results().games() == 0) {
-            content.getChildren().addAll(new VBox(Layout.SPACING, header(summary), noGamesPane(script)));
+            setContent(
+                    summary.name(),
+                    summary.firstPlayed(),
+                    summary.lastPlayed(),
+                    noDataSection(localize("scriptView.noData.neverPlayed", script.name())));
             return;
         }
 
-        content.getChildren()
-                .addAll(new VBox(
-                        Layout.SPACING,
-                        header(summary),
-                        statBlocks(report),
-                        Layout.section(localize("scriptView.section.results"), resultsPane(report)),
-                        Layout.section(localize("scriptView.section.characters"), characterPane(roles, report)),
-                        Layout.section(localize("scriptView.section.demons"), demonsPane(report)),
-                        Layout.section(localize("scriptView.section.players"), playersPane(report))));
-    }
-
-    private static VBox noGamesPane(Script script) {
-        return Layout.section(
-                localize("scriptView.section.noData"),
-                new Label(localize("scriptView.noData.neverPlayed", script.name())));
-    }
-
-    private static VBox header(ScriptSummary summary) {
-        Text name = new Text(summary.name());
-        name.getStyleClass().add(Styles.TITLE_TEXT);
-        String firstLastGameText;
-        if (summary.firstPlayed() != null && summary.lastPlayed() != null) {
-            firstLastGameText =
-                    localize("scriptView.header.firstLastGame", summary.firstPlayed(), summary.lastPlayed());
-        } else {
-            firstLastGameText = "";
-        }
-        return new VBox(Layout.SPACING, name, new Text(firstLastGameText));
+        setContent(
+                summary.name(),
+                summary.firstPlayed(),
+                summary.lastPlayed(),
+                statBlocks(report),
+                section(localize("scriptView.section.results"), resultsPane(report)),
+                section(localize("scriptView.section.characters"), characterPane(roles, report)),
+                section(localize("scriptView.section.demons"), demonsPane(report)),
+                section(localize("scriptView.section.players"), playersPane(report)));
     }
 
     private static StatBlocks statBlocks(ScriptReport report) {
@@ -109,7 +76,7 @@ public class ScriptView extends Screen {
                         .thenComparing(Map.Entry.comparingByKey()))
                 .map(Map.Entry::getKey)
                 .map(Object::toString)
-                .orElse("―");
+                .orElse(DASH);
 
         Rate results = report.results();
         int evilWins = results.games() - results.wins();
@@ -132,7 +99,6 @@ public class ScriptView extends Screen {
                 .mapToInt(Rate::games)
                 .max()
                 .orElse(0);
-        double tickUnit = Math.max(1, Math.ceil(mostGames / MAX_TICK_COUNT));
 
         List<String> categories = resultsByPlayerCount.keySet().stream()
                 .map(ScriptView::playerCountCategory)
@@ -140,9 +106,7 @@ public class ScriptView extends Screen {
 
         CategoryAxis categoryAxis = new CategoryAxis(FXCollections.observableArrayList(categories));
         categoryAxis.setLabel(localize("scriptView.results.axis.playerCount"));
-        NumberAxis numberAxis = new NumberAxis(0, Math.ceil(Math.max(mostGames, 5) / tickUnit) * tickUnit, tickUnit);
-        numberAxis.setMinorTickVisible(false);
-        numberAxis.setLabel(localize("scriptView.results.axis.wins"));
+        NumberAxis numberAxis = countAxis(mostGames, localize("scriptView.results.axis.wins"));
         StackedBarChart<String, Number> chart = new StackedBarChart<>(categoryAxis, numberAxis);
         chart.setAnimated(false);
         chart.setPrefHeight(CHART_HEIGHT);
@@ -248,7 +212,7 @@ public class ScriptView extends Screen {
         nameColumn.minWidthProperty().bind(widestLabel(nameLabels));
         countColumn.minWidthProperty().bind(widestLabel(countLabels));
 
-        return Layout.sideBySide(townsfolk, others);
+        return sideBySide(townsfolk, others);
     }
 
     /// Returns the preferred width of the widest label. It is recomputed whenever one of the labels is resized, which
@@ -295,7 +259,7 @@ public class ScriptView extends Screen {
     }
 
     private static Node playersPane(ScriptReport report) {
-        return Layout.sideBySide(
+        return sideBySide(
                 gamesBox(
                         localize("scriptView.players.mostPlayed"),
                         report.mostPlayed().stream().limit(PLAYER_RANKING_SIZE).toList()),
@@ -338,33 +302,5 @@ public class ScriptView extends Screen {
         statConstraint.setHgrow(Priority.SOMETIMES);
         grid.getColumnConstraints().addAll(nameConstraint, barConstraint, statConstraint);
         return grid;
-    }
-
-    private static Label subheading(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add(Styles.SUBHEADING);
-        return label;
-    }
-
-    private static double winRate(Rate rate) {
-        return share(rate.wins(), rate.games());
-    }
-
-    private static double share(int count, int total) {
-        return total == 0 ? 0 : (double) count / total;
-    }
-
-    private static String rate(int won, int total) {
-        return total == 0 ? "―" : I18n.formatPercentage((double) won / total, 0);
-    }
-
-    @Override
-    protected Parent getView() {
-        return root;
-    }
-
-    @Override
-    protected String getName() {
-        return name;
     }
 }
