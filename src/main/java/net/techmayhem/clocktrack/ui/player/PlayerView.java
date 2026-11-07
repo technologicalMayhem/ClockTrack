@@ -36,6 +36,15 @@ import net.techmayhem.clocktrack.ui.component.TableHelper;
 
 /// A screen that shows the statistics of a player: their results, characters, survival, scripts, and allies.
 public class PlayerView extends Screen {
+    private static final double RATING_THRESHOLD = 0.5;
+    private static final int BAR_WIDTH_PERCENT = 50;
+    private static final int DONUT_START_ANGLE = 90;
+    private static final int SURVIVAL_SECTION_PERCENT = 60;
+    private static final double MAX_TICK_COUNT = 10.0;
+    private static final int DEFAULT_CHART_HEIGHT = 240;
+    private static final int TABLE_ROW_HEIGHT = 26;
+    /// Extra pixels for the table's border and insets, so a fitted table never shows a scrollbar.
+    private static final int TABLE_BORDER_SLACK = 3;
     private final ScrollPane root;
     private final String name;
 
@@ -75,7 +84,7 @@ public class PlayerView extends Screen {
                         Layout.section(localize("playerView.section.allies"), alliesPane(statistics))));
     }
 
-    private VBox onlyStorytoldPane(PlayerStatistics statistics) {
+    private static VBox onlyStorytoldPane(PlayerStatistics statistics) {
         String s = localize("playerView.noData.neverPlayed", statistics.name());
         if (statistics.gamesStorytold() != 0) {
             s += " " + localize("playerView.noData.storytold", statistics.gamesStorytold());
@@ -83,7 +92,7 @@ public class PlayerView extends Screen {
         return Layout.section(localize("playerView.section.noData"), new Label(s));
     }
 
-    private VBox header(PlayerSummary summary) {
+    private static VBox header(PlayerSummary summary) {
         Text name = new Text(summary.name());
         name.getStyleClass().add(Styles.TITLE_TEXT);
         String firstLastGameText;
@@ -95,7 +104,7 @@ public class PlayerView extends Screen {
         return new VBox(Layout.SPACING, name, new Text(firstLastGameText));
     }
 
-    private StatBlocks statBlocks(PlayerStatistics statistics) {
+    private static StatBlocks statBlocks(PlayerStatistics statistics) {
         Roles roles = Roles.getInstance();
         List<Role> regularRoles = roles.ofTeam(Team.TOWNSFOLK, Team.OUTSIDER, Team.MINION, Team.DEMON);
         long regularRolesPlayed = regularRoles.stream()
@@ -239,12 +248,12 @@ public class PlayerView extends Screen {
                 .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING)
                 .toList();
         List<Ranked> best = ranked.stream()
-                .filter(row -> winRate(row.rate()) > 0.5)
+                .filter(row -> winRate(row.rate()) > RATING_THRESHOLD)
                 .sorted(byWinRate(true))
                 .limit(RANKING_SIZE)
                 .toList();
         List<Ranked> worst = ranked.stream()
-                .filter(row -> winRate(row.rate()) < 0.5)
+                .filter(row -> winRate(row.rate()) < RATING_THRESHOLD)
                 .sorted(byWinRate(false))
                 .limit(RANKING_SIZE)
                 .toList();
@@ -264,7 +273,7 @@ public class PlayerView extends Screen {
         ColumnConstraints barConstraint = new ColumnConstraints();
         ColumnConstraints statConstraint = new ColumnConstraints();
         nameConstraint.setHgrow(Priority.ALWAYS);
-        barConstraint.setPercentWidth(50);
+        barConstraint.setPercentWidth(BAR_WIDTH_PERCENT);
         statConstraint.setHgrow(Priority.SOMETIMES);
         grid.getColumnConstraints().addAll(nameConstraint, barConstraint, statConstraint);
         container.getChildren().add(grid);
@@ -324,10 +333,11 @@ public class PlayerView extends Screen {
     }
 
     private static GridPane winLossPane(PlayerStatistics statistics) {
-        return Layout.sideBySide(winLossDetails(statistics), winLossDonut(statistics), Layout.PADDING, 55);
+        return Layout.sideBySide(
+                winLossDetails(statistics), winLossDonut(statistics), Layout.PADDING, BAR_WIDTH_PERCENT);
     }
 
-    /// Builds the left side of the wins and losses section: a legend with numbers, the win rates and recent games.
+    /// Builds the left side of the wins and losses section: a legend with numbers, the win rates, and recent games.
     private static VBox winLossDetails(PlayerStatistics statistics) {
         int total = statistics.gamesPlayed();
         int goodGames = statistics.wonGood() + statistics.lossGood();
@@ -336,7 +346,6 @@ public class PlayerView extends Screen {
         GridPane legend = new GridPane(Layout.PADDING, Layout.SPACING);
         ColumnConstraints numberColumn = new ColumnConstraints();
         numberColumn.setHalignment(HPos.RIGHT);
-        numberColumn.setMinWidth(40);
         legend.getColumnConstraints()
                 .addAll(new ColumnConstraints(), new ColumnConstraints(), numberColumn, numberColumn);
         legendRow(
@@ -412,7 +421,7 @@ public class PlayerView extends Screen {
 
     /// Builds a strip with one circle per recent game, newest first, marked W for won and L for lost.
     private static VBox recentGames(List<PlayerStatistics.RecentGame> games) {
-        HBox strip = new HBox(Layout.PADDING * 1.5);
+        HBox strip = new HBox(Layout.PADDING * 2);
         for (PlayerStatistics.RecentGame game : games) {
             Label result = new Label(
                     game.won() ? localize("playerView.recentGames.won") : localize("playerView.recentGames.lost"));
@@ -427,7 +436,7 @@ public class PlayerView extends Screen {
             Tooltip.install(entry, new Tooltip(recentGameTooltip(game)));
             strip.getChildren().add(entry);
         }
-        return new VBox(Layout.SPACING, header(localize("playerView.recentGames.title", games.size())), strip);
+        return new VBox(Layout.PADDING, header(localize("playerView.recentGames.title", games.size())), strip);
     }
 
     private static String recentGameTooltip(PlayerStatistics.RecentGame game) {
@@ -453,7 +462,7 @@ public class PlayerView extends Screen {
         DonutChart donutChart = new DonutChart();
         donutChart.getStyleClass().add(Styles.WIN_LOSS_CHART);
         donutChart.setClockwise(false);
-        donutChart.setStartAngle(90);
+        donutChart.setStartAngle(DONUT_START_ANGLE);
         donutChart.setLegendVisible(false);
         donutChart.setLabelsVisible(false);
         donutChart.setPrefSize(DONUT_SIZE, DONUT_SIZE);
@@ -498,7 +507,7 @@ public class PlayerView extends Screen {
                 Layout.section(localize("playerView.section.survival"), buildSurvival(statistics)),
                 Layout.section(localize("playerView.section.streaks"), buildStreaks(statistics)),
                 Layout.SPACING,
-                60);
+                SURVIVAL_SECTION_PERCENT);
     }
 
     private static VBox buildSurvival(PlayerStatistics statistics) {
@@ -512,7 +521,7 @@ public class PlayerView extends Screen {
 
         int lastPhase = Math.max(Collections.max(statistics.deathsByPhase().keySet()), MIN_DISPLAYED_PHASE);
         int mostDeaths = Collections.max(statistics.deathsByPhase().values());
-        double tickUnit = Math.max(1, Math.ceil(mostDeaths / 10.0)); // whole steps, ~10 ticks at most
+        double tickUnit = Math.max(1, Math.ceil(mostDeaths / MAX_TICK_COUNT));
 
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis(0, Math.ceil(Math.max(mostDeaths, 5) / tickUnit) * tickUnit, tickUnit);
@@ -522,7 +531,7 @@ public class PlayerView extends Screen {
         BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);
         chart.setAnimated(false);
-        chart.setPrefHeight(240);
+        chart.setPrefHeight(DEFAULT_CHART_HEIGHT);
         chart.setCategoryGap(8);
         chart.getStyleClass().add(Styles.SURVIVAL_CHART);
 
@@ -571,14 +580,14 @@ public class PlayerView extends Screen {
     private static VBox allyRanking(String title, Map<Integer, PlayerStatistics.Teammate> teammates, boolean good) {
         List<Ranked> rows = teammates.values().stream()
                 .map(teammate -> new Ranked(teammate.name(), teammate.rate()))
-                .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING && winRate(row.rate) > .5)
+                .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING && winRate(row.rate) > RATING_THRESHOLD)
                 .sorted(byWinRate(true))
                 .limit(RANKING_SIZE)
                 .toList();
         return rankingBox(title, localize("playerView.allies.empty", MIN_GAMES_FOR_RANKING), rows, good);
     }
 
-    private Node scriptsPane(PlayerStatistics statistics) {
+    private static Node scriptsPane(PlayerStatistics statistics) {
         GridPane grid = new GridPane();
         grid.setHgap(Layout.PADDING);
         grid.setVgap(Layout.SPACING);
@@ -611,8 +620,12 @@ public class PlayerView extends Screen {
 
     /// Makes the table exactly as tall as its rows, so it never scrolls on its own.
     private static void fitToRows(TableView<?> table) {
-        table.setFixedCellSize(26);
-        table.prefHeightProperty().bind(Bindings.size(table.getItems()).add(1.1).multiply(table.getFixedCellSize()));
+        table.setFixedCellSize(TABLE_ROW_HEIGHT);
+        table.prefHeightProperty()
+                .bind(Bindings.size(table.getItems())
+                        .add(1)
+                        .multiply(table.getFixedCellSize())
+                        .add(TABLE_BORDER_SLACK));
         table.setMinHeight(Region.USE_PREF_SIZE);
         table.setMaxHeight(Region.USE_PREF_SIZE);
     }

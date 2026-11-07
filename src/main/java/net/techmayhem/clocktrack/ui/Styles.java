@@ -2,10 +2,12 @@ package net.techmayhem.clocktrack.ui;
 
 import java.util.Locale;
 import net.techmayhem.clocktrack.gamedata.Team;
+import org.jetbrains.annotations.NonNls;
 
 /// The names of the style classes defined in `style.css`, and the lookup of the style class of a team.
 ///
-/// The constants and the rules in `style.css` follow the same order, so a constant is easy to find in the stylesheet.
+/// The constants and the rules in `style.css` follow the same order.
+@NonNls
 public final class Styles {
     private Styles() {}
 

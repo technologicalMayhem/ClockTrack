@@ -11,7 +11,9 @@ import javafx.scene.layout.VBox;
 
 /// Layout constants shared by all screens.
 public final class Layout {
+    /// Scroll speed speedup factor
     public static final double SCROLL_SPEED = 2;
+    private static final int DEFAULT_LEFT_PERCENT = 50;
 
     private Layout() {}
 
@@ -23,7 +25,7 @@ public final class Layout {
 
     /// Places two nodes side by side, each taking half of the width.
     public static GridPane sideBySide(Node left, Node right) {
-        return sideBySide(left, right, PADDING * 2, 50);
+        return sideBySide(left, right, PADDING * 2, DEFAULT_LEFT_PERCENT);
     }
 
     /// Places two nodes side by side. The left node takes the given percentage of the width, the right one the rest.

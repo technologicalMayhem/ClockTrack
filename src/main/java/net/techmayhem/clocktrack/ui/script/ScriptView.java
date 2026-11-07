@@ -40,6 +40,7 @@ import net.techmayhem.clocktrack.ui.component.StatBlocks.StatBlock;
 
 /// A screen that shows the statistics of a script: its results by player count, characters, demons, and players.
 public class ScriptView extends Screen {
+    private static final double MAX_TICK_COUNT = 10.0;
     private final ScrollPane root;
     private final String name;
 
@@ -82,13 +83,13 @@ public class ScriptView extends Screen {
                         Layout.section(localize("scriptView.section.players"), playersPane(report))));
     }
 
-    private VBox noGamesPane(Script script) {
+    private static VBox noGamesPane(Script script) {
         return Layout.section(
                 localize("scriptView.section.noData"),
                 new Label(localize("scriptView.noData.neverPlayed", script.name())));
     }
 
-    private VBox header(ScriptSummary summary) {
+    private static VBox header(ScriptSummary summary) {
         Text name = new Text(summary.name());
         name.getStyleClass().add(Styles.TITLE_TEXT);
         String firstLastGameText;
@@ -101,7 +102,7 @@ public class ScriptView extends Screen {
         return new VBox(Layout.SPACING, name, new Text(firstLastGameText));
     }
 
-    private StatBlocks statBlocks(ScriptReport report) {
+    private static StatBlocks statBlocks(ScriptReport report) {
         String commonPlayerCountText = report.resultsByPlayerCount().entrySet().stream()
                 .max(Comparator.comparingInt((Map.Entry<Integer, Rate> entry) ->
                                 entry.getValue().games())
@@ -131,7 +132,7 @@ public class ScriptView extends Screen {
                 .mapToInt(Rate::games)
                 .max()
                 .orElse(0);
-        double tickUnit = Math.max(1, Math.ceil(mostGames / 10.0)); // whole steps, ~10 ticks at most
+        double tickUnit = Math.max(1, Math.ceil(mostGames / MAX_TICK_COUNT));
 
         List<String> categories = resultsByPlayerCount.keySet().stream()
                 .map(ScriptView::playerCountCategory)

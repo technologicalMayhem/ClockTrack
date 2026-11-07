@@ -12,6 +12,8 @@ import net.techmayhem.clocktrack.ui.Styles;
 
 public class StatBlocks extends HBox {
 
+    private static final double GRAY_INTENSITY = 0.75;
+
     public StatBlocks(StatBlock... blocks) {
         super(Layout.SPACING);
         ObservableList<Node> children = getChildren();
@@ -23,7 +25,7 @@ public class StatBlocks extends HBox {
 
             blockBox.setBackground(Background.fill(Color.WHITE));
             blockBox.setPadding(new Insets(Layout.PADDING));
-            blockBox.setBorder(Border.stroke(Color.gray(0.75)));
+            blockBox.setBorder(Border.stroke(Color.gray(GRAY_INTENSITY)));
 
             HBox.setHgrow(blockBox, Priority.ALWAYS);
             blockBox.setMaxWidth(Double.MAX_VALUE);
