@@ -188,7 +188,8 @@ class PlayerSessionDialog {
         Integer deathInPhase = died.isSelected() ? deathPhase.getValue() : null;
         String causeOfDeath = died.isSelected() ? causeOfDeathField.getValue() : null;
         boolean good = goodRadio.isSelected();
-        String note = noteText.getText();
+        String text = noteText.getText();
+        String note = text.isBlank() ? null : text;
 
         return new PlayerSession(NO_ID, playerId, role, deathInPhase, causeOfDeath, good, note);
     }

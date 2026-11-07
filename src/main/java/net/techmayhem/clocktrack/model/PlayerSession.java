@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
 ///   *Note: In SQLite `null != null`*
 /// - A non-null [deathInPhase] requires a non-null [causeOfDeath]. And vice versa.
 ///
-/// The [playerId] may be null. This occurs when a player has been anonymized and removed from the database.
+/// The [playerId] may be null. This occurs when a player has been removed from the database.
 ///
 /// @param sessionId The id of the session
 /// @param playerId The id of the player, or null if the player has been removed

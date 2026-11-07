@@ -308,7 +308,7 @@ public class SessionEditor extends Screen {
                 storytellerChoice.getValue().map(FromDb::id).orElse(null),
                 goodWon.isSelected(),
                 script.getValue().id(),
-                text.isEmpty() ? null : text);
+                text.isBlank() ? null : text);
         if (session == null) {
             db.saveSession(MaybeFromDb.of(newSession), playerSessions);
         } else {

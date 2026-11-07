@@ -26,8 +26,7 @@ import net.techmayhem.clocktrack.ui.dialog.Dialogs;
 
 /// The overview of all players and their statistics.
 ///
-/// From here, players are added, edited, and deleted. A player who took part in a session is anonymized there
-/// instead of removed.
+/// From here, players are added, edited, and deleted.
 public class PlayerOverview extends EntityOverview {
     private final HBox root;
     private final TableView<PlayerSummary> table;

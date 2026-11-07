@@ -130,7 +130,7 @@ public class Database implements AutoCloseable {
     }
 
     private static List<FromDb<Player>> getAllPlayers(Connection conn) throws SQLException {
-        String sql = "SELECT * FROM player WHERE name IS NOT NULL";
+        String sql = "SELECT * FROM player";
         ArrayList<FromDb<Player>> result = new ArrayList<>();
         try (Statement statement = conn.createStatement()) {
             statement.execute(sql);
@@ -167,8 +167,8 @@ public class Database implements AutoCloseable {
     /// Deletes a player. Has no effect if no player with the given id exists.
     ///
     /// Sessions the player took part in are kept, so the history of past games stays intact. Their references to
-    /// the player are set to null instead, which anonymizes the player. [#isPlayerReferenced(int)] tells you
-    /// beforehand whether that will happen.
+    /// the player are set to null instead. [#isPlayerReferenced(int)] tells you beforehand whether that will
+    /// happen.
     ///
     /// @param id The id of the player
     public void deletePlayer(int id) {
@@ -533,12 +533,13 @@ public class Database implements AutoCloseable {
                 ORDER BY p.name
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            ResultSet rs = statement.executeQuery();
-            ArrayList<PlayerSummary> result = new ArrayList<>();
-            while (rs.next()) {
-                result.add(RowMappers.playerSummary(rs));
+            try (ResultSet rs = statement.executeQuery()) {
+                ArrayList<PlayerSummary> result = new ArrayList<>();
+                while (rs.next()) {
+                    result.add(RowMappers.playerSummary(rs));
+                }
+                return result;
             }
-            return result;
         }
     }
 
@@ -564,12 +565,13 @@ public class Database implements AutoCloseable {
                 ORDER BY script.name
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            ResultSet rs = statement.executeQuery();
-            ArrayList<ScriptSummary> result = new ArrayList<>();
-            while (rs.next()) {
-                result.add(RowMappers.scriptSummary(rs));
+            try (ResultSet rs = statement.executeQuery()) {
+                ArrayList<ScriptSummary> result = new ArrayList<>();
+                while (rs.next()) {
+                    result.add(RowMappers.scriptSummary(rs));
+                }
+                return result;
             }
-            return result;
         }
     }
 
@@ -595,12 +597,13 @@ public class Database implements AutoCloseable {
                 ORDER BY s.date DESC
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            ResultSet rs = statement.executeQuery();
-            ArrayList<SessionSummary> result = new ArrayList<>();
-            while (rs.next()) {
-                result.add(RowMappers.sessionSummary(rs));
+            try (ResultSet rs = statement.executeQuery()) {
+                ArrayList<SessionSummary> result = new ArrayList<>();
+                while (rs.next()) {
+                    result.add(RowMappers.sessionSummary(rs));
+                }
+                return result;
             }
-            return result;
         }
     }
 

@@ -44,20 +44,17 @@ public class SessionsOverview extends EntityOverview {
 
     private void buildUi() {
         Button createButton = new Button(localize("sessionsOverview.new"));
-        Button viewButton = new Button(localize("sessionsOverview.view"));
         Button editButton = new Button(localize("sessionsOverview.edit"));
         Button deleteButton = new Button(localize("sessionsOverview.delete"));
 
         createButton.setOnAction(_ -> createNewSession());
-        viewButton.setOnAction(_ -> viewSession());
         editButton.setOnAction(_ -> editSession());
         deleteButton.setOnAction(_ -> deleteSession());
         var noSelection = table.getSelectionModel().selectedItemProperty().isNull();
-        viewButton.disableProperty().bind(noSelection);
         editButton.disableProperty().bind(noSelection);
         deleteButton.disableProperty().bind(noSelection);
 
-        List<Button> buttons = List.of(createButton, viewButton, editButton, deleteButton);
+        List<Button> buttons = List.of(createButton, editButton, deleteButton);
         for (Button button : buttons) {
             button.setMaxWidth(Double.MAX_VALUE);
         }
@@ -107,13 +104,6 @@ public class SessionsOverview extends EntityOverview {
 
     private void createNewSession() {
         screenHost.open(new SessionEditor(null, null));
-    }
-
-    private void viewSession() {
-        SessionSummary selectedItem = table.getSelectionModel().getSelectedItem();
-        FromDb<Session> session = Database.getInstance().getSession(selectedItem.id());
-        SessionView sessionView = new SessionView(session.model());
-        screenHost.open(sessionView);
     }
 
     private void editSession() {
