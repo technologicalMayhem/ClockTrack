@@ -101,9 +101,11 @@ public class PlayerView extends Screen {
         long regularRolesPlayed = regularRoles.stream()
                 .filter(role -> statistics.charactersPlayed().containsKey(role.id()))
                 .count();
-        long travellerRolesPlayed = roles.ofTeam(Team.TRAVELLER).stream()
-                .filter(role -> statistics.charactersPlayed().containsKey(role.id()))
-                .count();
+        int travellerGames = roles.ofTeam(Team.TRAVELLER).stream()
+                .map(role -> statistics.charactersPlayed().get(role.id()))
+                .filter(Objects::nonNull)
+                .mapToInt(Rate::games)
+                .sum();
         int totalRoles = regularRoles.size();
 
         StatBlock gamesPlayed =
@@ -117,9 +119,9 @@ public class PlayerView extends Screen {
                         statistics.wonGood() + statistics.wonEvil(),
                         statistics.gamesPlayed()));
         StatBlock gamesAsATraveller =
-                new StatBlock(Long.toString(travellerRolesPlayed), localize("playerView.stat.gamesAsTraveller"));
+                new StatBlock(Integer.toString(travellerGames), localize("playerView.stat.gamesAsTraveller"));
         StatBlock roleCoverage = new StatBlock(
-                I18n.formatPercentage((double) statistics.charactersPlayed().size() / totalRoles, 0),
+                I18n.formatPercentage((double) regularRolesPlayed / totalRoles, 0),
                 localize("playerView.stat.roleCoverage", regularRolesPlayed, totalRoles));
         StatBlock survivalRate = new StatBlock(
                 rate(statistics.survived(), statistics.gamesPlayed()),
