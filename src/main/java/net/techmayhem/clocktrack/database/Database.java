@@ -469,9 +469,17 @@ public class Database implements AutoCloseable {
     /// Updates an existing script.
     ///
     /// @param script The script with its updated values
-    /// @throws DatabaseException If no script with the given id exists
+    /// @throws DatabaseException If no script with the given id exists or the json is already in use
     public void updateScript(FromDb<Script> script) {
         runTransaction(conn -> {
+            if (isScriptReferenced(conn, script.id())
+                    && !getScript(conn, script.id())
+                            .model()
+                            .json()
+                            .equals(script.model().json())) {
+                throw new DatabaseException(
+                        "The JSON of script " + script.id() + " cannot change while sessions use it", null, true);
+            }
             updateScript(conn, script);
             return null;
         });
