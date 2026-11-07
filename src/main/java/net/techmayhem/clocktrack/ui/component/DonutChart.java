@@ -1,0 +1,50 @@
+package net.techmayhem.clocktrack.ui.component;
+
+import javafx.geometry.Bounds;
+import javafx.scene.chart.PieChart;
+import javafx.scene.shape.Circle;
+import net.techmayhem.clocktrack.ui.Styles;
+
+/// A pie chart with a hole in the middle.
+///
+/// The hole sits on top of the slices and has the same color as the chart background. It follows the size and
+/// position of the pie and is hidden while the chart has no slices to show.
+public class DonutChart extends PieChart {
+    private static final double HOLE_RATIO = 0.7; // hole radius relative to the pie radius
+
+    private final Circle hole = new Circle();
+
+    /// Constructs a new donut chart without any data.
+    public DonutChart() {
+        hole.setMouseTransparent(true);
+        hole.getStyleClass().add(Styles.DONUT_HOLE); // same as the default chart background
+    }
+
+    @Override
+    protected void layoutChartChildren(double top, double left, double width, double height) {
+        super.layoutChartChildren(top, left, width, height);
+        if (!getChartChildren().contains(hole)) {
+            getChartChildren().add(hole);
+        }
+        hole.toFront();
+
+        double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE;
+        double maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
+        for (PieChart.Data d : getData()) {
+            if (d.getNode() == null) continue;
+            Bounds b = d.getNode().getBoundsInParent();
+            minX = Math.min(minX, b.getMinX());
+            minY = Math.min(minY, b.getMinY());
+            maxX = Math.max(maxX, b.getMaxX());
+            maxY = Math.max(maxY, b.getMaxY());
+        }
+        if (minX > maxX) {
+            hole.setVisible(false);
+            return;
+        }
+        hole.setVisible(true);
+        hole.setCenterX((minX + maxX) / 2);
+        hole.setCenterY((minY + maxY) / 2);
+        hole.setRadius((maxX - minX) / 2 * HOLE_RATIO);
+    }
+}

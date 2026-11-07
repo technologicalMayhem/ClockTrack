@@ -14,6 +14,7 @@ import javafx.scene.layout.VBox;
 import net.techmayhem.clocktrack.database.Database;
 import net.techmayhem.clocktrack.model.FromDb;
 import net.techmayhem.clocktrack.model.Script;
+import net.techmayhem.clocktrack.projections.ScriptStatistics;
 import net.techmayhem.clocktrack.projections.ScriptSummary;
 import net.techmayhem.clocktrack.ui.EntityOverview;
 import net.techmayhem.clocktrack.ui.I18n;
@@ -45,9 +46,9 @@ public class ScriptsOverview extends EntityOverview {
 
     private void buildUi() {
         Button createButton = new Button(localize("scriptsOverview.new"));
-        Button viewButton = new Button(localize("scriptsOverview.view"));
         Button editButton = new Button(localize("scriptsOverview.edit"));
         Button deleteButton = new Button(localize("scriptsOverview.delete"));
+        Button viewButton = new Button(localize("scriptsOverview.view"));
 
         createButton.setOnAction(_ -> createNewScript());
         viewButton.setOnAction(_ -> viewScript());
@@ -58,7 +59,7 @@ public class ScriptsOverview extends EntityOverview {
         editButton.disableProperty().bind(noSelection);
         deleteButton.disableProperty().bind(noSelection);
 
-        List<Button> buttons = List.of(createButton, viewButton, editButton, deleteButton);
+        List<Button> buttons = List.of(createButton, editButton, deleteButton, viewButton);
         for (Button button : buttons) {
             button.setMaxWidth(Double.MAX_VALUE);
         }
@@ -115,20 +116,23 @@ public class ScriptsOverview extends EntityOverview {
     }
 
     private void createNewScript() {
-        screenHost.open(new ScriptEditor(null));
+        screenHost.open(new ScriptEditor(null, false));
     }
 
     private void viewScript() {
         ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
-        FromDb<Script> script = Database.getInstance().getScript(selectedItem.id());
-        ScriptView sessionView = new ScriptView(script.model());
+        Database instance = Database.getInstance();
+        FromDb<Script> script = instance.getScript(selectedItem.id());
+        ScriptStatistics scriptStatistics = instance.getScriptStatistics(script.id());
+        ScriptView sessionView =
+                new ScriptView(script.model(), selectedItem, scriptStatistics, instance.getPlayerSummaries());
         screenHost.open(sessionView);
     }
 
     private void editScript() {
         ScriptSummary selectedItem = table.getSelectionModel().getSelectedItem();
         FromDb<Script> script = Database.getInstance().getScript(selectedItem.id());
-        ScriptEditor sessionEdit = new ScriptEditor(script);
+        ScriptEditor sessionEdit = new ScriptEditor(script, selectedItem.timesPlayed() > 0);
         screenHost.open(sessionEdit);
     }
 

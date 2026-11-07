@@ -8,6 +8,7 @@ import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import net.techmayhem.clocktrack.gamedata.Team;
 import org.jetbrains.annotations.PropertyKey;
 import org.jspecify.annotations.Nullable;
 
@@ -77,9 +78,34 @@ public class I18n {
     /// @param value The value to format, where 1 is 100%
     /// @return The formatted percentage
     public static String formatPercentage(double value) {
+        return formatPercentage(value, FRACTION_DIGITS);
+    }
+
+    /// Formats a value as a percentage with the given number of fraction digits.
+    ///
+    /// @param value The value to format, where 1 is 100%
+    /// @param fractionDigits The number of fraction digits to use
+    /// @return The formatted percentage
+    public static String formatPercentage(double value, int fractionDigits) {
         NumberFormat formatter = NumberFormat.getPercentInstance(locale);
-        formatter.setMaximumFractionDigits(FRACTION_DIGITS);
-        formatter.setMinimumFractionDigits(FRACTION_DIGITS);
+        formatter.setMaximumFractionDigits(fractionDigits);
+        formatter.setMinimumFractionDigits(fractionDigits);
         return formatter.format(value);
+    }
+
+    /// Returns the localized name of the given team.
+    ///
+    /// @param team The team to name
+    /// @return The localized name of the team
+    public static String teamName(Team team) {
+        return switch (team) {
+            case TOWNSFOLK -> localize("generic.team.townsfolk");
+            case OUTSIDER -> localize("generic.team.outsider");
+            case MINION -> localize("generic.team.minion");
+            case DEMON -> localize("generic.team.demon");
+            case TRAVELLER -> localize("generic.team.traveller");
+            case FABLED -> localize("generic.team.fabled");
+            case LORIC -> localize("generic.team.loric");
+        };
     }
 }

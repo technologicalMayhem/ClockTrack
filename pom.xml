@@ -21,6 +21,14 @@
             <version>3.53.4.0</version>
         </dependency>
 
+        <!-- Source: https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.14.0</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Source: https://jspecify.dev/docs/using/ -->
         <dependency>
             <groupId>org.jspecify</groupId>

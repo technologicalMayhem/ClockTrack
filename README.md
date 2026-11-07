@@ -14,9 +14,9 @@ Die Anwendung verwaltet Spieler, Skripte und Sitzungen. Zu jeder Sitzung werden 
 und das Gewinnerteam gespeichert, sowie für jeden Spieler der Charakter, die Team-Zugehörigkeit und gegebenenfalls der Todeszeitpunkt 
 und Todesursache.
 
-Auch können Statistiken zu Spielern und Skripten eingesehen werden. *Noch nicht implementiert*
+Auch können Statistiken zu Spielern und Skripten eingesehen werden.
 
-Beim ersten Start wird die Möglichkeit gegeben einen Test-Datensatz zu nutzen um das Programm in Aktion zu sehen.
+Beim ersten Start wird die Möglichkeit gegeben einen Test-Datensatz zu nutzen, um das Programm in Aktion zu sehen.
 
 Die Anwendung ist auf Deutsch und Englisch verfügbar und richtet sich nach der Sprache des Systems.
 
@@ -46,8 +46,9 @@ Zum erstellen des Image wird JDK 25 benötigt. Das Image liegt danach in `target
 Der Code ist in folgende Pakete aufgeteilt, alle unterhalb von `net.techmayhem.clocktrack`:
 
 - `database`: Zugriff auf die SQLite-Datenbank und das Datenbankschema
+- `gamedata`: die mitgelieferten Charakterdaten von Blood on the Clocktower und das Einlesen und Prüfen von Skripten
 - `model`: Spieler, Skripte, Sitzungen und Teilnahmen, wie sie gespeichert werden
-- `projections`: Zusammenfassungen mit Statistiken für die Übersichten
+- `projections`: Zusammenfassungen und Statistiken für die Übersichten und die Ansichten von Spielern und Skripten
 - `sample`: die Beispieldaten
 - `ui`: die Benutzeroberfläche, unterteilt in die Bereiche `player`, `script` und `session` sowie gemeinsam genutzte
   Komponenten (`component`) und Dialoge (`dialog`)
@@ -62,3 +63,15 @@ installiert ihn automatisch während der `validate`-Phase.
   Projektes und bilden nicht den aktuellen Stand ab.
 - [TODO-Liste](TODO.md)
 - [Lizenz](LICENSE)
+
+## Spieldaten und Lizenzen
+
+ClockTrack ist ein inoffizielles Community-Projekt und steht in keiner Verbindung zu
+The Pandemonium Institute. Blood on the Clocktower ist ein Spiel von The Pandemonium Institute,
+dem alle Rechte am Spiel, an den Charakteren und deren Texten gehören.
+
+Die Charakterdaten unter `src/main/resources/net/techmayhem/clocktrack/gamedata/`
+(`roles.json` und `locale/de.json`) stammen aus den Repositories
+[botc-release](https://github.com/ThePandemoniumInstitute/botc-release) und [botc-translations](https://github.com/ThePandemoniumInstitute/botc-translations). Ihre Nutzung richtet sich nach der
+[Community Created Content Policy](https://bloodontheclocktower.com/pages/community-created-content-policy).
+Die MIT-Lizenz dieses Projekts gilt nur für den eigenen Quellcode, nicht für diese Daten.

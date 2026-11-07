@@ -1,0 +1,206 @@
+/* The rules follow the order of the constants in Styles.java. */
+
+.root {
+    /* Team colors */
+    -townsfolk: #003c73;
+    -outsider: #7fb0e0;
+    -minion: #a83a1f;
+    -demon: #880015;
+    -traveller: #800080;
+    -fabled: #D4AF37;
+    -loric: #4ccc33;
+
+    /* Result colors */
+    -good-win: derive(-townsfolk, 50%);
+    -good-loss: derive(-outsider, 50%);
+    -evil-loss: derive(-minion, 50%);
+    -evil-win: derive(-demon, 50%);
+
+    /* Neutral colors */
+    -dark-text: #333333;
+    -muted-text: #555555;
+    -section-border: #b5b5b5;
+    -section-divider: #c4c4c4;
+    -stat-block-border: #bfbfbf;
+    -game-won: #2e6b45;
+    -game-lost: #8a8a8a;
+}
+
+/* Teams */
+
+.team-townsfolk {
+    -team: -townsfolk;
+}
+
+.team-outsider {
+    -team: -outsider;
+}
+
+.team-minion {
+    -team: -minion;
+}
+
+.team-demon {
+    -team: -demon;
+}
+
+.team-traveller {
+    -team: -traveller;
+}
+
+.team-fabled {
+    -team: -fabled;
+}
+
+.team-loric {
+    -team: -loric;
+}
+
+.team-fill {
+    -fx-fill: -team;
+}
+
+.team-bar {
+    -fx-accent: -team;
+}
+
+/* Text */
+
+.title-text {
+    -fx-font-weight: bold;
+    -fx-font-size: 26px;
+}
+
+.subheading {
+    -fx-font-weight: bold;
+}
+
+.caption {
+    -fx-text-fill: -muted-text;
+}
+
+.value-small {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+/* Sections */
+
+.section {
+    -fx-background-color: -section-border, white;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 3, 2;
+}
+
+.section-title {
+    -fx-background-color: linear-gradient(#f7f7f7, #e2e2e2);
+    -fx-background-insets: 1 1 0 1;
+    -fx-background-radius: 2 2 0 0;
+    -fx-border-color: transparent transparent -section-divider transparent;
+    -fx-border-insets: 0 1 0 1;
+    -fx-padding: 6 10 6 10;
+    -fx-font-weight: bold;
+}
+
+.section-content {
+    -fx-padding: 16;
+}
+
+/* Stat blocks */
+
+.stat-block {
+    -fx-background-color: white;
+    -fx-border-color: -stat-block-border;
+}
+
+/* Wins and losses */
+
+.win-loss-chart {
+    CHART_COLOR_1: -good-win;
+    CHART_COLOR_2: -good-loss;
+    CHART_COLOR_3: -evil-loss;
+    CHART_COLOR_4: -evil-win;
+}
+
+.donut-hole {
+    -fx-fill: white;
+}
+
+.donut-total {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.legend-swatch {
+    -fx-min-width: 12;
+    -fx-min-height: 12;
+    -fx-max-width: 12;
+    -fx-max-height: 12;
+    -fx-background-radius: 6;
+}
+
+.win-loss-good-win {
+    -fx-background-color: -good-win;
+}
+
+.win-loss-good-loss {
+    -fx-background-color: -good-loss;
+}
+
+.win-loss-evil-loss {
+    -fx-background-color: -evil-loss;
+}
+
+.win-loss-evil-win {
+    -fx-background-color: -evil-win;
+}
+
+.recent-game {
+    -fx-min-width: 28;
+    -fx-min-height: 28;
+    -fx-background-radius: 14;
+    -fx-alignment: center;
+    -fx-font-weight: bold;
+}
+
+.recent-game-won {
+    -fx-background-color: -game-won;
+    -fx-text-fill: white;
+}
+
+.recent-game-lost {
+    -fx-background-color: -game-lost, white;
+    -fx-background-insets: 0, 2;
+    -fx-text-fill: -dark-text;
+}
+
+/* Bars and charts */
+
+.best-bar {
+    -fx-accent: -good-win;
+}
+
+.worst-bar {
+    -fx-accent: -evil-loss;
+}
+
+.good-ally-bar {
+    -fx-accent: -good-win;
+}
+
+.evil-ally-bar {
+    -fx-accent: -evil-win;
+}
+
+.games-bar {
+    -fx-accent: -good-win;
+}
+
+.survival-chart {
+    CHART_COLOR_1: -good-win;
+}
+
+.player-count-chart {
+    CHART_COLOR_1: -good-win;
+    CHART_COLOR_2: -evil-win;
+}

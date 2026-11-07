@@ -26,7 +26,7 @@ class Schema {
                     CREATE TABLE script(
                         id INTEGER PRIMARY KEY,
                         name TEXT NOT NULL,
-                        json TEXT
+                        json TEXT NOT NULL
                     );
                     """);
             statement.execute("""
