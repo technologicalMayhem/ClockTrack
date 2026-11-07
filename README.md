@@ -14,9 +14,9 @@ Die Anwendung verwaltet Spieler, Skripte und Sitzungen. Zu jeder Sitzung werden 
 und das Gewinnerteam gespeichert, sowie für jeden Spieler der Charakter, die Team-Zugehörigkeit und gegebenenfalls der Todeszeitpunkt 
 und Todesursache.
 
-Auch können Statistiken zu Spielern und Skripten eingesehen werden. *Noch nicht implementiert*
+Auch können Statistiken zu Spielern und Skripten eingesehen werden.
 
-Beim ersten Start wird die Möglichkeit gegeben einen Test-Datensatz zu nutzen um das Programm in Aktion zu sehen.
+Beim ersten Start wird die Möglichkeit gegeben einen Test-Datensatz zu nutzen, um das Programm in Aktion zu sehen.
 
 Die Anwendung ist auf Deutsch und Englisch verfügbar und richtet sich nach der Sprache des Systems.
 
