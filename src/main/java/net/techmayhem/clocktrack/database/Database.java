@@ -217,7 +217,7 @@ public class Database implements AutoCloseable {
         return runTransaction(conn -> isScriptReferenced(conn, id));
     }
 
-    private boolean isScriptReferenced(Connection conn, int id) throws SQLException {
+    private static boolean isScriptReferenced(Connection conn, int id) throws SQLException {
         String sql = """
                 SELECT EXISTS (SELECT 1 FROM session WHERE script_id = ?)
                 """;
@@ -830,7 +830,8 @@ public class Database implements AutoCloseable {
                 new ScriptStatistics(getScriptStatSessions(conn, scriptId), getScriptStatSeats(conn, scriptId)));
     }
 
-    private List<ScriptStatistics.Session> getScriptStatSessions(Connection conn, int scriptId) throws SQLException {
+    private static List<ScriptStatistics.Session> getScriptStatSessions(Connection conn, int scriptId)
+            throws SQLException {
         String sql = """
                 SELECT
                     s.date,
@@ -850,7 +851,7 @@ public class Database implements AutoCloseable {
         }
     }
 
-    private List<ScriptStatistics.Seat> getScriptStatSeats(Connection conn, int scriptId) throws SQLException {
+    private static List<ScriptStatistics.Seat> getScriptStatSeats(Connection conn, int scriptId) throws SQLException {
         String sql = """
                 SELECT
                     s.id AS session_id,
