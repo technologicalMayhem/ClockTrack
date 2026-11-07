@@ -826,8 +826,10 @@ public class Database implements AutoCloseable {
     /// @return The statistics of the script
     /// @throws DatabaseException If no script with the given id exists
     public ScriptStatistics getScriptStatistics(int scriptId) {
-        return runTransaction(conn ->
-                new ScriptStatistics(getScriptStatSessions(conn, scriptId), getScriptStatSeats(conn, scriptId)));
+        return runTransaction(conn -> {
+            getScript(conn, scriptId); // throws if no script with the given id exists
+            return new ScriptStatistics(getScriptStatSessions(conn, scriptId), getScriptStatSeats(conn, scriptId));
+        });
     }
 
     private static List<ScriptStatistics.Session> getScriptStatSessions(Connection conn, int scriptId)
