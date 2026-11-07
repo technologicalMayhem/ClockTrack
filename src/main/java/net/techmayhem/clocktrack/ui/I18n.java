@@ -93,6 +93,10 @@ public class I18n {
         return formatter.format(value);
     }
 
+    /// Returns the localized name of the given team.
+    ///
+    /// @param team The team to name
+    /// @return The localized name of the team
     public static String teamName(Team team) {
         return switch (team) {
             case TOWNSFOLK -> localize("generic.team.townsfolk");

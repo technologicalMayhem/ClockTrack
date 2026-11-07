@@ -5,11 +5,16 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.shape.Circle;
 import net.techmayhem.clocktrack.ui.Styles;
 
+/// A pie chart with a hole in the middle.
+///
+/// The hole sits on top of the slices and has the same color as the chart background. It follows the size and
+/// position of the pie and is hidden while the chart has no slices to show.
 public class DonutChart extends PieChart {
     private static final double HOLE_RATIO = 0.7; // hole radius relative to the pie radius
 
     private final Circle hole = new Circle();
 
+    /// Constructs a new donut chart without any data.
     public DonutChart() {
         hole.setMouseTransparent(true);
         hole.getStyleClass().add(Styles.DONUT_HOLE); // same as the default chart background

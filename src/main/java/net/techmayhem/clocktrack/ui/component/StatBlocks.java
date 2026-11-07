@@ -10,10 +10,17 @@ import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Styles;
 
+/// A row of blocks, each showing a value with a label below it.
+///
+/// The blocks share the width of the row evenly, no matter how long their texts are. Labels that do not fit wrap
+/// onto the next line.
 public class StatBlocks extends HBox {
 
     private static final double GRAY_INTENSITY = 0.75;
 
+    /// Creates a row with the given blocks, in the order they are given.
+    ///
+    /// @param blocks The blocks to show
     public StatBlocks(StatBlock... blocks) {
         super(Layout.SPACING);
         ObservableList<Node> children = getChildren();
@@ -41,5 +48,9 @@ public class StatBlocks extends HBox {
         }
     }
 
+    /// Represents a single block in a [StatBlocks] row.
+    ///
+    /// @param value The value, shown as a title
+    /// @param label The label shown below the value
     public record StatBlock(String value, String label) {}
 }
