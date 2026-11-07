@@ -46,9 +46,9 @@ public class ScriptsOverview extends EntityOverview {
 
     private void buildUi() {
         Button createButton = new Button(localize("scriptsOverview.new"));
-        Button viewButton = new Button(localize("scriptsOverview.view"));
         Button editButton = new Button(localize("scriptsOverview.edit"));
         Button deleteButton = new Button(localize("scriptsOverview.delete"));
+        Button viewButton = new Button(localize("scriptsOverview.view"));
 
         createButton.setOnAction(_ -> createNewScript());
         viewButton.setOnAction(_ -> viewScript());
@@ -59,7 +59,7 @@ public class ScriptsOverview extends EntityOverview {
         editButton.disableProperty().bind(noSelection);
         deleteButton.disableProperty().bind(noSelection);
 
-        List<Button> buttons = List.of(createButton, viewButton, editButton, deleteButton);
+        List<Button> buttons = List.of(createButton, editButton, deleteButton, viewButton);
         for (Button button : buttons) {
             button.setMaxWidth(Double.MAX_VALUE);
         }
