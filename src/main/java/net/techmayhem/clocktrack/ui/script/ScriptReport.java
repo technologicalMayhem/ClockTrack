@@ -110,7 +110,7 @@ public record ScriptReport(
         return appearances;
     }
 
-    /// Counts the games and good wins per Demon. Each Demon held by an evil player counts once per game.
+    /// Counts the games and evil wins per Demon. Each Demon held by an evil player counts once per game.
     private static Map<Role, Rate> resultsByDemon(Collection<List<ScriptStatistics.Seat>> games, SessionRoles roles) {
         Map<Role, Rate> results = new HashMap<>();
         for (Role role : roles.roleChoices()) {
@@ -178,9 +178,8 @@ public record ScriptReport(
     }
 
     /// Adds a game to the rate stored under the key.
-    private static <K> void count(Map<K, Rate> rates, K key, boolean goodWon) {
-        rates.merge(
-                key, new Rate(1, goodWon ? 1 : 0), (old, game) -> new Rate(old.games() + 1, old.wins() + game.wins()));
+    private static <K> void count(Map<K, Rate> rates, K key, boolean won) {
+        rates.merge(key, new Rate(1, won ? 1 : 0), (old, game) -> new Rate(old.games() + 1, old.wins() + game.wins()));
     }
 
     /// Turns games per player identifier into a list, the most games first. Identifiers without a player are skipped.
