@@ -5,7 +5,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import net.techmayhem.clocktrack.ui.Layout;
 import net.techmayhem.clocktrack.ui.Styles;
@@ -15,8 +14,6 @@ import net.techmayhem.clocktrack.ui.Styles;
 /// The blocks share the width of the row evenly, no matter how long their texts are. Labels that do not fit wrap
 /// onto the next line.
 public class StatBlocks extends HBox {
-
-    private static final double GRAY_INTENSITY = 0.75;
 
     /// Creates a row with the given blocks, in the order they are given.
     ///
@@ -30,9 +27,8 @@ public class StatBlocks extends HBox {
             Text text = new Text(block.label);
             VBox blockBox = new VBox(Layout.SPACING, value, text);
 
-            blockBox.setBackground(Background.fill(Color.WHITE));
+            blockBox.getStyleClass().add(Styles.STAT_BLOCK);
             blockBox.setPadding(new Insets(Layout.PADDING));
-            blockBox.setBorder(Border.stroke(Color.gray(GRAY_INTENSITY)));
 
             HBox.setHgrow(blockBox, Priority.ALWAYS);
             blockBox.setMaxWidth(Double.MAX_VALUE);

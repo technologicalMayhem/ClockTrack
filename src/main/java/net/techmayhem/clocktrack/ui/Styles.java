@@ -44,6 +44,11 @@ public final class Styles {
     /// The content area of a section.
     public static final String SECTION_CONTENT = "section-content";
 
+    // Stat blocks
+
+    /// The framed box of a single block in a row of stat blocks.
+    public static final String STAT_BLOCK = "stat-block";
+
     // Wins and losses
 
     /// Sets the colors of the slices of the chart that shows the wins and losses.
@@ -87,6 +92,12 @@ public final class Styles {
 
     /// The progress bar of a ranking entry that is among the worst.
     public static final String WORST_BAR = "worst-bar";
+
+    /// The progress bar of an ally on the good team.
+    public static final String GOOD_ALLY_BAR = "good-ally-bar";
+
+    /// The progress bar of an ally on the evil team.
+    public static final String EVIL_ALLY_BAR = "evil-ally-bar";
 
     /// The progress bar that shows a number of games.
     public static final String GAMES_BAR = "games-bar";

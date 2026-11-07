@@ -129,12 +129,12 @@ public class PlayerView extends StatisticsView {
                         localize("playerView.characters.best"),
                         localize("playerView.characters.bestEmpty", MIN_GAMES_FOR_RANKING),
                         split.best(),
-                        true),
+                        Styles.BEST_BAR),
                 rankingBox(
                         localize("playerView.characters.worst"),
                         localize("playerView.characters.worstEmpty", MIN_GAMES_FOR_RANKING),
                         split.worst(),
-                        false));
+                        Styles.WORST_BAR));
         Label rankingNote = caption(localize("playerView.characters.note", MIN_GAMES_FOR_RANKING));
 
         Label sortNote = caption(localize("playerView.characters.sortNote"));
@@ -235,8 +235,8 @@ public class PlayerView extends StatisticsView {
         return new Split(best, worst);
     }
 
-    /// Builds a titled list of bars that show the share of games won. `best` picks the style of the bars.
-    private static VBox rankingBox(String title, String emptyText, List<Ranked> rows, boolean best) {
+    /// Builds a titled list of bars that show the share of games won. `barStyle` is the style class of the bars.
+    private static VBox rankingBox(String title, String emptyText, List<Ranked> rows, String barStyle) {
         VBox container = new VBox(Layout.SPACING, subheading(title));
         if (rows.isEmpty()) {
             container.getChildren().add(new Label(emptyText));
@@ -260,7 +260,7 @@ public class PlayerView extends StatisticsView {
 
             ProgressBar bar = new ProgressBar(share);
             bar.setMaxWidth(Double.MAX_VALUE);
-            bar.getStyleClass().add(best ? Styles.BEST_BAR : Styles.WORST_BAR);
+            bar.getStyleClass().add(barStyle);
 
             Label rateLabel = new Label(
                     localize("playerView.ranking.rate", rate.wins(), rate.games(), I18n.formatPercentage(share, 0)));
@@ -459,14 +459,14 @@ public class PlayerView extends StatisticsView {
     private static GridPane survivalStreakPane(PlayerStatistics statistics) {
         return sideBySide(
                 section(localize("playerView.section.survival"), survivalPane(statistics)),
-                section(localize("playerView.section.streaks"), steaksPane(statistics)),
+                section(localize("playerView.section.streaks"), streaksPane(statistics)),
                 Layout.SPACING,
                 SURVIVAL_SECTION_PERCENT);
     }
 
     private static VBox survivalPane(PlayerStatistics statistics) {
         int played = statistics.gamesPlayed();
-        String share = played == 0 ? "–" : I18n.formatPercentage((double) statistics.survived() / played, 0);
+        String share = rate(statistics.survived(), played);
         Label summary = new Label(localize("playerView.survival.summary", statistics.survived(), played, share));
 
         if (statistics.deathsByPhase().isEmpty()) {
@@ -483,7 +483,7 @@ public class PlayerView extends StatisticsView {
         chart.setLegendVisible(false);
         chart.setAnimated(false);
         chart.setPrefHeight(DEFAULT_CHART_HEIGHT);
-        chart.setCategoryGap(8);
+        chart.setCategoryGap(Layout.PADDING);
         chart.getStyleClass().add(Styles.SURVIVAL_CHART);
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -504,7 +504,7 @@ public class PlayerView extends StatisticsView {
         return new VBox(Layout.SPACING, summary, chart);
     }
 
-    private static VBox steaksPane(PlayerStatistics statistics) {
+    private static VBox streaksPane(PlayerStatistics statistics) {
         StatBlock longestWinStreak =
                 new StatBlock(String.valueOf(statistics.longestWinStreak()), localize("playerView.streaks.longestWin"));
         StatBlock longestLossStreak = new StatBlock(
@@ -522,20 +522,20 @@ public class PlayerView extends StatisticsView {
 
     private static Node alliesPane(PlayerStatistics statistics) {
         GridPane rankings = sideBySide(
-                allyRanking(localize("playerView.allies.bestGood"), statistics.goodTeammates(), true),
-                allyRanking(localize("playerView.allies.bestEvil"), statistics.evilTeammates(), false));
+                allyRanking(localize("playerView.allies.bestGood"), statistics.goodTeammates(), Styles.GOOD_ALLY_BAR),
+                allyRanking(localize("playerView.allies.bestEvil"), statistics.evilTeammates(), Styles.EVIL_ALLY_BAR));
         Label note = caption(localize("playerView.allies.note", MIN_GAMES_FOR_RANKING));
         return new VBox(Layout.SPACING, rankings, note);
     }
 
-    private static VBox allyRanking(String title, Map<Integer, PlayerStatistics.Teammate> teammates, boolean good) {
+    private static VBox allyRanking(String title, Map<Integer, PlayerStatistics.Teammate> teammates, String barStyle) {
         List<Ranked> rows = teammates.values().stream()
                 .map(teammate -> new Ranked(teammate.name(), teammate.rate()))
                 .filter(row -> row.rate().games() >= MIN_GAMES_FOR_RANKING && winRate(row.rate) > RATING_THRESHOLD)
                 .sorted(byWinRate(true))
                 .limit(RANKING_SIZE)
                 .toList();
-        return rankingBox(title, localize("playerView.allies.empty", MIN_GAMES_FOR_RANKING), rows, good);
+        return rankingBox(title, localize("playerView.allies.empty", MIN_GAMES_FOR_RANKING), rows, barStyle);
     }
 
     private static Node scriptsPane(PlayerStatistics statistics) {

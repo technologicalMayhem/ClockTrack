@@ -21,6 +21,7 @@
     -muted-text: #555555;
     -section-border: #b5b5b5;
     -section-divider: #c4c4c4;
+    -stat-block-border: #bfbfbf;
     -game-won: #2e6b45;
     -game-lost: #8a8a8a;
 }
@@ -105,6 +106,13 @@
     -fx-padding: 16;
 }
 
+/* Stat blocks */
+
+.stat-block {
+    -fx-background-color: white;
+    -fx-border-color: -stat-block-border;
+}
+
 /* Wins and losses */
 
 .win-loss-chart {
@@ -174,6 +182,14 @@
 
 .worst-bar {
     -fx-accent: -evil-loss;
+}
+
+.good-ally-bar {
+    -fx-accent: -good-win;
+}
+
+.evil-ally-bar {
+    -fx-accent: -evil-win;
 }
 
 .games-bar {
