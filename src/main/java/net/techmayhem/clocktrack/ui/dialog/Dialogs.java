@@ -117,7 +117,7 @@ public class Dialogs {
         stage.showAndWait();
     }
 
-    /// Shows a dialog with an error and its stack trace, and waits until it is closed.
+    /// Shows a dialog with an error and its technical details, and waits until it is closed.
     ///
     /// The stack trace is collapsed at first, so the dialog stays readable for users who are not interested in it.
     /// If the error is fatal, the app exits when the user confirms the dialog.
@@ -128,7 +128,7 @@ public class Dialogs {
         Stage stage = createStage(localize("dialogs.error.title"));
 
         Text header = new Text(localize("dialogs.error.header"));
-        Text errorText = new Text(error.getMessage());
+        Text errorText = new Text(isFatal ? error.getMessage() : localize("dialogs.error.recoverable"));
         errorText.setWrappingWidth(DIALOG_MAX_WIDTH - Layout.PADDING * 2);
         Text footer = new Text(isFatal ? localize("dialogs.error.fatal") : localize("dialogs.error.nonFatal"));
 
@@ -139,10 +139,10 @@ public class Dialogs {
         stackTraceArea.setWrapText(false);
         stackTraceArea.setPrefRowCount(STACK_TRACE_ROWS);
 
-        TitledPane collapseStackTrack = new TitledPane(localize("dialogs.error.stackTrace"), stackTraceArea);
-        collapseStackTrack.setExpanded(false);
-        collapseStackTrack.setAnimated(false);
-        collapseStackTrack.expandedProperty().addListener((_, _, _) -> Platform.runLater(stage::sizeToScene));
+        TitledPane details = new TitledPane(localize("dialogs.error.details"), stackTraceArea);
+        details.setExpanded(false);
+        details.setAnimated(false);
+        details.expandedProperty().addListener((_, _, _) -> Platform.runLater(stage::sizeToScene));
 
         Button button = new Button(localize("generic.ok"));
         button.setDefaultButton(true);
@@ -152,7 +152,7 @@ public class Dialogs {
         });
 
         VBox vBox = createVBox();
-        vBox.getChildren().addAll(header, errorText, collapseStackTrack, footer, button);
+        vBox.getChildren().addAll(header, errorText, details, footer, button);
 
         Scene dialogScene = new Scene(vBox);
         stage.setScene(dialogScene);
