@@ -200,7 +200,7 @@ public class PlayerView extends Screen {
                 rankings,
                 rankingNote,
                 spacer,
-                new VBox(header(localize("playerView.characters.all")), sortNote),
+                new VBox(subheading(localize("playerView.characters.all")), sortNote),
                 expandableTable(characterStatsTable, rows, localize("playerView.characters.showAll", rows.size())));
     }
 
@@ -262,7 +262,7 @@ public class PlayerView extends Screen {
 
     /// Builds a titled list of bars that show the share of games won. `best` picks the style of the bars.
     private static VBox rankingBox(String title, String emptyText, List<Ranked> rows, boolean best) {
-        VBox container = new VBox(Layout.SPACING, header(title));
+        VBox container = new VBox(Layout.SPACING, subheading(title));
         if (rows.isEmpty()) {
             container.getChildren().add(new Label(emptyText));
             return container;
@@ -394,7 +394,7 @@ public class PlayerView extends Screen {
 
         return new VBox(
                 Layout.PADDING * 2,
-                new VBox(Layout.SPACING, header(localize("playerView.results.title")), legend),
+                new VBox(Layout.SPACING, subheading(localize("playerView.results.title")), legend),
                 new Separator(),
                 rates,
                 new Separator(),
@@ -436,7 +436,7 @@ public class PlayerView extends Screen {
             Tooltip.install(entry, new Tooltip(recentGameTooltip(game)));
             strip.getChildren().add(entry);
         }
-        return new VBox(Layout.PADDING, header(localize("playerView.recentGames.title", games.size())), strip);
+        return new VBox(Layout.PADDING, subheading(localize("playerView.recentGames.title", games.size())), strip);
     }
 
     private static String recentGameTooltip(PlayerStatistics.RecentGame game) {
@@ -496,7 +496,7 @@ public class PlayerView extends Screen {
         return label;
     }
 
-    private static Label header(String text) {
+    private static Label subheading(String text) {
         Label label = new Label(text);
         label.getStyleClass().add(Styles.SUBHEADING);
         return label;
@@ -504,13 +504,13 @@ public class PlayerView extends Screen {
 
     private static GridPane survivalStreakPane(PlayerStatistics statistics) {
         return Layout.sideBySide(
-                Layout.section(localize("playerView.section.survival"), buildSurvival(statistics)),
-                Layout.section(localize("playerView.section.streaks"), buildStreaks(statistics)),
+                Layout.section(localize("playerView.section.survival"), survivalPane(statistics)),
+                Layout.section(localize("playerView.section.streaks"), steaksPane(statistics)),
                 Layout.SPACING,
                 SURVIVAL_SECTION_PERCENT);
     }
 
-    private static VBox buildSurvival(PlayerStatistics statistics) {
+    private static VBox survivalPane(PlayerStatistics statistics) {
         int played = statistics.gamesPlayed();
         String share = played == 0 ? "–" : I18n.formatPercentage((double) statistics.survived() / played, 0);
         Label summary = new Label(localize("playerView.survival.summary", statistics.survived(), played, share));
@@ -553,7 +553,7 @@ public class PlayerView extends Screen {
         return new VBox(Layout.SPACING, summary, chart);
     }
 
-    private static VBox buildStreaks(PlayerStatistics statistics) {
+    private static VBox steaksPane(PlayerStatistics statistics) {
         StatBlock longestWinStreak =
                 new StatBlock(String.valueOf(statistics.longestWinStreak()), localize("playerView.streaks.longestWin"));
         StatBlock longestLossStreak = new StatBlock(
