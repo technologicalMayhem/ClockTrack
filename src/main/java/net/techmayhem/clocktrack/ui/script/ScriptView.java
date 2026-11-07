@@ -1,5 +1,7 @@
 package net.techmayhem.clocktrack.ui.script;
 
+import static net.techmayhem.clocktrack.ui.I18n.localize;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import javafx.beans.Observable;
@@ -62,7 +64,7 @@ public class ScriptView extends Screen {
 
         root.addEventFilter(ScrollEvent.SCROLL, event -> Layout.acceleratedScroll(root, event));
 
-        name = "View: " + script.name();
+        name = localize("scriptView.title", script.name());
 
         if (report.results().games() == 0) {
             content.getChildren().addAll(new VBox(Layout.SPACING, header(summary), noGamesPane(script)));
@@ -74,14 +76,16 @@ public class ScriptView extends Screen {
                         Layout.SPACING,
                         header(summary),
                         statBlocks(report),
-                        Layout.section("Results by player count", resultsPane(report)),
-                        Layout.section("Characters", characterPane(roles, report)),
-                        Layout.section("Demons", demonsPane(report)),
-                        Layout.section("Players", playersPane(report))));
+                        Layout.section(localize("scriptView.section.results"), resultsPane(report)),
+                        Layout.section(localize("scriptView.section.characters"), characterPane(roles, report)),
+                        Layout.section(localize("scriptView.section.demons"), demonsPane(report)),
+                        Layout.section(localize("scriptView.section.players"), playersPane(report))));
     }
 
     private VBox noGamesPane(Script script) {
-        return Layout.section("No data to show", new Label(script.name() + " has never been played."));
+        return Layout.section(
+                localize("scriptView.section.noData"),
+                new Label(localize("scriptView.noData.neverPlayed", script.name())));
     }
 
     private VBox header(ScriptSummary summary) {
@@ -89,8 +93,8 @@ public class ScriptView extends Screen {
         name.getStyleClass().add(Styles.TITLE_TEXT);
         String firstLastGameText;
         if (summary.firstPlayed() != null && summary.lastPlayed() != null) {
-            firstLastGameText = "First game " + I18n.formatDate(summary.firstPlayed()) + " · Last game "
-                    + I18n.formatDate(summary.lastPlayed());
+            firstLastGameText =
+                    localize("scriptView.header.firstLastGame", summary.firstPlayed(), summary.lastPlayed());
         } else {
             firstLastGameText = "";
         }
@@ -108,12 +112,15 @@ public class ScriptView extends Screen {
 
         Rate results = report.results();
         int evilWins = results.games() - results.wins();
-        StatBlock gamesPlayed = new StatBlock(Integer.toString(results.games()), "Games played");
+        StatBlock gamesPlayed =
+                new StatBlock(Integer.toString(results.games()), localize("scriptView.stat.gamesPlayed"));
         StatBlock goodWinrate = new StatBlock(
-                rate(results.wins(), results.games()), "Winrate good " + results.wins() + " of " + results.games());
-        StatBlock evilWinrate =
-                new StatBlock(rate(evilWins, results.games()), "Winrate evil " + evilWins + " of " + results.games());
-        StatBlock commonPlayerCount = new StatBlock(commonPlayerCountText, "Common player count");
+                rate(results.wins(), results.games()),
+                localize("scriptView.stat.winrateGood", results.wins(), results.games()));
+        StatBlock evilWinrate = new StatBlock(
+                rate(evilWins, results.games()), localize("scriptView.stat.winrateEvil", evilWins, results.games()));
+        StatBlock commonPlayerCount =
+                new StatBlock(commonPlayerCountText, localize("scriptView.stat.commonPlayerCount"));
 
         return new StatBlocks(gamesPlayed, goodWinrate, evilWinrate, commonPlayerCount);
     }
@@ -127,26 +134,26 @@ public class ScriptView extends Screen {
         double tickUnit = Math.max(1, Math.ceil(mostGames / 10.0)); // whole steps, ~10 ticks at most
 
         List<String> categories = resultsByPlayerCount.keySet().stream()
-                .map(playerCount -> playerCount + " Players")
+                .map(ScriptView::playerCountCategory)
                 .toList();
 
         CategoryAxis categoryAxis = new CategoryAxis(FXCollections.observableArrayList(categories));
-        categoryAxis.setLabel("Players");
+        categoryAxis.setLabel(localize("scriptView.results.axis.playerCount"));
         NumberAxis numberAxis = new NumberAxis(0, Math.ceil(Math.max(mostGames, 5) / tickUnit) * tickUnit, tickUnit);
         numberAxis.setMinorTickVisible(false);
-        numberAxis.setLabel("Wins");
+        numberAxis.setLabel(localize("scriptView.results.axis.wins"));
         StackedBarChart<String, Number> chart = new StackedBarChart<>(categoryAxis, numberAxis);
         chart.setAnimated(false);
         chart.setPrefHeight(CHART_HEIGHT);
         chart.getStyleClass().add(Styles.PLAYER_COUNT_CHART);
 
         XYChart.Series<String, Number> goodWin = new XYChart.Series<>();
-        goodWin.setName("Good wins");
+        goodWin.setName(localize("scriptView.results.goodWins"));
         XYChart.Series<String, Number> evilWin = new XYChart.Series<>();
-        evilWin.setName("Evil wins");
+        evilWin.setName(localize("scriptView.results.evilWins"));
 
         for (Map.Entry<Integer, Rate> entry : resultsByPlayerCount.entrySet()) {
-            String category = entry.getKey() + " Players";
+            String category = playerCountCategory(entry.getKey());
             Rate rate = entry.getValue();
             int evilWins = rate.games() - rate.wins();
             if (rate.wins() > 0) {
@@ -162,11 +169,18 @@ public class ScriptView extends Screen {
 
         for (XYChart.Series<String, Number> series : chart.getData()) {
             for (XYChart.Data<String, Number> data : series.getData()) {
-                Tooltip.install(data.getNode(), new Tooltip(series.getName() + ": " + data.getYValue()));
+                Tooltip.install(
+                        data.getNode(),
+                        new Tooltip(localize("scriptView.results.tooltip", series.getName(), data.getYValue())));
             }
         }
 
         return chart;
+    }
+
+    /// Returns the name of the chart category for the given player count, like "7 Players".
+    private static String playerCountCategory(int playerCount) {
+        return localize("scriptView.results.category", playerCount);
     }
 
     private static Node characterPane(SessionRoles roles, ScriptReport report) {
@@ -214,7 +228,8 @@ public class ScriptView extends Screen {
                 ProgressBar appearanceBar = new ProgressBar(appearanceShare);
                 appearanceBar.getStyleClass().addAll(Styles.TEAM_BAR, Styles.teamClass(team));
                 appearanceBar.setMaxWidth(Double.MAX_VALUE);
-                Label countLabel = new Label(appearances + " - " + I18n.formatPercentage(appearanceShare, 0));
+                Label countLabel = new Label(localize(
+                        "scriptView.characters.appearances", appearances, I18n.formatPercentage(appearanceShare, 0)));
                 roleGrid.addRow(rowIndex, nameLabel, appearanceBar, countLabel);
                 nameLabels.add(nameLabel);
                 countLabels.add(countLabel);
@@ -258,13 +273,14 @@ public class ScriptView extends Screen {
             bar.getStyleClass().addAll(Styles.TEAM_BAR, Styles.teamClass(Team.DEMON));
             bar.setMaxWidth(Double.MAX_VALUE);
 
-            Label rateLabel = new Label(rate.wins() + " of " + rate.games() + " - " + I18n.formatPercentage(share, 0));
+            Label rateLabel = new Label(
+                    localize("scriptView.demons.rate", rate.wins(), rate.games(), I18n.formatPercentage(share, 0)));
 
             grid.addRow(rowIndex, new Label(entry.getKey().name()), bar, rateLabel);
             rowIndex++;
         }
 
-        return new VBox(Layout.SPACING, subheading("How often did each demon win?"), grid);
+        return new VBox(Layout.SPACING, subheading(localize("scriptView.demons.title")), grid);
     }
 
     /// Returns the demons, most games first. Ties are ordered by role id, so the order is stable.
@@ -280,10 +296,10 @@ public class ScriptView extends Screen {
     private static Node playersPane(ScriptReport report) {
         return Layout.sideBySide(
                 gamesBox(
-                        "Played the most",
+                        localize("scriptView.players.mostPlayed"),
                         report.mostPlayed().stream().limit(PLAYER_RANKING_SIZE).toList()),
                 gamesBox(
-                        "Told the most",
+                        localize("scriptView.players.mostStorytold"),
                         report.storytellers().stream()
                                 .limit(PLAYER_RANKING_SIZE)
                                 .toList()));
