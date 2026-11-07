@@ -62,3 +62,15 @@ installiert ihn automatisch während der `validate`-Phase.
   Projektes und bilden nicht den aktuellen Stand ab.
 - [TODO-Liste](TODO.md)
 - [Lizenz](LICENSE)
+
+## Spieldaten und Lizenzen
+
+ClockTrack ist ein inoffizielles Community-Projekt und steht in keiner Verbindung zu
+The Pandemonium Institute. Blood on the Clocktower ist ein Spiel von The Pandemonium Institute,
+dem alle Rechte am Spiel, an den Charakteren und deren Texten gehören.
+
+Die Charakterdaten unter `src/main/resources/net/techmayhem/clocktrack/gamedata/`
+(`roles.json` und `locale/de.json`) stammen aus dem Repository
+[botc-release](https://github.com/ThePandemoniumInstitute/botc-release) und [botc-translations](https://github.com/ThePandemoniumInstitute/botc-translations). Ihre Nutzung richtet sich nach der
+[Community Created Content Policy](https://bloodontheclocktower.com/pages/community-created-content-policy).
+Die MIT-Lizenz dieses Projekts gilt nur für den eigenen Quellcode, nicht für diese Daten.
