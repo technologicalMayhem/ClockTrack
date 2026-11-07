@@ -1,5 +1,6 @@
 package net.techmayhem.clocktrack.ui.component;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -29,7 +30,10 @@ public class StatBlocks extends HBox {
             blockBox.setPrefWidth(0);
             blockBox.setMinWidth(0);
 
-            text.wrappingWidthProperty().bind(blockBox.widthProperty());
+            text.wrappingWidthProperty()
+                    .bind(Bindings.createDoubleBinding(
+                            () -> blockBox.getWidth() - blockBox.snappedLeftInset() - blockBox.snappedRightInset(),
+                            blockBox.widthProperty()));
 
             children.add(blockBox);
         }
