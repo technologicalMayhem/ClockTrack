@@ -46,8 +46,9 @@ Zum erstellen des Image wird JDK 25 benötigt. Das Image liegt danach in `target
 Der Code ist in folgende Pakete aufgeteilt, alle unterhalb von `net.techmayhem.clocktrack`:
 
 - `database`: Zugriff auf die SQLite-Datenbank und das Datenbankschema
+- `gamedata`: die mitgelieferten Charakterdaten von Blood on the Clocktower und das Einlesen und Prüfen von Skripten
 - `model`: Spieler, Skripte, Sitzungen und Teilnahmen, wie sie gespeichert werden
-- `projections`: Zusammenfassungen mit Statistiken für die Übersichten
+- `projections`: Zusammenfassungen und Statistiken für die Übersichten und die Ansichten von Spielern und Skripten
 - `sample`: die Beispieldaten
 - `ui`: die Benutzeroberfläche, unterteilt in die Bereiche `player`, `script` und `session` sowie gemeinsam genutzte
   Komponenten (`component`) und Dialoge (`dialog`)
