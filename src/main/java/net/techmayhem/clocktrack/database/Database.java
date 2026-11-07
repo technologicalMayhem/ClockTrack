@@ -837,9 +837,8 @@ public class Database implements AutoCloseable {
                     s.date,
                     s.good_won,
                     s.storyteller_id
-                FROM script
-                JOIN session s ON s.script_id = script.id
-                WHERE script.id = ?
+                FROM session s
+                WHERE s.script_id = ?
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, scriptId);
@@ -859,10 +858,9 @@ public class Database implements AutoCloseable {
                     ps.role,
                     ps.good,
                     s.good_won
-                FROM script
-                JOIN session s ON s.script_id = script.id\s
+                FROM session s
                 JOIN player_session ps ON ps.session_id = s.id
-                WHERE script.id = ?
+                WHERE s.script_id = ?
                 """;
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, scriptId);
