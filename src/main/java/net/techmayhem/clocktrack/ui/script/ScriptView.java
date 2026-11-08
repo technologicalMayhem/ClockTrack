@@ -171,7 +171,7 @@ public class ScriptView extends StatisticsView {
             teamSection.setMaxWidth(Double.MAX_VALUE);
             HBox teamSectionHeader = new HBox(Layout.SPACING);
             teamSectionHeader.setAlignment(Pos.CENTER_LEFT);
-            Label teamLabel = subheading(I18n.teamName(team));
+            Label teamLabel = subheading(I18n.teamNamePlural(team));
             Rectangle teamColor = new Rectangle();
             teamColor.getStyleClass().addAll(Styles.TEAM_FILL, Styles.teamClass(team));
             DoubleBinding halfLabelHeight = teamLabel.heightProperty().divide(2);

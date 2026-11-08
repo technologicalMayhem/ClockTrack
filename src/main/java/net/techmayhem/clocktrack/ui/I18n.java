@@ -93,19 +93,35 @@ public class I18n {
         return formatter.format(value);
     }
 
-    /// Returns the localized name of the given team.
+    /// Returns the localized singular name of the given team, e.g. for a single character of that team.
     ///
     /// @param team The team to name
-    /// @return The localized name of the team
-    public static String teamName(Team team) {
+    /// @return The localized singular name of the team
+    public static String teamNameSingular(Team team) {
         return switch (team) {
-            case TOWNSFOLK -> localize("generic.team.townsfolk");
-            case OUTSIDER -> localize("generic.team.outsider");
-            case MINION -> localize("generic.team.minion");
-            case DEMON -> localize("generic.team.demon");
-            case TRAVELLER -> localize("generic.team.traveller");
-            case FABLED -> localize("generic.team.fabled");
-            case LORIC -> localize("generic.team.loric");
+            case TOWNSFOLK -> localize("generic.team.singular.townsfolk");
+            case OUTSIDER -> localize("generic.team.singular.outsider");
+            case MINION -> localize("generic.team.singular.minion");
+            case DEMON -> localize("generic.team.singular.demon");
+            case TRAVELLER -> localize("generic.team.singular.traveller");
+            case FABLED -> localize("generic.team.singular.fabled");
+            case LORIC -> localize("generic.team.singular.loric");
+        };
+    }
+
+    /// Returns the localized plural name of the given team, e.g. as a heading over several characters of that team.
+    ///
+    /// @param team The team to name
+    /// @return The localized plural name of the team
+    public static String teamNamePlural(Team team) {
+        return switch (team) {
+            case TOWNSFOLK -> localize("generic.team.plural.townsfolk");
+            case OUTSIDER -> localize("generic.team.plural.outsider");
+            case MINION -> localize("generic.team.plural.minion");
+            case DEMON -> localize("generic.team.plural.demon");
+            case TRAVELLER -> localize("generic.team.plural.traveller");
+            case FABLED -> localize("generic.team.plural.fabled");
+            case LORIC -> localize("generic.team.plural.loric");
         };
     }
 }

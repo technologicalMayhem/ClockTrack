@@ -152,7 +152,7 @@ public class PlayerView extends StatisticsView {
                             Role role = roles.get(entry.getKey());
                             return role == null ? null : role.team();
                         },
-                        I18n::teamName),
+                        I18n::teamNameSingular),
                 new ColumnDef<>(
                         localize("playerView.characters.table.games"),
                         entry -> entry.getValue().games()),
