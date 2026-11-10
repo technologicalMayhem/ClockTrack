@@ -33,13 +33,17 @@ Die Anwendung wird direkt aus dem Repository gestartet:
 ./mvnw javafx:run
 ```
 
-Für eine eigenständige Version, die ohne installiertes JDK läuft, wird mit jlink ein Image gebaut:
+### Windows-Programmordner
 
-```sh
-./mvnw javafx:jlink
+Für eine eigenständige Version, die ohne installiertes JDK läuft, wird mit jpackage ein Image gebaut:
+
+Dafür wird JDK 25 benötigt (`jpackage` im `PATH` oder `JAVA_HOME` gesetzt):
+
+```bat
+scripts\package-windows.bat
 ```
 
-Zum erstellen des Image wird JDK 25 benötigt. Das Image liegt danach in `target/ClockTrack/`. Gestartet wird es über `target/ClockTrack/bin/ClockTrack`.
+Der Ordner liegt danach in `target\dist\ClockTrack\`. Zum Starten muss einfach `ClockTrack.exe` ausgeführt werden.
 
 ## Entwicklung
 
